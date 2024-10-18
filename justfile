@@ -45,7 +45,7 @@ format *files=target_dirs: venv
 # Lint all code in the project.
 lint report="false": venv
     {{ run }} ruff format --check {{ target_dirs }}
-    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--format gitlab > tests/gl-code-quality-report.json" } else { "" } }}
+    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--output-format gitlab > tests/gl-code-quality-report.json" } else { "" } }}
     {{ run }} mypy {{ target_dirs }}
 
 # Serve the documentation in a local server.
