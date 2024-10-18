@@ -1,0 +1,33 @@
+default_install_hook_types: [pre-push, pre-commit]
+default_stages:
+  - "push"
+repos:
+-   repo: local
+    hooks:
+    -   id: lint
+        name: Lint Code
+        entry: "just lint"
+        language: system
+        pass_filenames: false
+    -   id: spell-check
+        name: Spell Checking Docs
+        entry: "just spellcheck"
+        language: system
+        pass_filenames: false
+    -   id: lint-commit
+        name: Lint Commits
+        entry: "just lint-commit"
+        language: system
+        pass_filenames: false
+    -   id: poetry-check
+        name: Poetry lock Consistency
+        entry: "poetry lock --check"
+        language: system
+        pass_filenames: false
+    -   id: format-code
+        name: Format Code
+        entry: "just format"
+        language: system
+        files: .*\.py$
+        stages:
+          - "commit"
