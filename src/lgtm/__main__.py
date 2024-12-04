@@ -29,6 +29,8 @@ def review(pr_url: PRUrl, git_api_key: str, ai_api_key: str) -> None:
     )
     review = code_reviewer.review_pull_request(pr_url=pr_url)
 
+    code_reviewer.publish_review(pr_url=pr_url, review=review)
+
     click.echo(click.style("Code Review completed", fg="green"), color=True)
     # TODO: must publish the review to gitlab
     click.echo(click.style(_format_review_for_console(review), fg="blue"), color=True)
