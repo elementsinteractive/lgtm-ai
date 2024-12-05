@@ -1,55 +1,38 @@
 import json
-from urllib.parse import urlparse
 
 import gitlab
 import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
+from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
-    DiffsCollectionError,
     InvalidGitAuthError,
-    ProjectNotFoundError,
-    PullRequestNotFoundError,
+    PullRequestDiffError,
 )
+from lgtm.schemas import GitlabPRUrl
 
 
-class GitlabClient:
+class GitlabClient(GitClient[GitlabPRUrl]):
     def __init__(self, client: gitlab.Gitlab) -> None:
         self.client = client
 
-    def get_diff_from_url(self, pr_url: str) -> str:
+    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> str:
         """Return a stringified representation of the diffs from the given pull request URL.
 
         TODO: For GitLab, we are returning a json with the direct response from the API.
         We may decide to refine this later on.
-
-
-        TODO: The error handling and the url parsing is quite cursed.
         """
         try:
             self.client.auth()
         except gitlab.exceptions.GitlabAuthenticationError as err:
             raise InvalidGitAuthError from err
 
-        parsed_url = urlparse(pr_url)
-        full_project_path = parsed_url.path
-        project_path, mr = full_project_path.split("/-/")
-
         try:
-            project = self.client.projects.get(project_path[1:])
-        except gitlab.exceptions.GitlabError as err:
-            raise ProjectNotFoundError from err
-
-        try:
-            mr_num = int(mr.split("/")[-1])
-            pr = project.mergerequests.get(int(mr_num))
-        except (gitlab.exceptions.GitlabError, TypeError, ValueError, IndexError) as err:
-            raise PullRequestNotFoundError from err
-
-        try:
+            project = self.client.projects.get(pr_url.project_path)
+            pr = project.mergerequests.get(pr_url.mr_number)
             diffs = self._collect_diffs_from_pr(pr)
         except gitlab.exceptions.GitlabError as err:
-            raise DiffsCollectionError from err
+            raise PullRequestDiffError from err
 
         return json.dumps(diffs)
 

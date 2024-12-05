@@ -9,5 +9,5 @@ You should always quote the piece of code relevant for the code review comment a
 - A single summary comment at the end, that will help the developer understand the overall required changes (if any).
 
 
-If everything is correct and of good quality, you should answer with "LGTM". Be very concise.
+If everything is correct and of good quality, you should answer with "LGTM".
 """
