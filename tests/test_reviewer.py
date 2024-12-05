@@ -2,7 +2,9 @@ import json
 
 from lgtm.ai.agent import get_basic_agent
 from lgtm.ai.schemas import ReviewResponse
+from lgtm.git_client.base import GitClient
 from lgtm.reviewer import CodeReviewer
+from lgtm.schemas import GitlabPRUrl
 from pydantic_ai import models
 from pydantic_ai.messages import UserPrompt
 from pydantic_ai.models.test import TestModel
@@ -14,8 +16,8 @@ models.ALLOW_MODEL_REQUESTS = False
 m_diff = json.dumps({"diffs": [{"diff": "diff1"}, {"diff": "diff2"}]})
 
 
-class MockGitClient:
-    def get_diff_from_url(self, pr_url: str) -> str:
+class MockGitClient(GitClient[GitlabPRUrl]):
+    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> str:
         return m_diff
 
 
@@ -25,7 +27,7 @@ def test_get_review_from_url_valid() -> None:
         model=TestModel(),
     ):
         code_reviewer = CodeReviewer(agent=test_agent, git_client=MockGitClient())
-        review = code_reviewer.review_pull_request(pr_url="foo.com")
+        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
 
     # We get an actual review object
     assert review == ReviewResponse(summary="a")

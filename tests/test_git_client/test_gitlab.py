@@ -5,16 +5,15 @@ import click
 import gitlab
 import gitlab.exceptions
 import pytest
-from lgtm.git_client.exceptions import ProjectNotFoundError, PullRequestNotFoundError
+from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
+from lgtm.schemas import GitlabPRUrl
 
-
-def test_get_diff_from_url_bad_url() -> None:
-    """Invalid URLs are just not handled by the client, they are validated at the cli level."""
-    client = GitlabClient(client=mock.Mock(spec=gitlab.Gitlab))
-
-    with pytest.raises(ValueError, match="not enough values"):
-        client.get_diff_from_url("https://gitlab.com/not-an-mr")
+MGitlabUrl = GitlabPRUrl(
+    full_url="https://gitlab.com/foo/-/merge_requests/1",
+    project_path="foo",
+    mr_number=1,
+)
 
 
 def test_project_not_found_error() -> None:
@@ -22,8 +21,8 @@ def test_project_not_found_error() -> None:
     m_client.projects.get.side_effect = gitlab.exceptions.GitlabError("Project not found")
 
     client = GitlabClient(client=m_client)
-    with pytest.raises((ProjectNotFoundError, click.ClickException)):
-        client.get_diff_from_url("https://gitlab.com/foo/-/bar")
+    with pytest.raises((PullRequestDiffError, click.ClickException)):
+        client.get_diff_from_url(MGitlabUrl)
 
 
 def test_pull_request_not_found_error() -> None:
@@ -33,17 +32,8 @@ def test_pull_request_not_found_error() -> None:
     m_client.projects.get.return_value = m_project
 
     client = GitlabClient(client=m_client)
-    with pytest.raises((PullRequestNotFoundError, click.ClickException)):
-        client.get_diff_from_url("https://gitlab.com/foo/-/1")
-
-
-def test_pull_request_not_an_int_error() -> None:
-    m_client = mock.Mock()
-    m_client.projects.get.return_value = mock.Mock()
-
-    client = GitlabClient(client=m_client)
-    with pytest.raises((PullRequestNotFoundError, click.ClickException)):
-        client.get_diff_from_url("https://gitlab.com/foo/-/bar")
+    with pytest.raises((PullRequestDiffError, click.ClickException)):
+        client.get_diff_from_url(MGitlabUrl)
 
 
 def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None:
@@ -57,7 +47,7 @@ def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None
     m_client.projects.get.return_value = m_project
 
     client = GitlabClient(client=m_client)
-    assert client.get_diff_from_url("https://gitlab.com/foo/-/1") == json.dumps(
+    assert client.get_diff_from_url(MGitlabUrl) == json.dumps(
         [
             diffs_response,
             diffs_response,

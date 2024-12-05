@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lgtm"
-version = "0.0.5"
+version = "0.1.0"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
@@ -100,7 +100,7 @@ source = ["src"]
 omit = ["tests/*"]
 
 [tool.coverage.report]
-fail_under = 70 # FIXME: Increase this! There is just not enough code yet!
+fail_under = 75 # FIXME: Increase this! There is just not enough code yet!
 exclude_lines = [
     "if TYPE_CHECKING:",
     "pragma: no cover",
@@ -111,7 +111,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.0.5"
+version = "0.1.0"
 tag_format = "v$version"
 
 [tool.commitizen.customize]
