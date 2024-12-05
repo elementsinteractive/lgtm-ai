@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="lgtm-logo" width="150" src="./assets/lgtm-large.png">
+</p>
+
 # lgtm
 
 [![💀 - Made with Skeleton](https://img.shields.io/badge/💀-Made_with_Skeleton-0e7fbf)](https://gitlab.com/namespace/elements/backend/pypackage-skeleton)
