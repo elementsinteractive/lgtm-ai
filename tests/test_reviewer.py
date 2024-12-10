@@ -20,6 +20,9 @@ class MockGitClient(GitClient[GitlabPRUrl]):
     def get_diff_from_url(self, pr_url: GitlabPRUrl) -> str:
         return m_diff
 
+    def post_review(self, pr_url: GitlabPRUrl, review: ReviewResponse) -> None:
+        return None
+
 
 def test_get_review_from_url_valid() -> None:
     test_agent = get_basic_agent(api_key="foo")

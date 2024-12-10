@@ -8,6 +8,13 @@ class PullRequestDiffError(ClickException):
         super().__init__(self.message)
 
 
+class PublishReviewError(ClickException):
+    message = "Failed to publish the review"
+
+    def __init__(self) -> None:
+        super().__init__(self.message)
+
+
 class InvalidGitAuthError(ClickException):
     message = "Invalid Git service authentication token"
 
