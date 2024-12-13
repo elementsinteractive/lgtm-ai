@@ -3,7 +3,7 @@ from importlib.metadata import version
 import click
 import gitlab
 from lgtm.ai.agent import get_basic_agent
-from lgtm.ai.schemas import ReviewResponse
+from lgtm.ai.schemas import Review
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.reviewer import CodeReviewer
 from lgtm.schemas import PRUrl
@@ -36,8 +36,8 @@ def review(pr_url: PRUrl, git_api_key: str, ai_api_key: str) -> None:
     click.echo(click.style(_format_review_for_console(review), fg="blue"), color=True)
 
 
-def _format_review_for_console(review: ReviewResponse) -> str:
-    lines = [f"Summary: {review.summary}"]
-    for comment in review.comments:
-        lines.append(f"\t- Comment: {comment.file}:{comment.line_number}: {comment.comment}")
+def _format_review_for_console(review: Review) -> str:
+    lines = [f"Summary: {review.review_response.summary}"]
+    for comment in review.review_response.comments:
+        lines.append(f"\t- Comment: {comment.new_path}:{comment.line_number}: {comment.comment}")
     return "\n".join(lines)

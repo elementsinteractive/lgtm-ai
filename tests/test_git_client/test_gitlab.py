@@ -5,10 +5,12 @@ import click
 import gitlab
 import gitlab.exceptions
 import pytest
-from lgtm.ai.schemas import ReviewComment, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewComment, ReviewResponse
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
+from lgtm.git_client.schemas import PRDiff
 from lgtm.schemas import GitlabPRUrl
+from tests.conftest import CopyingMock
 
 MockGitlabUrl = GitlabPRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
@@ -41,43 +43,165 @@ def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None
     """Ensures the diff is correctly concatenated given a valid gitlab URL and successful API calls."""
     m_mr = mock.Mock()
     m_mr.diffs.list.return_value = [mock.Mock(id=1), mock.Mock(id=2)]
-    m_mr.diffs.get.side_effect = [mock.Mock(diffs=diffs_response), mock.Mock(diffs=diffs_response)]
+    m_mr.diffs.get.return_value = mock.Mock(id=1, diffs=diffs_response)
     m_project = mock.Mock()
     m_project.mergerequests.get.return_value = m_mr
     m_client = mock.Mock()
     m_client.projects.get.return_value = m_project
 
     client = GitlabClient(client=m_client)
-    assert client.get_diff_from_url(MockGitlabUrl) == json.dumps(
-        [
+    assert client.get_diff_from_url(MockGitlabUrl) == PRDiff(
+        1,
+        json.dumps(
             diffs_response,
-            diffs_response,
-        ]
+        ),
     )
 
 
 def test_post_review_successful() -> None:
     m_mr = mock.Mock()
+    m_mr.diffs.get.return_value = mock.Mock(base_commit_sha="base", head_commit_sha="head", start_commit_sha="start")
     m_project = mock.Mock()
     m_project.mergerequests.get.return_value = m_mr
     m_client = mock.Mock()
     m_client.projects.get.return_value = m_project
+    m_project.diffs.list.return_value = [mock.Mock()]
 
     client = GitlabClient(client=m_client)
     client.post_review(
         MockGitlabUrl,
-        ReviewResponse(
-            summary="a",
-            comments=[
-                ReviewComment(
-                    file="foo",
-                    line_number=1,
-                    comment="a",
-                )
-            ],
+        Review(
+            PRDiff(1, ""),
+            ReviewResponse(
+                summary="a",
+                comments=[
+                    ReviewComment(
+                        new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
+                    ),
+                    ReviewComment(
+                        new_path="bar", old_path="bar", line_number=2, comment="c", is_comment_on_new_path=False
+                    ),
+                ],
+            ),
         ),
     )
 
-    assert m_mr.notes.create.call_args_list == [
-        mock.call({"body": "🦉 **lgtm Review**\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] _foo:1_ a"})
+    m_mr.notes.create.assert_called_with({"body": "🦉 **lgtm Review**\n\n**Summary:**\n\n>a"})
+    m_mr.discussions.create.assert_has_calls(
+        [
+            mock.call(
+                {
+                    "body": "🦉 b",
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "foo",
+                        "old_path": "foo",
+                        "position_type": "text",
+                        "new_line": 1,
+                    },
+                }
+            ),
+            mock.call(
+                {
+                    "body": "🦉 c",
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "bar",
+                        "old_path": "bar",
+                        "position_type": "text",
+                        "old_line": 2,
+                    },
+                }
+            ),
+        ]
+    )
+
+
+def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
+    m_mr = (
+        CopyingMock()
+    )  # Use `CopyingMock` because `pr.discussions.create` is called with a mutated argument when it is retried
+    m_mr.diffs.get.return_value = mock.Mock(base_commit_sha="base", head_commit_sha="head", start_commit_sha="start")
+    m_mr.discussions.create.side_effect = [
+        mock.Mock(),
+        gitlab.exceptions.GitlabError(),
+        gitlab.exceptions.GitlabError(),
     ]
+    m_project = mock.Mock()
+    m_project.mergerequests.get.return_value = m_mr
+    m_client = mock.Mock()
+    m_client.projects.get.return_value = m_project
+    m_project.diffs.list.return_value = [mock.Mock()]
+
+    client = GitlabClient(client=m_client)
+    client.post_review(
+        MockGitlabUrl,
+        Review(
+            PRDiff(1, ""),
+            ReviewResponse(
+                summary="a",
+                comments=[
+                    ReviewComment(
+                        new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
+                    ),
+                    ReviewComment(
+                        new_path="bar", old_path="bar", line_number=2, comment="c", is_comment_on_new_path=False
+                    ),
+                ],
+            ),
+        ),
+    )
+
+    m_mr.notes.create.assert_called_with(
+        {"body": "🦉 **lgtm Review**\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] _bar:2_ c"}
+    )
+    m_mr.discussions.create.assert_has_calls(
+        [
+            mock.call(
+                {
+                    "body": "🦉 b",
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "foo",
+                        "old_path": "foo",
+                        "position_type": "text",
+                        "new_line": 1,
+                    },
+                }
+            ),
+            mock.call(
+                {
+                    "body": "🦉 c",
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "bar",
+                        "old_path": "bar",
+                        "position_type": "text",
+                        "old_line": 2,
+                    },
+                }
+            ),
+            mock.call(
+                {
+                    "body": "🦉 c",
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "bar",
+                        "old_path": "bar",
+                        "position_type": "text",
+                        "new_line": 2,
+                    },
+                }
+            ),
+        ]
+    )

@@ -8,6 +8,13 @@ class PullRequestDiffError(ClickException):
         super().__init__(self.message)
 
 
+class PullRequestDiffNotFoundError(ClickException):
+    message = "No diff found for this pull request"
+
+    def __init__(self) -> None:
+        super().__init__(self.message)
+
+
 class PublishReviewError(ClickException):
     message = "Failed to publish the review"
 

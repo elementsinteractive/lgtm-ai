@@ -1,4 +1,19 @@
+from copy import deepcopy
+from unittest.mock import MagicMock
+
 import pytest
+
+
+class CopyingMock(MagicMock):
+    """Mock which copies arguments when mocks are called with mutable arguments.
+
+    https://docs.python.org/3/library/unittest.mock-examples.html#coping-with-mutable-arguments
+    """
+
+    def __call__(self, /, *args, **kwargs):
+        args = deepcopy(args)
+        kwargs = deepcopy(kwargs)
+        return super().__call__(*args, **kwargs)
 
 
 @pytest.fixture

@@ -1,8 +1,9 @@
 import json
 
 from lgtm.ai.agent import get_basic_agent
-from lgtm.ai.schemas import ReviewResponse
+from lgtm.ai.schemas import Review, ReviewResponse
 from lgtm.git_client.base import GitClient
+from lgtm.git_client.schemas import PRDiff
 from lgtm.reviewer import CodeReviewer
 from lgtm.schemas import GitlabPRUrl
 from pydantic_ai import models
@@ -17,10 +18,10 @@ m_diff = json.dumps({"diffs": [{"diff": "diff1"}, {"diff": "diff2"}]})
 
 
 class MockGitClient(GitClient[GitlabPRUrl]):
-    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> str:
-        return m_diff
+    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> PRDiff:
+        return PRDiff(1, m_diff)
 
-    def post_review(self, pr_url: GitlabPRUrl, review: ReviewResponse) -> None:
+    def post_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
         return None
 
 
@@ -33,7 +34,7 @@ def test_get_review_from_url_valid() -> None:
         review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
 
     # We get an actual review object
-    assert review == ReviewResponse(summary="a")
+    assert review == Review(PRDiff(1, m_diff), ReviewResponse(summary="a"))
 
     # There are messages with the correct prompts to the AI agent
     assert test_agent.last_run_messages
