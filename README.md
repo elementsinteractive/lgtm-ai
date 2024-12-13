@@ -138,5 +138,22 @@ configuring pre-commit to execute some of them can be beneficial to reduce late 
 just pre-commit
 ```
 
+## Evaluating lgtm (WIP)
+
+If you are working on improving the prompts of the AI, the models, or other areas of lgtm that might affect the quality of the reviews,
+this repo comes with a script that will help you bootstrap your evaluations.
+
+In your branch, run the following command:
+
+```sh
+python scripts/evaluate_review_quality.py --git-api-key $GITLAB_TOKEN --ai-api-key $OPENAI_API_KEY
+```
+
+That will create several markdown files with the results of several reviews done with the changes in your branch.
+
+You can use these reviews to evaluate the quality of them, and whether your changes are improving lgtm!
+
+Be sure to include the results of the assessment in your PR, because that will help reviewers see your improvements.
+
 ### [API Development Guidelines](https://www.notion.so/msdevelopment/API-Development-Guidelines-200a3ab28acd4163bc93117c2ed78401)
 ### [Code Review Guidelines](https://www.notion.so/msdevelopment/Code-Review-Guidelines-2773532cd0774ea48e9011f4df64252f)
