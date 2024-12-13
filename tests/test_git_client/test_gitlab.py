@@ -68,7 +68,7 @@ def test_post_review_successful() -> None:
     m_project.diffs.list.return_value = [mock.Mock()]
 
     client = GitlabClient(client=m_client)
-    client.post_review(
+    client.publish_review(
         MockGitlabUrl,
         Review(
             PRDiff(1, ""),
@@ -138,7 +138,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     m_project.diffs.list.return_value = [mock.Mock()]
 
     client = GitlabClient(client=m_client)
-    client.post_review(
+    client.publish_review(
         MockGitlabUrl,
         Review(
             PRDiff(1, ""),

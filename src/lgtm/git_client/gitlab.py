@@ -37,7 +37,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
         return PRDiff(diff.id, json.dumps(diff.diffs))
 
-    def post_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
+    def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
         try:
             pr = _get_pr_from_url(self.client, pr_url)
             failed_comments = self._post_comments(pr, review)

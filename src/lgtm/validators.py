@@ -32,7 +32,7 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
             return _parse_gitlab_url(parsed)
         case _:
             raise click.BadParameter(
-                f"The PR URL must be one of {', '.join([s.value for s in AllowedLocations.__members__.values()])}"
+                f"The PR URL host must be one of: {', '.join([s.value for s in AllowedLocations.__members__.values()])}"
             )
 
 
