@@ -21,7 +21,7 @@ class MockGitClient(GitClient[GitlabPRUrl]):
     def get_diff_from_url(self, pr_url: GitlabPRUrl) -> PRDiff:
         return PRDiff(1, m_diff)
 
-    def post_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
+    def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
         return None
 
 

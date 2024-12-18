@@ -13,6 +13,3 @@ class CodeReviewer:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         res = self.agent.run_sync(user_prompt=pr_diff.diff)
         return Review(pr_diff, res.data)
-
-    def publish_review(self, pr_url: PRUrl, review: Review) -> None:
-        self.git_client.post_review(pr_url, review)
