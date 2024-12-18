@@ -2,10 +2,10 @@ import json
 
 from lgtm.ai.agent import get_basic_agent
 from lgtm.ai.schemas import Review, ReviewResponse
+from lgtm.base.schemas import GitlabPRUrl
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRDiff
 from lgtm.reviewer import CodeReviewer
-from lgtm.schemas import GitlabPRUrl
 from pydantic_ai import models
 from pydantic_ai.messages import UserPrompt
 from pydantic_ai.models.test import TestModel

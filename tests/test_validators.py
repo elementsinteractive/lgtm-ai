@@ -5,7 +5,7 @@ from unittest import mock
 
 import click
 import pytest
-from lgtm.schemas import GitlabPRUrl
+from lgtm.base.schemas import GitlabPRUrl
 from lgtm.validators import parse_pr_url
 
 

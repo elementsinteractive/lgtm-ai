@@ -6,10 +6,10 @@ import gitlab
 import gitlab.exceptions
 import pytest
 from lgtm.ai.schemas import Review, ReviewComment, ReviewResponse
+from lgtm.base.schemas import GitlabPRUrl
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.git_client.schemas import PRDiff
-from lgtm.schemas import GitlabPRUrl
 from tests.conftest import CopyingMock
 
 MockGitlabUrl = GitlabPRUrl(
