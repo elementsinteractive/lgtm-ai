@@ -1,7 +1,11 @@
+import logging
+
 from lgtm.ai.prompts import BASIC_SYSTEM_PROMPT
 from lgtm.ai.schemas import ReviewResponse
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
+
+logger = logging.getLogger("lgtm.ai")
 
 
 def get_basic_agent(api_key: str) -> Agent[None, ReviewResponse]:
@@ -11,6 +15,7 @@ def get_basic_agent(api_key: str) -> Agent[None, ReviewResponse]:
     #    - Context based on the repo code (using dependencies)
     # - I would also prefer it to be in the module scope and not in a closure
     model = OpenAIModel(model_name="gpt-4o-mini", api_key=api_key)
+    logger.info("Initialized OpenAI model %s", model.model_name)
     return Agent(
         model,
         result_type=ReviewResponse,

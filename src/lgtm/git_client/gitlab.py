@@ -1,11 +1,13 @@
 import functools
 import json
+import logging
 
 import gitlab
 import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
 from lgtm.ai.schemas import Review, ReviewComment
+from lgtm.base.schemas import GitlabPRUrl
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
     InvalidGitAuthError,
@@ -14,7 +16,8 @@ from lgtm.git_client.exceptions import (
     PullRequestDiffNotFoundError,
 )
 from lgtm.git_client.schemas import PRDiff
-from lgtm.schemas import GitlabPRUrl
+
+logger = logging.getLogger("lgtm.git")
 
 
 class GitlabClient(GitClient[GitlabPRUrl]):
@@ -26,18 +29,23 @@ class GitlabClient(GitClient[GitlabPRUrl]):
         """Return a PRDiff object containing an identifier to the diff and a stringified representation of the diff from latest version of the given pull request URL."""
         try:
             self.client.auth()
+            logger.info("Authenticated with GitLab")
         except gitlab.exceptions.GitlabAuthenticationError as err:
+            logger.error("Invalid GitLab authentication token")
             raise InvalidGitAuthError from err
 
+        logger.info("Fetching diff from GitLab")
         try:
             pr = _get_pr_from_url(self.client, pr_url)
             diff = self._get_diff_from_pr(pr)
         except gitlab.exceptions.GitlabError as err:
+            logger.error("Failed to retrieve the diff of the pull request")
             raise PullRequestDiffError from err
 
         return PRDiff(diff.id, json.dumps(diff.diffs))
 
     def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
+        logger.info("Publishing review to GitLab")
         try:
             pr = _get_pr_from_url(self.client, pr_url)
             failed_comments = self._post_comments(pr, review)
@@ -61,6 +69,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
         Returns:
             list[ReviewComment]: list of comments that could not be created, and therefore should be appended to the review summary
         """
+        logger.info("Posting comments to GitLab")
         failed_comments: list[ReviewComment] = []
 
         diff = pr.diffs.get(review.pr_diff.id)
@@ -87,6 +96,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 pr.discussions.create(gitlab_comment)
             except gitlab.exceptions.GitlabError:
                 # Switch new_line <-> old_line in case the AI made a mistake with `is_comment_on_new_path`
+                logger.warning("Failed to post comment, retrying with new_line <-> old_line")
                 if "old_line" in position:
                     position["new_line"] = position.pop("old_line")
                 else:
@@ -99,6 +109,8 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                     # Add it to the list of failed comments to be published in the summary comment
                     failed_comments.append(review_comment)
 
+        if failed_comments:
+            logger.warning("Some comments could not be posted to GitLab, failed: %d", len(failed_comments))
         return failed_comments
 
     def _get_summary_body(self, review: Review, failed_comments: list[ReviewComment]) -> str:
@@ -140,5 +152,6 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
 @functools.lru_cache(maxsize=32)
 def _get_pr_from_url(client: gitlab.Gitlab, pr_url: GitlabPRUrl) -> gitlab.v4.objects.ProjectMergeRequest:
+    logger.debug("Fetching project from GitLab (cache miss)")
     project = client.projects.get(pr_url.project_path)
     return project.mergerequests.get(pr_url.mr_number)

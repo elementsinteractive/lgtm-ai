@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lgtm"
-version = "0.4.0"
+version = "0.5.0"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
@@ -66,6 +66,7 @@ select = [
 ignore = [
     'D1',     # pydocstyle enforcement of docstrings everywhere
     'TRY003', # tryceratops too noisy
+    'TRY400', # we don't necessarily want to expose exceptions through logging
     "E501",   # line length (black handles it)
     "COM812", # may cause conflicts when used with the formatter
 ]
@@ -112,7 +113,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.4.0"
+version = "0.5.0"
 tag_format = "v$version"
 
 [tool.commitizen.customize]

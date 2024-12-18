@@ -1,8 +1,8 @@
 from typing import Protocol, TypeVar
 
 from lgtm.ai.schemas import Review
+from lgtm.base.schemas import PRUrl
 from lgtm.git_client.schemas import PRDiff
-from lgtm.schemas import PRUrl
 
 _T_contra = TypeVar("_T_contra", contravariant=True, bound=PRUrl)
 

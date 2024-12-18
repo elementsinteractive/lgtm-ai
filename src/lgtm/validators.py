@@ -2,7 +2,7 @@ from enum import StrEnum
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm.schemas import GitlabPRUrl, PRUrl
+from lgtm.base.schemas import GitlabPRUrl, PRUrl
 
 
 class AllowedLocations(StrEnum):
