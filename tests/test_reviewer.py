@@ -34,7 +34,7 @@ def test_get_review_from_url_valid() -> None:
         review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
 
     # We get an actual review object
-    assert review == Review(PRDiff(1, m_diff), ReviewResponse(summary="a"))
+    assert review == Review(PRDiff(1, m_diff), ReviewResponse(summary="a", score="LGTM"))
 
     # There are messages with the correct prompts to the AI agent
     assert test_agent.last_run_messages
