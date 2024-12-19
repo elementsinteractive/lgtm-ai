@@ -77,10 +77,22 @@ def test_post_review_successful() -> None:
                 score="LGTM",
                 comments=[
                     ReviewComment(
-                        new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
+                        new_path="foo",
+                        old_path="foo",
+                        line_number=1,
+                        comment="b",
+                        is_comment_on_new_path=True,
+                        category="Correctness",
+                        severity="LOW",
                     ),
                     ReviewComment(
-                        new_path="bar", old_path="bar", line_number=2, comment="c", is_comment_on_new_path=False
+                        new_path="bar",
+                        old_path="bar",
+                        line_number=2,
+                        comment="c",
+                        is_comment_on_new_path=False,
+                        category="Correctness",
+                        severity="LOW",
                     ),
                 ],
             ),
@@ -92,7 +104,7 @@ def test_post_review_successful() -> None:
         [
             mock.call(
                 {
-                    "body": "🦉 b",
+                    "body": "🦉 **[Correctness]** 🟢 b",
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -106,7 +118,7 @@ def test_post_review_successful() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 c",
+                    "body": "🦉 **[Correctness]** 🟢 c",
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -148,10 +160,22 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                 score="LGTM",
                 comments=[
                     ReviewComment(
-                        new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
+                        new_path="foo",
+                        old_path="foo",
+                        line_number=1,
+                        comment="b",
+                        is_comment_on_new_path=True,
+                        category="Correctness",
+                        severity="LOW",
                     ),
                     ReviewComment(
-                        new_path="bar", old_path="bar", line_number=2, comment="c", is_comment_on_new_path=False
+                        new_path="bar",
+                        old_path="bar",
+                        line_number=2,
+                        comment="c",
+                        is_comment_on_new_path=False,
+                        category="Correctness",
+                        severity="LOW",
                     ),
                 ],
             ),
@@ -160,14 +184,14 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
 
     m_mr.notes.create.assert_called_with(
         {
-            "body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] _bar:2_ c"
+            "body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] **[ Correctness ]** 🟢 _bar:2_ c"
         }
     )
     m_mr.discussions.create.assert_has_calls(
         [
             mock.call(
                 {
-                    "body": "🦉 b",
+                    "body": "🦉 **[Correctness]** 🟢 b",
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -181,7 +205,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 c",
+                    "body": "🦉 **[Correctness]** 🟢 c",
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -195,7 +219,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 c",
+                    "body": "🦉 **[Correctness]** 🟢 c",
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
