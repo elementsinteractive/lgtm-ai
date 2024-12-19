@@ -110,7 +110,11 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                     failed_comments.append(review_comment)
 
         if failed_comments:
-            logger.warning("Some comments could not be posted to GitLab, failed: %d", len(failed_comments))
+            logger.warning(
+                "Some comments could not be posted to GitLab; total: %d, failed: %d",
+                len(review.review_response.comments),
+                len(failed_comments),
+            )
         return failed_comments
 
     def _get_summary_body(self, review: Review, failed_comments: list[ReviewComment]) -> str:
