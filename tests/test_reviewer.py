@@ -26,7 +26,7 @@ class MockGitClient(GitClient[GitlabPRUrl]):
 
 
 def test_get_review_from_url_valid() -> None:
-    test_agent = get_basic_agent(api_key="foo")
+    test_agent = get_basic_agent("gpt-4", api_key="foo")
     with test_agent.override(
         model=TestModel(),
     ):
