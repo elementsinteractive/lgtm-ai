@@ -74,6 +74,7 @@ def test_post_review_successful() -> None:
             PRDiff(1, ""),
             ReviewResponse(
                 summary="a",
+                score="LGTM",
                 comments=[
                     ReviewComment(
                         new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
@@ -86,7 +87,7 @@ def test_post_review_successful() -> None:
         ),
     )
 
-    m_mr.notes.create.assert_called_with({"body": "🦉 **lgtm Review**\n\n**Summary:**\n\n>a"})
+    m_mr.notes.create.assert_called_with({"body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a"})
     m_mr.discussions.create.assert_has_calls(
         [
             mock.call(
@@ -144,6 +145,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
             PRDiff(1, ""),
             ReviewResponse(
                 summary="a",
+                score="LGTM",
                 comments=[
                     ReviewComment(
                         new_path="foo", old_path="foo", line_number=1, comment="b", is_comment_on_new_path=True
@@ -157,7 +159,9 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     )
 
     m_mr.notes.create.assert_called_with(
-        {"body": "🦉 **lgtm Review**\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] _bar:2_ c"}
+        {
+            "body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] _bar:2_ c"
+        }
     )
     m_mr.discussions.create.assert_has_calls(
         [

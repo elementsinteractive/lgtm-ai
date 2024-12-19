@@ -121,6 +121,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
         """
         lines = [
             "🦉 **lgtm Review**",
+            f"**Score:** {review.review_response.formatted_score}",
             f"**Summary:**\n\n>{review.review_response.summary}",
         ]
         if failed_comments:

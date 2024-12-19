@@ -61,7 +61,14 @@ def review(pr_url: PRUrl, git_api_key: str, ai_api_key: str, publish: bool, sile
 
 def _print_review_to_console(review: Review) -> None:
     print(
-        Panel(review.review_response.summary, title="🦉 lgtm Review", style="white", title_align="left", padding=(1, 1))
+        Panel(
+            review.review_response.summary,
+            title="🦉 lgtm Review",
+            style="white",
+            title_align="left",
+            padding=(1, 1),
+            subtitle=f"Score: {review.review_response.formatted_score}",
+        )
     )
 
     for comment in review.review_response.comments:
