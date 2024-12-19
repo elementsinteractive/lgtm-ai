@@ -88,7 +88,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 position["old_line"] = review_comment.line_number
 
             gitlab_comment = {
-                "body": f"🦉 {review_comment.comment}",
+                "body": f"🦉 **[{review_comment.category}]** {review_comment.formatted_severity} {review_comment.comment}",
                 "position": position,
             }
 
@@ -130,7 +130,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                     "**Specific Comments:**",
                     "\n\n".join(
                         [
-                            f"- [ ] _{comment.new_path}:{comment.line_number}_ {comment.comment}"
+                            f"- [ ] **[ {comment.category} ]** {comment.formatted_severity} _{comment.new_path}:{comment.line_number}_ {comment.comment}"
                             for comment in failed_comments
                         ]
                     ),

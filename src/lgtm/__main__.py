@@ -92,8 +92,10 @@ def _print_review_to_console(review: Review) -> None:
             Panel(
                 comment.comment,
                 title=f"{comment.new_path}:{comment.line_number}",
+                subtitle=f"[{comment.category}] {comment.formatted_severity}",
                 style="blue",
                 title_align="left",
+                subtitle_align="left",
                 padding=(1, 1),
             )
         )
