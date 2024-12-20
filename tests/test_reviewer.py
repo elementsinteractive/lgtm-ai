@@ -7,7 +7,7 @@ from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRDiff
 from lgtm.reviewer import CodeReviewer
 from pydantic_ai import models
-from pydantic_ai.messages import UserPrompt
+from pydantic_ai.messages import ModelRequest
 from pydantic_ai.models.test import TestModel
 
 # This is a safety measure to make sure we don't accidentally make real requests to the LLM while testing,
@@ -38,7 +38,13 @@ def test_get_review_from_url_valid() -> None:
 
     # There are messages with the correct prompts to the AI agent
     assert test_agent.last_run_messages
-    user_prompts = [prompt for prompt in test_agent.last_run_messages if isinstance(prompt, UserPrompt)]
 
-    assert len(user_prompts) == 1
-    assert user_prompts[0].content == m_diff
+    requests = [prompt for prompt in test_agent.last_run_messages if isinstance(prompt, ModelRequest)]
+    assert requests
+
+    first_message = requests[0]
+    assert len(first_message.parts) == 2
+    assert first_message.parts[0].part_kind == "system-prompt"
+    assert first_message.parts[1].part_kind == "user-prompt"
+
+    assert first_message.parts[1].content == m_diff
