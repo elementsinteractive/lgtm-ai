@@ -8,6 +8,7 @@ import gitlab.v4
 import gitlab.v4.objects
 from lgtm.ai.schemas import Review, ReviewComment
 from lgtm.base.schemas import GitlabPRUrl
+from lgtm.formatters.base import ReviewFormatter
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
     InvalidGitAuthError,
@@ -21,8 +22,9 @@ logger = logging.getLogger("lgtm.git")
 
 
 class GitlabClient(GitClient[GitlabPRUrl]):
-    def __init__(self, client: gitlab.Gitlab) -> None:
+    def __init__(self, client: gitlab.Gitlab, formatter: ReviewFormatter[str]) -> None:
         self.client = client
+        self.formatter = formatter
         self._pr: gitlab.v4.objects.ProjectMergeRequest | None = None
 
     def get_diff_from_url(self, pr_url: GitlabPRUrl) -> PRDiff:
@@ -56,7 +58,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
     def _post_summary(
         self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review, failed_comments: list[ReviewComment]
     ) -> None:
-        pr.notes.create({"body": self._get_summary_body(review, failed_comments)})
+        pr.notes.create({"body": self.formatter.format_summary_section(review, failed_comments)})
 
     def _post_comments(self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review) -> list[ReviewComment]:
         """Post comments on the file & filenumber they refer to.
@@ -88,7 +90,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 position["old_line"] = review_comment.line_number
 
             gitlab_comment = {
-                "body": f"🦉 **[{review_comment.category}]** {review_comment.formatted_severity} {review_comment.comment}",
+                "body": self.formatter.format_comment(review_comment),
                 "position": position,
             }
 
@@ -116,31 +118,6 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 len(failed_comments),
             )
         return failed_comments
-
-    def _get_summary_body(self, review: Review, failed_comments: list[ReviewComment]) -> str:
-        """Generate a comment body for the given review.
-
-        Note that it is a single comment with a summary and a list of specific comments.
-        This should be changed to inline comments in the PR (see #5)
-        """
-        lines = [
-            "🦉 **lgtm Review**",
-            f"**Score:** {review.review_response.formatted_score}",
-            f"**Summary:**\n\n>{review.review_response.summary}",
-        ]
-        if failed_comments:
-            lines.extend(
-                [
-                    "**Specific Comments:**",
-                    "\n\n".join(
-                        [
-                            f"- [ ] **[ {comment.category} ]** {comment.formatted_severity} _{comment.new_path}:{comment.line_number}_ {comment.comment}"
-                            for comment in failed_comments
-                        ]
-                    ),
-                ]
-            )
-        return "\n\n".join(lines)
 
     def _get_diff_from_pr(self, pr: gitlab.v4.objects.ProjectMergeRequest) -> gitlab.v4.objects.ProjectMergeRequestDiff:
         """Gitlab returns multiple "diff" objects for a single MR, which correspond to each pushed "version" of the MR.
