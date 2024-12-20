@@ -1,6 +1,6 @@
 default_install_hook_types: [pre-push, pre-commit]
 default_stages:
-  - "push"
+  - "pre-push"
 repos:
 -   repo: local
     hooks:
@@ -30,4 +30,4 @@ repos:
         language: system
         files: .*\.py$
         stages:
-          - "commit"
+          - "pre-commit"
