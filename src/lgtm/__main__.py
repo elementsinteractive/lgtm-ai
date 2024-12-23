@@ -5,15 +5,15 @@ from typing import get_args
 import click
 import gitlab
 from lgtm.ai.agent import get_basic_agent
-from lgtm.ai.schemas import Review
 from lgtm.base.schemas import PRUrl
+from lgtm.formatters.markdown import MarkDownFormatter
+from lgtm.formatters.terminal import TerminalFormatter
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.reviewer import CodeReviewer
 from lgtm.validators import parse_pr_url
 from openai.types import ChatModel
 from rich import print
 from rich.logging import RichHandler
-from rich.panel import Panel
 
 __version__ = version("lgtm")
 
@@ -57,7 +57,7 @@ def review(
 
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting review of %s", pr_url.full_url)
-    git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key))
+    git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         get_basic_agent(model_name=model, api_key=ai_api_key),
         git_client=git_client,
@@ -67,38 +67,14 @@ def review(
 
     if not silent:
         logger.info("Printing review to console")
-        _print_review_to_console(review)
+        terminal_formatter = TerminalFormatter()
+        print(terminal_formatter.format_summary_section(review))
+        print(terminal_formatter.format_comments_section(review.review_response.comments))
 
     if publish:
         logger.info("Publishing review to git service")
         git_client.publish_review(pr_url=pr_url, review=review)
         logger.info("Review published successfully")
-
-
-def _print_review_to_console(review: Review) -> None:
-    print(
-        Panel(
-            review.review_response.summary,
-            title="🦉 lgtm Review",
-            style="white",
-            title_align="left",
-            padding=(1, 1),
-            subtitle=f"Score: {review.review_response.formatted_score}",
-        )
-    )
-
-    for comment in review.review_response.comments:
-        print(
-            Panel(
-                comment.comment,
-                title=f"{comment.new_path}:{comment.line_number}",
-                subtitle=f"[{comment.category}] {comment.formatted_severity}",
-                style="blue",
-                title_align="left",
-                subtitle_align="left",
-                padding=(1, 1),
-            )
-        )
 
 
 def _set_logging_level(logger: logging.Logger, verbose: int) -> None:

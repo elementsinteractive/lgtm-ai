@@ -7,6 +7,7 @@ import gitlab.exceptions
 import pytest
 from lgtm.ai.schemas import Review, ReviewComment, ReviewResponse
 from lgtm.base.schemas import GitlabPRUrl
+from lgtm.formatters.base import ReviewFormatter
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.git_client.schemas import PRDiff
@@ -19,11 +20,22 @@ MockGitlabUrl = GitlabPRUrl(
 )
 
 
+class MockFormatter(ReviewFormatter[str]):
+    def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
+        return f"summary section {review.review_response.summary}"
+
+    def format_comments_section(self, comments: list[ReviewComment]) -> str:
+        return "comments section" + "".join(self.format_comment(comment) for comment in comments)
+
+    def format_comment(self, comment: ReviewComment) -> str:
+        return f"comment {comment.comment}"
+
+
 def test_project_not_found_error() -> None:
     m_client = mock.Mock()
     m_client.projects.get.side_effect = gitlab.exceptions.GitlabError("Project not found")
 
-    client = GitlabClient(client=m_client)
+    client = GitlabClient(client=m_client, formatter=MockFormatter())
     with pytest.raises((PullRequestDiffError, click.ClickException)):
         client.get_diff_from_url(MockGitlabUrl)
 
@@ -34,7 +46,7 @@ def test_pull_request_not_found_error() -> None:
     m_client = mock.Mock()
     m_client.projects.get.return_value = m_project
 
-    client = GitlabClient(client=m_client)
+    client = GitlabClient(client=m_client, formatter=MockFormatter())
     with pytest.raises((PullRequestDiffError, click.ClickException)):
         client.get_diff_from_url(MockGitlabUrl)
 
@@ -49,7 +61,7 @@ def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None
     m_client = mock.Mock()
     m_client.projects.get.return_value = m_project
 
-    client = GitlabClient(client=m_client)
+    client = GitlabClient(client=m_client, formatter=MockFormatter())
     assert client.get_diff_from_url(MockGitlabUrl) == PRDiff(
         1,
         json.dumps(
@@ -67,44 +79,43 @@ def test_post_review_successful() -> None:
     m_client.projects.get.return_value = m_project
     m_project.diffs.list.return_value = [mock.Mock()]
 
-    client = GitlabClient(client=m_client)
-    client.publish_review(
-        MockGitlabUrl,
-        Review(
-            PRDiff(1, ""),
-            ReviewResponse(
-                summary="a",
-                score="LGTM",
-                comments=[
-                    ReviewComment(
-                        new_path="foo",
-                        old_path="foo",
-                        line_number=1,
-                        comment="b",
-                        is_comment_on_new_path=True,
-                        category="Correctness",
-                        severity="LOW",
-                    ),
-                    ReviewComment(
-                        new_path="bar",
-                        old_path="bar",
-                        line_number=2,
-                        comment="c",
-                        is_comment_on_new_path=False,
-                        category="Correctness",
-                        severity="LOW",
-                    ),
-                ],
-            ),
+    fake_review = Review(
+        PRDiff(1, ""),
+        ReviewResponse(
+            summary="a",
+            score="LGTM",
+            comments=[
+                ReviewComment(
+                    new_path="foo",
+                    old_path="foo",
+                    line_number=1,
+                    comment="b",
+                    is_comment_on_new_path=True,
+                    category="Correctness",
+                    severity="LOW",
+                ),
+                ReviewComment(
+                    new_path="bar",
+                    old_path="bar",
+                    line_number=2,
+                    comment="c",
+                    is_comment_on_new_path=False,
+                    category="Correctness",
+                    severity="LOW",
+                ),
+            ],
         ),
     )
 
-    m_mr.notes.create.assert_called_with({"body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a"})
+    client = GitlabClient(client=m_client, formatter=MockFormatter())
+    client.publish_review(MockGitlabUrl, fake_review)
+
+    m_mr.notes.create.assert_called_with({"body": client.formatter.format_summary_section(fake_review)})
     m_mr.discussions.create.assert_has_calls(
         [
             mock.call(
                 {
-                    "body": "🦉 **[Correctness]** 🟢 b",
+                    "body": client.formatter.format_comment(fake_review.review_response.comments[0]),
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -118,7 +129,7 @@ def test_post_review_successful() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 **[Correctness]** 🟢 c",
+                    "body": client.formatter.format_comment(fake_review.review_response.comments[1]),
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -150,48 +161,45 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     m_client.projects.get.return_value = m_project
     m_project.diffs.list.return_value = [mock.Mock()]
 
-    client = GitlabClient(client=m_client)
-    client.publish_review(
-        MockGitlabUrl,
-        Review(
-            PRDiff(1, ""),
-            ReviewResponse(
-                summary="a",
-                score="LGTM",
-                comments=[
-                    ReviewComment(
-                        new_path="foo",
-                        old_path="foo",
-                        line_number=1,
-                        comment="b",
-                        is_comment_on_new_path=True,
-                        category="Correctness",
-                        severity="LOW",
-                    ),
-                    ReviewComment(
-                        new_path="bar",
-                        old_path="bar",
-                        line_number=2,
-                        comment="c",
-                        is_comment_on_new_path=False,
-                        category="Correctness",
-                        severity="LOW",
-                    ),
-                ],
-            ),
+    fake_review = Review(
+        PRDiff(1, ""),
+        ReviewResponse(
+            summary="a",
+            score="LGTM",
+            comments=[
+                ReviewComment(
+                    new_path="foo",
+                    old_path="foo",
+                    line_number=1,
+                    comment="b",
+                    is_comment_on_new_path=True,
+                    category="Correctness",
+                    severity="LOW",
+                ),
+                ReviewComment(
+                    new_path="bar",
+                    old_path="bar",
+                    line_number=2,
+                    comment="c",
+                    is_comment_on_new_path=False,
+                    category="Correctness",
+                    severity="LOW",
+                ),
+            ],
         ),
     )
 
+    client = GitlabClient(client=m_client, formatter=MockFormatter())
+    client.publish_review(MockGitlabUrl, fake_review)
+
     m_mr.notes.create.assert_called_with(
-        {
-            "body": "🦉 **lgtm Review**\n\n**Score:** LGTM 👍\n\n**Summary:**\n\n>a\n\n**Specific Comments:**\n\n- [ ] **[ Correctness ]** 🟢 _bar:2_ c"
-        }
+        {"body": f"{client.formatter.format_summary_section(fake_review, [fake_review.review_response.comments[1]])}"}
     )
     m_mr.discussions.create.assert_has_calls(
         [
             mock.call(
                 {
-                    "body": "🦉 **[Correctness]** 🟢 b",
+                    "body": mock.ANY,
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -205,7 +213,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 **[Correctness]** 🟢 c",
+                    "body": mock.ANY,
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -219,7 +227,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
             ),
             mock.call(
                 {
-                    "body": "🦉 **[Correctness]** 🟢 c",
+                    "body": mock.ANY,
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
