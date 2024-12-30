@@ -155,5 +155,5 @@ You can use these reviews to evaluate the quality of them, and whether your chan
 
 Be sure to include the results of the assessment in your PR, because that will help reviewers see your improvements.
 
-### [API Development Guidelines](https://www.notion.so/msdevelopment/API-Development-Guidelines-200a3ab28acd4163bc93117c2ed78401)
-### [Code Review Guidelines](https://www.notion.so/msdevelopment/Code-Review-Guidelines-2773532cd0774ea48e9011f4df64252f)
+### [API Development Guidelines](https://www.notion.so/msdevelopment/Development-Guidelines-623677e75f69473abc743ce1d381eb6b)
+### [Code Review Guidelines](https://www.notion.so/msdevelopment/Code-Review-Guidelines-82023d1814b442e486ed38e648c5d86e)
