@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,7 +11,7 @@ class CopyingMock(MagicMock):
     https://docs.python.org/3/library/unittest.mock-examples.html#coping-with-mutable-arguments
     """
 
-    def __call__(self, /, *args, **kwargs):
+    def __call__(self, /, *args: Any, **kwargs: Any) -> Any:
         args = deepcopy(args)
         kwargs = deepcopy(kwargs)
         return super().__call__(*args, **kwargs)

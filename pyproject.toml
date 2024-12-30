@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lgtm"
-version = "0.9.1"
+version = "0.9.4"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
@@ -91,10 +91,9 @@ known-third-party = ["lgtm", "tests"]
 [tool.mypy]
 python_version = "3.11"
 mypy_path = "src"
-warn_no_return = false       # allow functions without explicit return.
-warn_unused_ignores = true   # `type: ignore` that do nothing raise errors.
-disallow_any_generics = true # generics must be defined, e.g.: dict[Any, Any] instead of dict.
-check_untyped_defs = true    # check code even if it's not type annotated. This is pretty strict, turn it off if it's too much.
+strict = true          # strict type checking.
+warn_no_return = false # allow functions without explicit return.
+pretty = true          # show error messages in a readable format.
 
 
 [tool.coverage.run]
@@ -113,7 +112,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.9.1"
+version = "0.9.4"
 tag_format = "v$version"
 
 [tool.commitizen.customize]
