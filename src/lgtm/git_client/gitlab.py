@@ -1,3 +1,4 @@
+import base64
 import functools
 import json
 import logging
@@ -16,7 +17,7 @@ from lgtm.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm.git_client.schemas import PRDiff
+from lgtm.git_client.schemas import PRContext, PRDiff
 
 logger = logging.getLogger("lgtm.git")
 
@@ -44,7 +45,36 @@ class GitlabClient(GitClient[GitlabPRUrl]):
             logger.error("Failed to retrieve the diff of the pull request")
             raise PullRequestDiffError from err
 
-        return PRDiff(diff.id, json.dumps(diff.diffs))
+        return PRDiff(
+            diff.id,
+            json.dumps(diff.diffs),
+            changed_files=[change["new_path"] for change in diff.diffs],
+            target_branch=pr.target_branch,
+            source_branch=pr.source_branch,
+        )
+
+    def get_context(self, pr_url: GitlabPRUrl, pr_diff: PRDiff) -> PRContext:
+        """Get the context by using the GitLab API to retrieve the files in the PR diff.
+
+        It mimics the information a human reviewer might have access to, which usually implies
+        only looking at the PR in question.
+        """
+        logger.info("Fetching context from GitLab")
+        project = _get_project_from_url(self.client, pr_url)
+        pr = _get_pr_from_url(self.client, pr_url)
+        context = PRContext(file_contents=[])
+        for file_path in pr_diff.changed_files:
+            try:
+                file = project.files.get(
+                    file_path=file_path,
+                    ref=pr.sha,
+                )
+            except gitlab.exceptions.GitlabGetError:
+                logger.exception("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                continue
+            content = base64.b64decode(file.content).decode()
+            context.add_file(file_path, content)
+        return context
 
     def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
         logger.info("Publishing review to GitLab")
@@ -134,6 +164,13 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
 @functools.lru_cache(maxsize=32)
 def _get_pr_from_url(client: gitlab.Gitlab, pr_url: GitlabPRUrl) -> gitlab.v4.objects.ProjectMergeRequest:
-    logger.debug("Fetching project from GitLab (cache miss)")
-    project = client.projects.get(pr_url.project_path)
+    logger.debug("Fetching mr from GitLab (cache miss)")
+    project = _get_project_from_url(client, pr_url)
     return project.mergerequests.get(pr_url.mr_number)
+
+
+@functools.lru_cache(maxsize=32)
+def _get_project_from_url(client: gitlab.Gitlab, pr_url: GitlabPRUrl) -> gitlab.v4.objects.Project:
+    """Get the project from the GitLab client using the project path from the PR URL."""
+    logger.debug("Fetching project from GitLab (cache miss)")
+    return client.projects.get(pr_url.project_path)
