@@ -5,13 +5,15 @@ from lgtm.base.schemas import PRUrl
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIModel
 
 logger = logging.getLogger("lgtm.ai")
 
 
 class CodeReviewer:
-    def __init__(self, agent: Agent[None, ReviewResponse], git_client: GitClient[PRUrl]) -> None:
+    def __init__(self, agent: Agent[None, ReviewResponse], *, model: OpenAIModel, git_client: GitClient[PRUrl]) -> None:
         self.agent = agent
+        self.model = model
         self.git_client = git_client
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
@@ -20,7 +22,7 @@ class CodeReviewer:
         prompt = self._generate_prompt(pr_diff, context)
 
         logger.info("Running AI model on the PR diff")
-        res = self.agent.run_sync(user_prompt=prompt)
+        res = self.agent.run_sync(model=self.model, user_prompt=prompt)
         return Review(pr_diff, res.data)
 
     def _generate_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:

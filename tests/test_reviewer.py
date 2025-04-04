@@ -1,14 +1,16 @@
 import json
 import textwrap
+from unittest import mock
 
-from lgtm.ai.agent import get_basic_agent
+from lgtm.ai.agent import reviewer_agent
 from lgtm.ai.schemas import Review, ReviewResponse
 from lgtm.base.schemas import GitlabPRUrl
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from lgtm.reviewer import CodeReviewer
-from pydantic_ai import models
+from pydantic_ai import capture_run_messages, models
 from pydantic_ai.messages import ModelRequest
+from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.test import TestModel
 
 # This is a safety measure to make sure we don't accidentally make real requests to the LLM while testing,
@@ -35,11 +37,14 @@ class MockGitClient(GitClient[GitlabPRUrl]):
 
 
 def test_get_review_from_url_valid() -> None:
-    test_agent = get_basic_agent("gpt-4", api_key="foo")
-    with test_agent.override(
-        model=TestModel(),
+    test_agent = reviewer_agent
+    with (
+        test_agent.override(
+            model=TestModel(),
+        ),
+        capture_run_messages() as messages,
     ):
-        code_reviewer = CodeReviewer(agent=test_agent, git_client=MockGitClient())
+        code_reviewer = CodeReviewer(agent=test_agent, model=mock.Mock(spec=OpenAIModel), git_client=MockGitClient())
         review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
 
     # We get an actual review object
@@ -49,9 +54,8 @@ def test_get_review_from_url_valid() -> None:
     )
 
     # There are messages with the correct prompts to the AI agent
-    assert test_agent.last_run_messages
 
-    requests = [prompt for prompt in test_agent.last_run_messages if isinstance(prompt, ModelRequest)]
+    requests = [prompt for prompt in messages if isinstance(prompt, ModelRequest)]
     assert requests
 
     first_message = requests[0]
