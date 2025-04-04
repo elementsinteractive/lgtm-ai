@@ -3,9 +3,11 @@ import logging
 from lgtm.ai.schemas import Review, ReviewComment
 from lgtm.formatters.base import ReviewFormatter
 from lgtm.formatters.constants import SCORE_MAP, SEVERITY_MAP
+from rich.console import Group
 from rich.layout import Layout
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.text import Text
 
 logger = logging.getLogger("lgtm")
 
@@ -31,8 +33,21 @@ class TerminalFormatter(ReviewFormatter[Panel | Layout]):
         return layout
 
     def format_comment(self, comment: ReviewComment) -> Panel:
+        content: Text | Group
+        if comment.quote_snippet:
+            snippet_panel = Panel(
+                comment.quote_snippet,
+                style="dim",
+                title="Code Snippet",
+                title_align="left",
+                padding=(1, 1),
+            )
+            content = Group(snippet_panel, Text(comment.comment))
+        else:
+            content = Text(comment.comment)
+
         return Panel(
-            comment.comment,
+            content,
             title=f"{comment.new_path}:{comment.line_number}",
             subtitle=f"[{comment.category}] {SEVERITY_MAP[comment.severity]}",
             style="blue",

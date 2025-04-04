@@ -12,13 +12,13 @@ ReviewScore = Literal["LGTM", "Nitpicks", "Needs Some Work", "Needs a Lot of Wor
 class ReviewComment(BaseModel):
     old_path: Annotated[str, Field(description="Path of the file in the base branch")]
     new_path: Annotated[str, Field(description="Path of the file in the PR branch")]
-    line_number: Annotated[int, Field(description="Line number in the diff where the comment should be placed")]
     comment: Annotated[str, Field(description="Review comment")]
     category: Annotated[CommentCategory, Field(description="Category of the comment")]
     severity: Annotated[CommentSeverity, Field(description="Severity of the comment")]
-    is_comment_on_new_path: Annotated[
-        bool, Field(description="Whether the comment and the line number is on the new path")
-    ]
+    line_number: Annotated[int, Field(description="Line number to place the comment in the PR")]
+    is_comment_on_new_path: Annotated[bool, Field(description="Whether the comment is on a new path")]
+    programming_language: Annotated[str, Field(description="Programming language of the file")]
+    quote_snippet: Annotated[str | None, Field(description="Quoted code snippet")] = None
 
 
 class ReviewResponse(BaseModel):
