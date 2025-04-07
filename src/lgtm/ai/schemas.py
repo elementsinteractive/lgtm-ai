@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 CommentCategory = Literal["Correctness", "Quality", "Testing"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
-ReviewScore = Literal["LGTM", "Nitpicks", "Needs Some Work", "Needs a Lot of Work"]
+ReviewScore = Literal["LGTM", "Nitpicks", "Needs Some Work", "Needs a Lot of Work", "Abandon"]
 
 
 class ReviewComment(BaseModel):

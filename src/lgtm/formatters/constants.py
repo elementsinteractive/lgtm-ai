@@ -13,4 +13,5 @@ SCORE_MAP: Final[dict[ReviewScore, str]] = {
     "Nitpicks": "🤓",
     "Needs Some Work": "🔧",
     "Needs a Lot of Work": "🚨",
+    "Abandon": "❌",
 }
