@@ -132,6 +132,7 @@ def test_post_review_successful() -> None:
                     is_comment_on_new_path=True,
                     category="Correctness",
                     severity="LOW",
+                    programming_language="python",
                 ),
                 ReviewComment(
                     new_path="bar",
@@ -141,6 +142,7 @@ def test_post_review_successful() -> None:
                     is_comment_on_new_path=False,
                     category="Correctness",
                     severity="LOW",
+                    programming_language="python",
                 ),
             ],
         ),
@@ -214,6 +216,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                     is_comment_on_new_path=True,
                     category="Correctness",
                     severity="LOW",
+                    programming_language="python",
                 ),
                 ReviewComment(
                     new_path="bar",
@@ -223,6 +226,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                     is_comment_on_new_path=False,
                     category="Correctness",
                     severity="LOW",
+                    programming_language="python",
                 ),
             ],
         ),

@@ -29,7 +29,17 @@ class MarkDownFormatter(ReviewFormatter[str]):
         return "\n\n".join(lines)
 
     def format_comment(self, comment: ReviewComment) -> str:
-        return f"🦉 **[{comment.category}]** {SEVERITY_MAP[comment.severity]} `{comment.new_path}:{comment.line_number}` {comment.comment}"
+        header_section = (
+            f"🦉 **[{comment.category}]** {SEVERITY_MAP[comment.severity]} `{comment.new_path}:{comment.line_number}`"
+        )
+        comment_section = (
+            f"\n{self._format_snippet(comment)}\n{comment.comment}" if comment.quote_snippet else comment.comment
+        )
+
+        return f"{header_section}\n\n{comment_section}"
 
     def _format_score(self, score: ReviewScore) -> str:
         return f"{score} {SCORE_MAP[score]}"
+
+    def _format_snippet(self, comment: ReviewComment) -> str:
+        return f"\n\n```{comment.programming_language}\n{comment.quote_snippet}\n```\n\n"
