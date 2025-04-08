@@ -2,7 +2,7 @@
 # VARIABLE DEFINITIONS
 venv := ".venv"
 bin := venv + "/bin"
-python_version := "python3.12"
+python_version := "python3.13"
 run := "poetry run"
 target_dirs := "src tests"
 

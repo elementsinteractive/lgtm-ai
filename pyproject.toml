@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "lgtm"
-version = "0.9.4"
+version = "0.13.0"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<4"
+python = ">=3.12,<4"
 click = "^8.1.7"
 pydantic-ai = ">=0.0.9"
 pydantic = "^2.10.3"
@@ -89,7 +89,7 @@ known-third-party = ["lgtm", "tests"]
 
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 mypy_path = "src"
 strict = true          # strict type checking.
 warn_no_return = false # allow functions without explicit return.
@@ -112,7 +112,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.9.4"
+version = "0.13.0"
 tag_format = "v$version"
 
 [tool.commitizen.customize]
