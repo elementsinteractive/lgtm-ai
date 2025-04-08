@@ -965,7 +965,6 @@ prompt_toolkit = ">=3.0.41,<3.1.0"
 pygments = ">=2.4.0"
 stack_data = "*"
 traitlets = ">=5.13.0"
-typing_extensions = {version = ">=4.6", markers = "python_version < \"3.12\""}
 
 [package.extras]
 all = ["ipython[doc,matplotlib,test,test-extra]"]
@@ -2790,5 +2789,5 @@ type = ["pytest-mypy"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.11,<4"
-content-hash = "bcf511b62aba1b6a21690a04956f7bd1bfa2a98d6c26e4cfbdb10fc7c4e86eeb"
+python-versions = ">=3.12,<4"
+content-hash = "efdfe073749ddf1c5d4fa485876f62c45dac6583fb314493fa923c4ac225f1c3"
