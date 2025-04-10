@@ -1,4 +1,3 @@
-import json
 from typing import Any
 from unittest import mock
 
@@ -13,6 +12,7 @@ from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from tests.conftest import CopyingMock
+from tests.git_client.fixtures import PARSED_GIT_DIFF
 
 MockGitlabUrl = GitlabPRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
@@ -103,9 +103,7 @@ def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None
 
     assert client.get_diff_from_url(MockGitlabUrl) == PRDiff(
         1,
-        json.dumps(
-            diffs_response["diffs"],
-        ),
+        PARSED_GIT_DIFF,
         changed_files=["justfile", "pyproject.toml"],
         target_branch="main",
         source_branch="feature",
