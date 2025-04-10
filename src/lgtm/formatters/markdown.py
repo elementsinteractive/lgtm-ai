@@ -42,4 +42,4 @@ class MarkDownFormatter(ReviewFormatter[str]):
         return f"{score} {SCORE_MAP[score]}"
 
     def _format_snippet(self, comment: ReviewComment) -> str:
-        return f"\n\n```{comment.programming_language}\n{comment.quote_snippet}\n```\n\n"
+        return f"\n\n```{comment.programming_language.lower()}\n{comment.quote_snippet}\n```\n\n"

@@ -122,7 +122,7 @@ def test_post_review_successful() -> None:
         PRDiff(1, "", changed_files=[], target_branch="main", source_branch="feature"),
         ReviewResponse(
             summary="a",
-            score="LGTM",
+            raw_score=5,
             comments=[
                 ReviewComment(
                     new_path="foo",
@@ -206,7 +206,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
         ),
         ReviewResponse(
             summary="a",
-            score="LGTM",
+            raw_score=5,
             comments=[
                 ReviewComment(
                     new_path="foo",

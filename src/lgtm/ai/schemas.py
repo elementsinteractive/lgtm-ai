@@ -2,11 +2,20 @@ from dataclasses import dataclass
 from typing import Annotated, Literal
 
 from lgtm.git_client.schemas import PRDiff
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 CommentCategory = Literal["Correctness", "Quality", "Testing"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
-ReviewScore = Literal["LGTM", "Nitpicks", "Needs Some Work", "Needs a Lot of Work", "Abandon"]
+ReviewScore = Literal["LGTM", "Nitpicks", "Needs Work", "Needs a Lot of Work", "Abandon"]
+ReviewRawScore = Literal[1, 2, 3, 4, 5]
+
+SCORE_MAP: dict[ReviewRawScore, ReviewScore] = {
+    5: "LGTM",
+    4: "Nitpicks",
+    3: "Needs Work",
+    2: "Needs a Lot of Work",
+    1: "Abandon",
+}
 
 
 class ReviewComment(BaseModel):
@@ -24,10 +33,15 @@ class ReviewComment(BaseModel):
 class ReviewResponse(BaseModel):
     summary: Annotated[str, Field(description="Summary of the review")]
     comments: list[ReviewComment] = []
-    score: Annotated[
-        ReviewScore,
+    raw_score: Annotated[
+        Literal[1, 2, 3, 4, 5],
         Field(description="Overall score of the review"),
     ]
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def score(self) -> ReviewScore:
+        return SCORE_MAP[self.raw_score]
 
 
 @dataclass(frozen=True, slots=True)

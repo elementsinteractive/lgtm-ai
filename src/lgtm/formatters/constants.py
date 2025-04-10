@@ -11,7 +11,7 @@ SEVERITY_MAP: Final[dict[CommentSeverity, str]] = {
 SCORE_MAP: Final[dict[ReviewScore, str]] = {
     "LGTM": "👍",
     "Nitpicks": "🤓",
-    "Needs Some Work": "🔧",
+    "Needs Work": "🔧",
     "Needs a Lot of Work": "🚨",
     "Abandon": "❌",
 }

@@ -1,6 +1,6 @@
 import logging
 
-from lgtm.ai.prompts import BASIC_SYSTEM_PROMPT
+from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 from lgtm.ai.schemas import ReviewResponse
 from openai.types import ChatModel
 from pydantic_ai import Agent
@@ -15,6 +15,11 @@ def get_ai_model(model_name: ChatModel, api_key: str) -> OpenAIModel:
 
 
 reviewer_agent = Agent(
-    system_prompt=BASIC_SYSTEM_PROMPT,
+    system_prompt=REVIEWER_SYSTEM_PROMPT,
+    result_type=ReviewResponse,
+)
+
+summarizing_agent = Agent(
+    system_prompt=SUMMARIZING_SYSTEM_PROMPT,
     result_type=ReviewResponse,
 )
