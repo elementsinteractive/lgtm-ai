@@ -4,7 +4,7 @@ from typing import get_args
 
 import click
 import gitlab
-from lgtm.ai.agent import get_ai_model, reviewer_agent
+from lgtm.ai.agent import get_ai_model, reviewer_agent, summarizing_agent
 from lgtm.base.schemas import PRUrl
 from lgtm.formatters.markdown import MarkDownFormatter
 from lgtm.formatters.terminal import TerminalFormatter
@@ -60,6 +60,7 @@ def review(
     git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         reviewer_agent,
+        summarizing_agent=summarizing_agent,
         model=get_ai_model(model_name=model, api_key=ai_api_key),
         git_client=git_client,
     )

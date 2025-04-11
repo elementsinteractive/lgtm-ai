@@ -11,21 +11,36 @@ logger = logging.getLogger("lgtm.ai")
 
 
 class CodeReviewer:
-    def __init__(self, agent: Agent[None, ReviewResponse], *, model: OpenAIModel, git_client: GitClient[PRUrl]) -> None:
-        self.agent = agent
+    def __init__(
+        self,
+        reviewer_agent: Agent[None, ReviewResponse],
+        summarizing_agent: Agent[None, ReviewResponse],
+        *,
+        model: OpenAIModel,
+        git_client: GitClient[PRUrl],
+    ) -> None:
+        self.reviewer_agent = reviewer_agent
+        self.summarizing_agent = summarizing_agent
         self.model = model
         self.git_client = git_client
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
-        prompt = self._generate_prompt(pr_diff, context)
+        review_prompt = self._generate_review_prompt(pr_diff, context)
 
         logger.info("Running AI model on the PR diff")
-        res = self.agent.run_sync(model=self.model, user_prompt=prompt)
-        return Review(pr_diff, res.data)
+        raw_res = self.reviewer_agent.run_sync(model=self.model, user_prompt=review_prompt)
+        logger.info("Initial review completed")
 
-    def _generate_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:
+        logger.info("Running AI model to summarize the review")
+        summary_prompt = self._generate_summarizing_prompt(pr_diff, raw_res.data)
+        final_res = self.summarizing_agent.run_sync(model=self.model, user_prompt=summary_prompt)
+        logger.info("Final review completed")
+
+        return Review(pr_diff, final_res.data)
+
+    def _generate_review_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:
         # Diff section
         diff_prompt = f"PR Diff:\n    ```\n{self._indent(pr_diff.diff)}\n    ```"
 
@@ -39,6 +54,11 @@ class CodeReviewer:
             context_prompt += "\n\n".join(all_file_contexts)
 
         return f"{diff_prompt}\n{context_prompt}" if context else diff_prompt
+
+    def _generate_summarizing_prompt(self, pr_diff: PRDiff, raw_review: ReviewResponse) -> str:
+        diff_prompt = f"PR Diff:\n    ```\n{self._indent(pr_diff.diff)}\n    ```"
+        review_prompt = f"Review: {raw_review.model_dump()}\n"
+        return f"{diff_prompt}\n{review_prompt}"
 
     def _generate_context_prompt_for_file(self, file_context: PRContextFileContents) -> str:
         content = self._indent(file_context.content)

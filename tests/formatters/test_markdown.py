@@ -10,7 +10,7 @@ class TestMarkdownFormatter:
     def test_format_summary_section(self) -> None:
         review = Review(
             review_response=ReviewResponse(
-                score="LGTM",
+                raw_score=5,
                 summary="summary",
             ),
             pr_diff=mock.Mock(),
@@ -24,7 +24,7 @@ class TestMarkdownFormatter:
     def test_format_comments_section_empty_comments(self) -> None:
         review = Review(
             review_response=ReviewResponse(
-                score="LGTM",
+                raw_score=5,
                 summary="summary",
             ),
             pr_diff=mock.Mock(),
@@ -35,7 +35,7 @@ class TestMarkdownFormatter:
     def test_format_comments_section_several_comments(self) -> None:
         review = Review(
             review_response=ReviewResponse(
-                score="LGTM",
+                raw_score=5,
                 summary="summary",
                 comments=[
                     ReviewComment(
@@ -87,7 +87,7 @@ class TestMarkdownFormatter:
     def test_format_comment_with_snippet(self) -> None:
         review = Review(
             review_response=ReviewResponse(
-                score="LGTM",
+                raw_score=5,
                 summary="summary",
                 comments=[
                     ReviewComment(
