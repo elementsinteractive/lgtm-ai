@@ -1,7 +1,8 @@
 import logging
 
-from lgtm.ai.schemas import Review, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewerDeps, ReviewResponse
 from lgtm.base.schemas import PRUrl
+from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from pydantic_ai import Agent
@@ -13,24 +14,27 @@ logger = logging.getLogger("lgtm.ai")
 class CodeReviewer:
     def __init__(
         self,
-        reviewer_agent: Agent[None, ReviewResponse],
-        summarizing_agent: Agent[None, ReviewResponse],
         *,
+        reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
+        summarizing_agent: Agent[None, ReviewResponse],
         model: OpenAIModel,
         git_client: GitClient[PRUrl],
+        config: ResolvedConfig,
     ) -> None:
         self.reviewer_agent = reviewer_agent
         self.summarizing_agent = summarizing_agent
         self.model = model
         self.git_client = git_client
+        self.config = config
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
         review_prompt = self._generate_review_prompt(pr_diff, context)
+        deps = ReviewerDeps(configured_technologies=self.config.technologies)
 
         logger.info("Running AI model on the PR diff")
-        raw_res = self.reviewer_agent.run_sync(model=self.model, user_prompt=review_prompt)
+        raw_res = self.reviewer_agent.run_sync(model=self.model, user_prompt=review_prompt, deps=deps)
         logger.info("Initial review completed")
         logger.debug(
             "Initial review score: %d; Number of comments: %d", raw_res.data.raw_score, len(raw_res.data.comments)

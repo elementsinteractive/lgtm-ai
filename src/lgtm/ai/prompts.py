@@ -11,7 +11,7 @@ _SEVERITY_EXPLANATION = """
 """
 
 REVIEWER_SYSTEM_PROMPT = f"""
-You are a senior software developer making code reviews for your colleagues. You are an expert in Python, Django and FastAPI.
+You are a senior software developer making code reviews for your colleagues.
 
 You will receive:
 - A git diff which corresponds to a PR made by one of these colleagues, and you must make a full review of the code.

@@ -6,6 +6,7 @@ import click
 import gitlab
 from lgtm.ai.agent import get_ai_model, reviewer_agent, summarizing_agent
 from lgtm.base.schemas import PRUrl
+from lgtm.config.handler import ConfigHandler, PartialConfig
 from lgtm.formatters.markdown import MarkDownFormatter
 from lgtm.formatters.terminal import TerminalFormatter
 from lgtm.git_client.gitlab import GitlabClient
@@ -41,6 +42,12 @@ def entry_point() -> None:
 )
 @click.option("--git-api-key", required=True, help="The API key to the git service (GitLab, GitHub, etc.)")
 @click.option("--ai-api-key", required=True, help="The API key to the AI model service (OpenAI, etc.)")
+@click.option("--config", type=click.STRING, help="Path to the configuration file")
+@click.option(
+    "--technologies",
+    multiple=True,
+    help="List of technologies the reviewer is an expert in. If not provided, the reviewer will be an expert of all technologies in the given PR. Use it if you want to guide the reviewer to focus on specific technologies.",
+)
 @click.option("--publish", is_flag=True, help="Publish the review to the git service")
 @click.option("--silent", is_flag=True, help="Do not print the review to the console")
 @click.option("--verbose", "-v", count=True, help="Set logging level")
@@ -49,6 +56,8 @@ def review(
     model: ChatModel,
     git_api_key: str,
     ai_api_key: str,
+    config: str | None,
+    technologies: tuple[str, ...],
     publish: bool,
     silent: bool,
     verbose: int,
@@ -57,12 +66,16 @@ def review(
 
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting review of %s", pr_url.full_url)
+    resolved_config = ConfigHandler(
+        cli_args=PartialConfig(technologies=technologies), config_file=config
+    ).resolve_config()
     git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
-        reviewer_agent,
+        reviewer_agent=reviewer_agent,
         summarizing_agent=summarizing_agent,
         model=get_ai_model(model_name=model, api_key=ai_api_key),
         git_client=git_client,
+        config=resolved_config,
     )
     review = code_reviewer.review_pull_request(pr_url=pr_url)
     logger.info("Review completed, total comments: %d", len(review.review_response.comments))
