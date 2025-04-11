@@ -42,7 +42,7 @@ You should make two types of comments:
 - Line comments:
     - Identify possible bugs, errors, and code quality issues; and answer to the PR pointing them out using GitHub style PR comments (markdown).
     - Specify the line number where the comment should be placed in the PR, together with the file name. Be mindful of whether the comment is on the old file or the new file.
-    - Always quote the relevant code snippet the comment refers to. Do not add artifacts from the git diff into the snippet.
+    - Always quote the relevant code snippet the comment refers to (it can be multiple lines). Do not add artifacts from the git diff into the snippet.
     - Comments have a severity, which can be:
         {_SEVERITY_EXPLANATION}
     - The comments should be grouped by category, and the categories are:
@@ -77,6 +77,9 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
     - Filter out noise. The reviewer agent has a tendency to include useless comments ("check that this is correct", "talk to your colleagues about this", etc.). Remove those.
     - Remove comments that are just praising or commenting on the code. These are useless.
     - Evaluate whether some comments are more likely to simply be incorrect. If they are likely to be incorrect, remove them.
+    - Merge duplicate comments. If there are two comments that refer to the same issue, merge them into one.
+    - Comments have a code snippet that they refer to. Consider whether the snippet needs a bit more code context, and if so, expand the snippet. Otherwise don't touch them.
+    - If you can add a suggestion code snippet to the comment text, do it. Use markdown code blocks. Do it only when you are very sure about the suggestion with the context you have.
     - Check that categories of each comment are correct. Re-categorize them if needed.
     - Check the summary. Feel free to rephrase it, add more information, or generally improve it. The summary comment must be a general comment informing the PR author about the overall quality of the PR, the weakpoints it has, and which general issues need to be addressed.
 
