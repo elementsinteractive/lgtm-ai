@@ -2,6 +2,7 @@ import base64
 import functools
 import json
 import logging
+from typing import cast
 
 import gitlab
 import gitlab.exceptions
@@ -18,6 +19,8 @@ from lgtm.git_client.exceptions import (
     PullRequestDiffNotFoundError,
 )
 from lgtm.git_client.schemas import PRContext, PRDiff
+from lgtm.git_parser.exceptions import GitDiffParseError
+from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
 logger = logging.getLogger("lgtm.git")
 
@@ -47,7 +50,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
         return PRDiff(
             diff.id,
-            json.dumps(diff.diffs),
+            json.dumps([parsed.model_dump() for parsed in self._parse_gitlab_git_diff(diff.diffs)]),
             changed_files=[change["new_path"] for change in diff.diffs],
             target_branch=pr.target_branch,
             source_branch=pr.source_branch,
@@ -84,6 +87,25 @@ class GitlabClient(GitClient[GitlabPRUrl]):
             self._post_summary(pr, review, failed_comments)
         except gitlab.exceptions.GitlabError as err:
             raise PublishReviewError from err
+
+    def _parse_gitlab_git_diff(self, diffs: list[dict[str, object]]) -> list[DiffResult]:
+        parsed_diffs: list[DiffResult] = []
+        for diff in diffs:
+            try:
+                diff_text = diff.get("diff")
+                if diff_text is None:
+                    logger.error("Diff text is empty, skipping..., diff: %s", diff)
+                    continue
+                parsed = parse_diff_patch(
+                    metadata=DiffFileMetadata.model_validate(diff),
+                    diff_text=cast(str, diff_text),
+                )
+            except GitDiffParseError:
+                logger.exception("Failed to parse diff patch, will skip it")
+                continue
+            parsed_diffs.append(parsed)
+
+        return parsed_diffs
 
     def _post_summary(
         self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review, failed_comments: list[ReviewComment]
