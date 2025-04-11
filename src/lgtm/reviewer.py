@@ -32,12 +32,17 @@ class CodeReviewer:
         logger.info("Running AI model on the PR diff")
         raw_res = self.reviewer_agent.run_sync(model=self.model, user_prompt=review_prompt)
         logger.info("Initial review completed")
+        logger.debug(
+            "Initial review score: %d; Number of comments: %d", raw_res.data.raw_score, len(raw_res.data.comments)
+        )
 
         logger.info("Running AI model to summarize the review")
         summary_prompt = self._generate_summarizing_prompt(pr_diff, raw_res.data)
         final_res = self.summarizing_agent.run_sync(model=self.model, user_prompt=summary_prompt)
         logger.info("Final review completed")
-
+        logger.debug(
+            "Final review score: %d; Number of comments: %d", final_res.data.raw_score, len(final_res.data.comments)
+        )
         return Review(pr_diff, final_res.data)
 
     def _generate_review_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:
