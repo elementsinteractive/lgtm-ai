@@ -5,6 +5,7 @@ from unittest import mock
 from lgtm.ai.agent import reviewer_agent, summarizing_agent
 from lgtm.ai.schemas import Review, ReviewResponse
 from lgtm.base.schemas import GitlabPRUrl
+from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from lgtm.reviewer import CodeReviewer
@@ -53,6 +54,7 @@ def test_get_review_from_url_valid() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIModel),
             git_client=MockGitClient(),
+            config=ResolvedConfig(),
         )
         review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
 
@@ -79,16 +81,52 @@ def test_get_review_from_url_valid() -> None:
             ```
         """
     ).strip()
-    _assert_agent_message(messages, expected_message, expected_messages=2)
+    _assert_agent_message(messages, expected_message, expected_messages=3)
+
+
+def test_get_review_adds_technologies_to_prompt() -> None:
+    test_agent = reviewer_agent
+    test_summary_agent = summarizing_agent
+    with (
+        test_agent.override(
+            model=TestModel(),
+        ),
+        test_summary_agent.override(
+            model=TestModel(),
+        ),
+        capture_run_messages() as messages,
+    ):
+        code_reviewer = CodeReviewer(
+            reviewer_agent=test_agent,
+            summarizing_agent=test_summary_agent,
+            model=mock.Mock(spec=OpenAIModel),
+            git_client=MockGitClient(),
+            config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
+        )
+        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+
+    assert review
+    assert messages
+
+    requests = _get_requests_from_messages(messages)
+    assert requests
+    first_request = requests[0]
+    assert len(first_request.parts) == 3
+    assert first_request.parts[1].content == 'You are an expert in "COBOL", "FORTRAN", "ODIN".'
 
 
 def _assert_agent_message(messages: list[ModelMessage], expected_user_prompt: str, *, expected_messages: int) -> None:
-    requests = [prompt for prompt in messages if isinstance(prompt, ModelRequest)]
+    requests = _get_requests_from_messages(messages)
     assert requests
 
     first_message = requests[0]
     assert len(first_message.parts) == expected_messages
-    assert first_message.parts[0].part_kind == "system-prompt"
-    assert first_message.parts[1].part_kind == "user-prompt"
+    kinds = [part.part_kind for part in first_message.parts]
+    assert kinds == ["system-prompt", "system-prompt", "user-prompt"]
 
-    assert first_message.parts[1].content == expected_user_prompt
+    user_prompt = next(part for part in first_message.parts if part.part_kind == "user-prompt")
+    assert user_prompt.content == expected_user_prompt
+
+
+def _get_requests_from_messages(messages: list[ModelMessage]) -> list[ModelRequest]:
+    return [prompt for prompt in messages if isinstance(prompt, ModelRequest)]
