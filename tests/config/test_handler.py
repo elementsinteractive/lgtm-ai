@@ -40,3 +40,9 @@ def test_resolve_from_from_file_failure() -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file="non_existent_file.toml")
     with pytest.raises(ConfigFileNotFoundError):
         handler.resolve_config()
+
+
+def test_resolve_multiple_config_keys(lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(exclude=("foo.py", "*.md")), config_file=lgtm_toml_file)
+    # One config comes from cli, the other from the file
+    assert handler.resolve_config() == ResolvedConfig(technologies=("perl", "javascript"), exclude=("foo.py", "*.md"))

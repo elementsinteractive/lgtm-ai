@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 
+from lgtm.git_parser.parser import DiffResult
+
 
 @dataclass(frozen=True, slots=True)
 class PRDiff:
     id: int
-    diff: str
+    diff: list[DiffResult]
     changed_files: list[str]
     target_branch: str
     source_branch: str

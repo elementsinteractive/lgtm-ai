@@ -5,7 +5,7 @@
 # lgtm
 
 [![💀 - Made with Skeleton](https://img.shields.io/badge/💀-Made_with_Skeleton-0e7fbf)](https://gitlab.com/namespace/elements/backend/pypackage-skeleton)
-![Python Version](https://img.shields.io/badge/python-3.11%20|%203.12-blue?logo=python&logoColor=yellow)
+![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=yellow)
 [![pipeline status](https://gitlab.com/namespace/elements/backend/lgtm/badges/main/pipeline.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/commits/main)
 [![coverage report](https://gitlab.com/namespace/elements/backend/lgtm/badges/main/coverage.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/commits/main)
 [![Latest Release](https://gitlab.com/namespace/elements/backend/lgtm/-/badges/release.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/releases)
