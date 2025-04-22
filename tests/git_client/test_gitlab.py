@@ -117,7 +117,7 @@ def test_post_review_successful() -> None:
     client = mock_gitlab_client(m_project)
 
     fake_review = Review(
-        PRDiff(1, "", changed_files=[], target_branch="main", source_branch="feature"),
+        PRDiff(1, [], changed_files=[], target_branch="main", source_branch="feature"),
         ReviewResponse(
             summary="a",
             raw_score=5,
@@ -197,7 +197,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     fake_review = Review(
         PRDiff(
             1,
-            "",
+            [],
             changed_files=[],
             target_branch="main",
             source_branch="feature",
@@ -292,7 +292,7 @@ def test_get_context_multiple_files() -> None:
         changed_files=["important.py", "logic.py"],
         target_branch="main",
         source_branch="feature",
-        diff="",
+        diff=[],
     )
 
     m_project.files.get.side_effect = [
@@ -324,7 +324,7 @@ def test_get_context_one_file_missing() -> None:
         changed_files=["important.py", "logic.py"],
         target_branch="main",
         source_branch="feature",
-        diff="",
+        diff=[],
     )
 
     m_project.files.get.side_effect = [

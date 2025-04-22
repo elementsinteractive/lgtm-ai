@@ -48,6 +48,11 @@ def entry_point() -> None:
     multiple=True,
     help="List of technologies the reviewer is an expert in. If not provided, the reviewer will be an expert of all technologies in the given PR. Use it if you want to guide the reviewer to focus on specific technologies.",
 )
+@click.option(
+    "--exclude",
+    multiple=True,
+    help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
+)
 @click.option("--publish", is_flag=True, help="Publish the review to the git service")
 @click.option("--silent", is_flag=True, help="Do not print the review to the console")
 @click.option("--verbose", "-v", count=True, help="Set logging level")
@@ -58,6 +63,7 @@ def review(
     ai_api_key: str,
     config: str | None,
     technologies: tuple[str, ...],
+    exclude: tuple[str, ...],
     publish: bool,
     silent: bool,
     verbose: int,
@@ -67,7 +73,7 @@ def review(
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting review of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
-        cli_args=PartialConfig(technologies=technologies), config_file=config
+        cli_args=PartialConfig(technologies=technologies, exclude=exclude), config_file=config
     ).resolve_config()
     git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(

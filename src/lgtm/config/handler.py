@@ -16,6 +16,7 @@ class PartialConfig:
     """
 
     technologies: tuple[str, ...] | None = None
+    exclude: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +27,10 @@ class ResolvedConfig:
     """
 
     technologies: tuple[str, ...] = ()
+    """Technologies the reviewer is an expert in."""
+
+    exclude: tuple[str, ...] = ()
+    """Pattern to exclude files from the review."""
 
 
 class ConfigHandler:
@@ -56,10 +61,17 @@ class ConfigHandler:
 
         logger.debug("Parsed config file: %s", config_data)
         technologies = config_data.get("technologies", None)
-        return PartialConfig(technologies=technologies)
+        exclude = config_data.get("exclude", None)
+        return PartialConfig(
+            technologies=technologies,
+            exclude=exclude,
+        )
 
     def _parse_cli_args(self) -> PartialConfig:
-        return PartialConfig(technologies=self.cli_args.technologies or None)
+        return PartialConfig(
+            technologies=self.cli_args.technologies or None,
+            exclude=self.cli_args.exclude or None,
+        )
 
     def _merge_configs(self, from_cli: PartialConfig, from_file: PartialConfig) -> ResolvedConfig:
         """Merge the technologies from the CLI and the config file.
@@ -71,14 +83,33 @@ class ConfigHandler:
 
         In the end, the configuration will be a merger of the CLI and the config file following the above rules.
         """
-        technologies = (
-            tuple(self._unique_with_order(from_cli.technologies))
-            if from_cli.technologies is not None
-            else tuple(self._unique_with_order(from_file.technologies or ()))
-        )
-        resolved = ResolvedConfig(technologies=tuple(technologies))
+        technologies = self._resolve_tuple_config_field("technologies", from_cli, from_file)
+        exclude = self._resolve_tuple_config_field("exclude", from_cli, from_file)
+        resolved = ResolvedConfig(technologies=technologies, exclude=exclude)
         logger.debug("Resolved config: %s", resolved)
         return resolved
+
+    @classmethod
+    def _resolve_tuple_config_field(
+        cls, field_name: str, from_cli: PartialConfig, from_file: PartialConfig, default: tuple[str, ...] = ()
+    ) -> tuple[str, ...]:
+        """Resolve a config field with multiple values from the CLI and the config file.
+
+        If both sources contain a config field with a value, the CLI takes precedence.
+        If neither are provided, the field will be set to its default.
+        """
+        config_in_cli = getattr(from_cli, field_name, None)
+        config_in_file = getattr(from_file, field_name, None)
+
+        if config_in_cli is not None:
+            logger.debug("Choosing CLI config for %s: %s", field_name, config_in_cli)
+            return tuple(cls._unique_with_order(config_in_cli))
+        if config_in_file is not None:
+            logger.debug("Choosing config file config for %s: %s", field_name, config_in_file)
+            return tuple(cls._unique_with_order(config_in_file))
+
+        logger.debug("No config provided for %s, using default value", field_name)
+        return default
 
     @staticmethod
     def _unique_with_order[T](seq: Sequence[T]) -> list[T]:

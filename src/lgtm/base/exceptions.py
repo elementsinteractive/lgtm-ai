@@ -11,3 +11,9 @@ class LGMTException(ClickException):
         """LGTM exceptions expose the traceback in debug mode."""
         logger.debug(self.format_message(), exc_info=True)
         logger.error(self.format_message(), exc_info=False)
+
+
+class NothingToReviewError(LGMTException):
+    def __init__(self, exclude: tuple[str, ...] | None = None) -> None:
+        exclude = exclude or ()
+        super().__init__(f"Nothing to review after excluding file patterns {', '.join(exclude)}.")

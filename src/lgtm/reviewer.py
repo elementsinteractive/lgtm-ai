@@ -1,7 +1,10 @@
+import json
 import logging
 
 from lgtm.ai.schemas import Review, ReviewerDeps, ReviewResponse
+from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
+from lgtm.base.utils import file_matches_any_pattern
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
@@ -50,8 +53,12 @@ class CodeReviewer:
         return Review(pr_diff, final_res.data)
 
     def _generate_review_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:
+        """Generate the prompt for the AI model to review the PR.
+
+        It includes the diff and the context of the PR, formatted for the AI to receive.
+        """
         # Diff section
-        diff_prompt = f"PR Diff:\n    ```\n{self._indent(pr_diff.diff)}\n    ```"
+        diff_prompt = f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
 
         # Context section
         context_prompt = ""
@@ -65,14 +72,46 @@ class CodeReviewer:
         return f"{diff_prompt}\n{context_prompt}" if context else diff_prompt
 
     def _generate_summarizing_prompt(self, pr_diff: PRDiff, raw_review: ReviewResponse) -> str:
-        diff_prompt = f"PR Diff:\n    ```\n{self._indent(pr_diff.diff)}\n    ```"
+        """Generate a prompt for the AI model to summarize the review.
+
+        It includes the diff and the review, formatted for the AI to receive.
+        """
+        diff_prompt = f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
         review_prompt = f"Review: {raw_review.model_dump()}\n"
         return f"{diff_prompt}\n{review_prompt}"
 
     def _generate_context_prompt_for_file(self, file_context: PRContextFileContents) -> str:
+        """Generate context prompt for a single file in the PR.
+
+        It excludes files according to the `exclude` patterns in the config.
+        """
+        if file_matches_any_pattern(file_context.file_path, self.config.exclude):
+            logger.debug("Excluding file %s from context", file_context.file_path)
+            return ""
+
         content = self._indent(file_context.content)
         return f"    ```{file_context.file_path}\n{content}\n    ```"
 
+    def _serialize_pr_diff(self, pr_diff: PRDiff) -> str:
+        """Serialize the PR diff to a JSON string for the AI model.
+
+        The PR diff is parsed by the Git client, and contains all the necessary information the AI needs
+        to review it. We convert it here to a JSON string so that the AI can process it easily.
+
+        It excludes files according to the `exclude` patterns in the config.
+        """
+        keep = []
+        for diff in pr_diff.diff:
+            if not file_matches_any_pattern(diff.metadata.new_path, self.config.exclude):
+                keep.append(diff.model_dump())
+            else:
+                logger.debug("Excluding file %s from diff", diff.metadata.new_path)
+
+        if not keep:
+            raise NothingToReviewError(exclude=self.config.exclude)
+        return json.dumps(keep)
+
     def _indent(self, text: str, level: int = 4) -> str:
+        """Indent the text by a given number of spaces."""
         indent = " " * level
         return "\n".join(f"{indent}{line}" for line in text.splitlines())

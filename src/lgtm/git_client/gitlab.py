@@ -1,6 +1,5 @@
 import base64
 import functools
-import json
 import logging
 from typing import cast
 
@@ -50,7 +49,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
         return PRDiff(
             diff.id,
-            json.dumps([parsed.model_dump() for parsed in self._parse_gitlab_git_diff(diff.diffs)]),
+            diff=self._parse_gitlab_git_diff(diff.diffs),
             changed_files=[change["new_path"] for change in diff.diffs],
             target_branch=pr.target_branch,
             source_branch=pr.source_branch,
