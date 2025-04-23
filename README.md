@@ -115,7 +115,7 @@ As a short summary:
 
 - Update the lockfile with the contents of `pyproject.toml` (for instance, when getting a conflict after a rebase):
 
-        poetry lock --no-update
+        poetry lock
 
 - Check if `pyproject.toml` is in sync with `poetry.lock`:
 

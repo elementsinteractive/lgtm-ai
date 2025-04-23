@@ -55,8 +55,8 @@ class MockGitClient(GitClient[GitlabPRUrl]):
     def get_context(self, pr_url: GitlabPRUrl, pr_diff: PRDiff) -> PRContext:
         return PRContext(
             file_contents=[
-                PRContextFileContents(file_path="file1", content="content1"),
-                PRContextFileContents(file_path="file2", content="content2"),
+                PRContextFileContents(file_path="file1.txt", content="contents-of-file-1-context"),
+                PRContextFileContents(file_path="file2.txt", content="contents-of-file-2-context"),
             ]
         )
 
@@ -96,12 +96,12 @@ def test_get_review_from_url_valid() -> None:
             {json.dumps([diff.model_dump() for diff in m_diff])}
             ```
         Context:
-            ```file1
-            content1
+            ```file1.txt
+            contents-of-file-1-context
             ```
 
-            ```file2
-            content2
+            ```file2.txt
+            contents-of-file-2-context
             ```
         """
     ).strip()
