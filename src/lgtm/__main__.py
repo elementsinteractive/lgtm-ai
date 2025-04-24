@@ -37,7 +37,6 @@ def entry_point() -> None:
 @click.option(
     "--model",
     type=click.Choice(get_args(ChatModel)),
-    default="gpt-4o-mini",
     help="The name of the model to use for the review",
 )
 @click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
@@ -58,7 +57,7 @@ def entry_point() -> None:
 @click.option("--verbose", "-v", count=True, help="Set logging level")
 def review(
     pr_url: PRUrl,
-    model: ChatModel,
+    model: ChatModel | None,
     git_api_key: str | None,
     ai_api_key: str | None,
     config: str | None,
@@ -74,7 +73,7 @@ def review(
     logger.info("Starting review of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
-            technologies=technologies, exclude=exclude, git_api_key=git_api_key, ai_api_key=ai_api_key
+            technologies=technologies, exclude=exclude, git_api_key=git_api_key, ai_api_key=ai_api_key, model=model
         ),
         config_file=config,
     ).resolve_config()
@@ -82,7 +81,7 @@ def review(
     code_reviewer = CodeReviewer(
         reviewer_agent=reviewer_agent,
         summarizing_agent=summarizing_agent,
-        model=get_ai_model(model_name=model, api_key=resolved_config.ai_api_key),
+        model=get_ai_model(model_name=resolved_config.model, api_key=resolved_config.ai_api_key),
         git_client=git_client,
         config=resolved_config,
     )
