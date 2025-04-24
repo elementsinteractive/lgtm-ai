@@ -2,10 +2,11 @@ import logging
 import os
 import tomllib
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import cast
+from dataclasses import dataclass, field
+from typing import Literal, overload
 
 from lgtm.config.exceptions import ConfigFileNotFoundError, InvalidConfigFileError, MissingRequiredConfigError
+from openai.types import ChatModel
 
 logger = logging.getLogger("lgtm")
 
@@ -17,6 +18,7 @@ class PartialConfig:
     It has nullable values, indicating that the user has not set that particular option.
     """
 
+    model: ChatModel | None = None
     technologies: tuple[str, ...] | None = None
     exclude: tuple[str, ...] | None = None
 
@@ -32,6 +34,9 @@ class ResolvedConfig:
     All values are non-nullable and have appropriate defaults.
     """
 
+    model: ChatModel = "gpt-4o-mini"
+    """AI model to use for the review."""
+
     technologies: tuple[str, ...] = ()
     """Technologies the reviewer is an expert in."""
 
@@ -39,10 +44,10 @@ class ResolvedConfig:
     """Pattern to exclude files from the review."""
 
     # Secrets
-    git_api_key: str = ""
+    git_api_key: str = field(default="", repr=False)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
 
-    ai_api_key: str = ""
+    ai_api_key: str = field(default="", repr=False)
     """API key to interact with the AI model service (OpenAI, etc.)."""
 
 
@@ -60,13 +65,16 @@ class ConfigHandler:
     def __init__(self, cli_args: PartialConfig, config_file: str | None = None) -> None:
         self.cli_args = cli_args
         self.config_file = config_file
+        self.resolver = _ConfigFieldResolver()
 
     def resolve_config(self) -> ResolvedConfig:
         """Get fully resolved configuration for running lgtm."""
         config_from_env = self._parse_env()
         config_from_file = self._parse_config_file()
         config_from_cli = self._parse_cli_args()
-        return self._merge_configs(from_cli=config_from_cli, from_file=config_from_file, from_env=config_from_env)
+        return self._resolve_from_multiple_sources(
+            from_cli=config_from_cli, from_file=config_from_file, from_env=config_from_env
+        )
 
     def _parse_config_file(self) -> PartialConfig:
         if not self.config_file:
@@ -105,22 +113,14 @@ class ConfigHandler:
             ai_api_key=os.environ.get("LGTM_AI_API_KEY", None),
         )
 
-    def _merge_configs(
+    def _resolve_from_multiple_sources(
         self, *, from_cli: PartialConfig, from_file: PartialConfig, from_env: PartialConfig
     ) -> ResolvedConfig:
-        """Merge the technologies from the CLI, the config file and the environment variables.
-
-        All fields in the configuration are derived from both the CLI and the config file.
-        - Each field is taken only from one source, either the CLI or the config file.
-        - If both sources contain a config field with a value, the CLI takes precedence, and completely overrides the config file.
-        - If neither are provided, each field will be set to its default.
-
-        In the end, the configuration will be a merger of the CLI and the config file following the above rules.
-        """
-        technologies = self._resolve_tuple_config_field("technologies", from_cli, from_file)
-        exclude = self._resolve_tuple_config_field("exclude", from_cli, from_file)
-        git_api_key = self._resolve_secrets_field("git_api_key", from_cli, from_env)
-        ai_api_key = self._resolve_secrets_field("ai_api_key", from_cli, from_env)
+        """Resolve the config fields given all the config sources."""
+        technologies = self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file)
+        exclude = self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file)
+        git_api_key = self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env)
+        ai_api_key = self.resolver.resolve_string_field("ai_api_key", from_cli=from_cli, from_env=from_env)
         resolved = ResolvedConfig(
             technologies=technologies,
             exclude=exclude,
@@ -130,9 +130,80 @@ class ConfigHandler:
         logger.debug("Resolved config: %s", resolved)
         return resolved
 
+
+class _ConfigFieldResolver:
+    """Class responsible for resolving config fields from different sources."""
+
+    @overload
     @classmethod
-    def _resolve_tuple_config_field(
-        cls, field_name: str, from_cli: PartialConfig, from_file: PartialConfig, default: tuple[str, ...] = ()
+    def resolve_string_field(
+        cls,
+        field_name: str,
+        *,
+        from_cli: PartialConfig,
+        from_file: PartialConfig | None = None,
+        from_env: PartialConfig | None = None,
+        required: Literal[True] = True,
+        default: str | None = None,
+    ) -> str: ...
+
+    @overload
+    @classmethod
+    def resolve_string_field(
+        cls,
+        field_name: str,
+        *,
+        from_cli: PartialConfig,
+        from_file: PartialConfig | None = None,
+        from_env: PartialConfig | None = None,
+        required: Literal[False] = False,
+        default: None = None,
+    ) -> str | None: ...
+
+    @overload
+    @classmethod
+    def resolve_string_field(
+        cls,
+        field_name: str,
+        *,
+        from_cli: PartialConfig,
+        from_file: PartialConfig | None = None,
+        from_env: PartialConfig | None = None,
+        required: Literal[False] = False,
+        default: str = "",
+    ) -> str: ...
+
+    @classmethod
+    def resolve_string_field(
+        cls,
+        field_name: str,
+        *,
+        from_cli: PartialConfig,
+        from_file: PartialConfig | None = None,
+        from_env: PartialConfig | None = None,
+        required: bool = True,
+        default: str | None = None,
+    ) -> str | None:
+        """Resolve a config field that contains a single value from all config sources.
+
+        If several sources are provided, the preference is CLI > File > Environment.
+        """
+        config_in_cli = getattr(from_cli, field_name, None)
+        config_in_file = getattr(from_file, field_name, None)
+        config_in_env = getattr(from_env, field_name, None)
+
+        resolved: str | None = config_in_cli or config_in_file or config_in_env
+        if resolved is None:
+            if required:
+                raise MissingRequiredConfigError(f"Missing required config field: {field_name}")
+            elif default is not None:
+                logger.debug("No config provided for %s, using default value: %s", field_name, default)
+                return default
+        return resolved
+
+    @classmethod
+    def resolve_tuple_field(
+        cls, field_name: str, *, from_cli: PartialConfig, from_file: PartialConfig, default: tuple[str, ...] = ()
     ) -> tuple[str, ...]:
         """Resolve a config field with multiple values from the CLI and the config file.
 
@@ -151,22 +222,6 @@ class ConfigHandler:
 
         logger.debug("No config provided for %s, using default value", field_name)
         return default
-
-    @staticmethod
-    def _resolve_secrets_field(
-        field_name: str, from_cli: PartialConfig, from_env: PartialConfig, required: bool = True
-    ) -> str:
-        """Resolve a config field with a single value from the CLI and the environment variables.
-
-        If both sources contain a config field with a value, the CLI takes precedence.
-        """
-        config_in_cli = getattr(from_cli, field_name, None)
-        config_in_env = getattr(from_env, field_name, None)
-
-        resolved = config_in_cli or config_in_env
-        if not resolved and required:
-            raise MissingRequiredConfigError(f"Missing required config field: {field_name}")
-        return cast(str, resolved)
 
     @staticmethod
     def _unique_with_order[T](seq: Sequence[T]) -> list[T]:
