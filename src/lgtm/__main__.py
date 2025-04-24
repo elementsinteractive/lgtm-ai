@@ -40,8 +40,8 @@ def entry_point() -> None:
     default="gpt-4o-mini",
     help="The name of the model to use for the review",
 )
-@click.option("--git-api-key", required=True, help="The API key to the git service (GitLab, GitHub, etc.)")
-@click.option("--ai-api-key", required=True, help="The API key to the AI model service (OpenAI, etc.)")
+@click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
+@click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
 @click.option("--config", type=click.STRING, help="Path to the configuration file")
 @click.option(
     "--technologies",
@@ -59,8 +59,8 @@ def entry_point() -> None:
 def review(
     pr_url: PRUrl,
     model: ChatModel,
-    git_api_key: str,
-    ai_api_key: str,
+    git_api_key: str | None,
+    ai_api_key: str | None,
     config: str | None,
     technologies: tuple[str, ...],
     exclude: tuple[str, ...],
@@ -73,13 +73,16 @@ def review(
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting review of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
-        cli_args=PartialConfig(technologies=technologies, exclude=exclude), config_file=config
+        cli_args=PartialConfig(
+            technologies=technologies, exclude=exclude, git_api_key=git_api_key, ai_api_key=ai_api_key
+        ),
+        config_file=config,
     ).resolve_config()
-    git_client = GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
+    git_client = GitlabClient(gitlab.Gitlab(private_token=resolved_config.git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         reviewer_agent=reviewer_agent,
         summarizing_agent=summarizing_agent,
-        model=get_ai_model(model_name=model, api_key=ai_api_key),
+        model=get_ai_model(model_name=model, api_key=resolved_config.ai_api_key),
         git_client=git_client,
         config=resolved_config,
     )

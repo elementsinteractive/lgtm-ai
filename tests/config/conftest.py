@@ -1,3 +1,4 @@
+import copy
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -33,3 +34,20 @@ def invalid_toml_file(tmp_path: Path) -> Iterator[str]:
     """
     with create_tmp_file(invalid_toml, data) as tmp_file:
         yield tmp_file
+
+
+@pytest.fixture
+def inject_env_secrets() -> Iterator[None]:
+    # Backup a copy of the current environment
+    original_env = copy.deepcopy(os.environ)
+
+    # Set temporary environment variables
+    os.environ["LGTM_GIT_API_KEY"] = "git-api-key"
+    os.environ["LGTM_AI_API_KEY"] = "ai-api-key"
+
+    try:
+        yield
+    finally:
+        # Restore original environment
+        os.environ.clear()
+        os.environ.update(original_env)
