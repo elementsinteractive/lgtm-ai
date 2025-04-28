@@ -1,7 +1,13 @@
+from pathlib import Path
 from unittest import mock
 
 import pytest
-from lgtm.config.exceptions import ConfigFileNotFoundError, InvalidConfigFileError, MissingRequiredConfigError
+from lgtm.config.exceptions import (
+    ConfigFileNotFoundError,
+    InvalidConfigError,
+    InvalidConfigFileError,
+    MissingRequiredConfigError,
+)
 from lgtm.config.handler import ConfigHandler, PartialConfig
 
 
@@ -111,3 +117,24 @@ def test_boolean_flag_preference(cli: bool, file: bool, expected: bool) -> None:
 
     assert config.silent == expected
     assert config.publish == expected
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_lgtm_toml_is_autodetected(tmp_path: Path, lgtm_toml_file: str) -> None:
+    """Test that the lgtm.toml file is autodetected in the current dir."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
+    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+        config = handler.resolve_config()
+    assert config.technologies == ("perl", "javascript")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_incorrect_config_field_raises(toml_with_invalid_config_field: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=toml_with_invalid_config_field)
+    with pytest.raises(InvalidConfigError) as exc:
+        handler.resolve_config()
+
+    error = exc.value
+    assert "Invalid config file" in error.message
+    assert "'model': Input should be 'gpt-4.1'" in error.message
+    assert "'technologies': Input should be a valid tuple" in error.message
