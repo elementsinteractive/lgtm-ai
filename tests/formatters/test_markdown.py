@@ -75,12 +75,12 @@ class TestMarkdownFormatter:
 
         expected = [
             "**Specific Comments:**",
-            "- 🦉 **[Correctness]** 🔵 `new_path:1`",
-            "comment 1",
             "- 🦉 **[Testing]** 🔴 `new_path:1`",
             "comment 2",
             "- 🦉 **[Testing]** 🟡 `new_path:1`",
             "comment 3",
+            "- 🦉 **[Correctness]** 🔵 `new_path:1`",
+            "comment 1",
         ]
         assert self.formatter.format_comments_section(review.review_response.comments) == "\n\n".join(expected)
 

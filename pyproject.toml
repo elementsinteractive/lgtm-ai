@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lgtm"
-version = "0.17.0"
+version = "0.19.0"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
@@ -11,6 +11,7 @@ pydantic-ai = ">=0.0.9"
 pydantic = "^2.10.3"
 python-gitlab = "^5.1.0"
 rich = "^13.9.4"
+h11 = ">=0.15.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -112,7 +113,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.17.0"
+version = "0.19.0"
 tag_format = "v$version"
 
 [tool.commitizen.customize]
