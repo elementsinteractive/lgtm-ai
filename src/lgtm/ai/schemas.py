@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from typing import Annotated, Literal
 
 from lgtm.git_client.schemas import PRDiff
-from pydantic import BaseModel, Field, computed_field
+from pydantic import AfterValidator, BaseModel, Field, computed_field
 
 CommentCategory = Literal["Correctness", "Quality", "Testing"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
+CommentSeverityPriority = Literal[1, 2, 3]
 ReviewScore = Literal["LGTM", "Nitpicks", "Needs Work", "Needs a Lot of Work", "Abandon"]
 ReviewRawScore = Literal[1, 2, 3, 4, 5]
 
@@ -15,6 +16,12 @@ SCORE_MAP: dict[ReviewRawScore, ReviewScore] = {
     3: "Needs Work",
     2: "Needs a Lot of Work",
     1: "Abandon",
+}
+
+SEVERITY_PRIORITY_MAP: dict[CommentSeverity, CommentSeverityPriority] = {
+    "HIGH": 1,
+    "MEDIUM": 2,
+    "LOW": 3,
 }
 
 
@@ -36,7 +43,10 @@ class ReviewResponse(BaseModel):
     """Structured output of any AI agent performing or summarizing code reviews."""
 
     summary: Annotated[str, Field(description="Summary of the review")]
-    comments: list[ReviewComment] = []
+    # comments are sorted by severity
+    comments: Annotated[
+        list[ReviewComment], AfterValidator(lambda v: sorted(v, key=lambda x: SEVERITY_PRIORITY_MAP[x.severity]))
+    ] = []
     raw_score: Annotated[
         Literal[1, 2, 3, 4, 5],
         Field(description="Overall score of the review"),
