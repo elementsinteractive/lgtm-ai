@@ -2,17 +2,21 @@ import logging
 import os
 import tomllib
 from collections.abc import Sequence
-from dataclasses import dataclass, field
-from typing import Literal, overload
+from typing import ClassVar, Literal, overload
 
-from lgtm.config.exceptions import ConfigFileNotFoundError, InvalidConfigFileError, MissingRequiredConfigError
+from lgtm.config.exceptions import (
+    ConfigFileNotFoundError,
+    InvalidConfigError,
+    InvalidConfigFileError,
+    MissingRequiredConfigError,
+)
 from openai.types import ChatModel
+from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger("lgtm")
 
 
-@dataclass(frozen=True, slots=True)
-class PartialConfig:
+class PartialConfig(BaseModel):
     """Partial configuration class to hold CLI arguments and config file data.
 
     It has nullable values, indicating that the user has not set that particular option.
@@ -29,8 +33,7 @@ class PartialConfig:
     ai_api_key: str | None = None
 
 
-@dataclass(frozen=True, slots=True)
-class ResolvedConfig:
+class ResolvedConfig(BaseModel):
     """Resolved configuration class to hold the final configuration.
 
     All values are non-nullable and have appropriate defaults.
@@ -52,10 +55,10 @@ class ResolvedConfig:
     """Suppress terminal output."""
 
     # Secrets
-    git_api_key: str = field(default="", repr=False)
+    git_api_key: str = Field(default="", repr=False)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
 
-    ai_api_key: str = field(default="", repr=False)
+    ai_api_key: str = Field(default="", repr=False)
     """API key to interact with the AI model service (OpenAI, etc.)."""
 
 
@@ -69,6 +72,8 @@ class ConfigHandler:
     There is not full parity between each source, i.e.: not all config options are configurable through all sources.
     For instance, secrets cannot be configured through the config file, but they can be configured through the CLI and environment variables.
     """
+
+    DEFAULT_CONFIG_FILE: ClassVar[str] = "lgtm.toml"
 
     def __init__(self, cli_args: PartialConfig, config_file: str | None = None) -> None:
         self.cli_args = cli_args
@@ -85,33 +90,46 @@ class ConfigHandler:
         )
 
     def _parse_config_file(self) -> PartialConfig:
-        if not self.config_file:
-            logger.debug("No config file provided, skipping parsing it.")
-            return PartialConfig()
+        """Parse config file and return a PartialConfig object.
+
+        It no config file is given by the user, it will look for the default lgtm.toml file in the current directory.
+        In that case, if the file cannot be found, no error will be raised at all.
+        """
+        file_to_read = self.config_file
+        fail_on_not_found = True
+        if not file_to_read:
+            logger.info("No config file given, will look for %s in the current directory", self.DEFAULT_CONFIG_FILE)
+            file_to_read = os.path.join(os.getcwd(), self.DEFAULT_CONFIG_FILE)
+            fail_on_not_found = False
 
         try:
-            with open(self.config_file, "rb") as f:
+            with open(file_to_read, "rb") as f:
                 config_data = tomllib.load(f)
         except FileNotFoundError:
-            logger.debug("Error reading config file", exc_info=True)
-            raise ConfigFileNotFoundError(f"Config file {self.config_file} not found.") from None
+            logger.debug("Error reading given config file %s", file_to_read, exc_info=True)
+            if fail_on_not_found:
+                raise ConfigFileNotFoundError(f"Config file {self.config_file} not found.") from None
+            else:
+                logger.info("Default config file %s not found, using defaults", file_to_read)
+                return PartialConfig()
         except tomllib.TOMLDecodeError:
             logger.debug("Error parsing config file", exc_info=True)
             raise InvalidConfigFileError(f"Config file {self.config_file} is invalid.") from None
 
-        logger.debug("Parsed config file: %s", config_data)
-        technologies = config_data.get("technologies", None)
-        exclude = config_data.get("exclude", None)
-        publish = config_data.get("publish", False)
-        silent = config_data.get("silent", False)
-        return PartialConfig(
-            technologies=technologies,
-            exclude=exclude,
-            publish=publish,
-            silent=silent,
-        )
+        logger.debug("Parsed config file: %s - %s", file_to_read, config_data)
+        try:
+            return PartialConfig(
+                model=config_data.get("model", None),
+                technologies=config_data.get("technologies", None),
+                exclude=config_data.get("exclude", None),
+                publish=config_data.get("publish", False),
+                silent=config_data.get("silent", False),
+            )
+        except ValidationError as err:
+            raise InvalidConfigError(source=file_to_read, errors=err.errors()) from None
 
     def _parse_cli_args(self) -> PartialConfig:
+        """Transform cli args into a PartialConfig object."""
         return PartialConfig(
             technologies=self.cli_args.technologies or None,
             exclude=self.cli_args.exclude or None,
@@ -122,10 +140,14 @@ class ConfigHandler:
         )
 
     def _parse_env(self) -> PartialConfig:
-        return PartialConfig(
-            git_api_key=os.environ.get("LGTM_GIT_API_KEY", None),
-            ai_api_key=os.environ.get("LGTM_AI_API_KEY", None),
-        )
+        """Parse environment variables and return a PartialConfig object."""
+        try:
+            return PartialConfig(
+                git_api_key=os.environ.get("LGTM_GIT_API_KEY", None),
+                ai_api_key=os.environ.get("LGTM_AI_API_KEY", None),
+            )
+        except ValidationError as err:
+            raise InvalidConfigError(source="Environment variables", errors=err.errors()) from None
 
     def _resolve_from_multiple_sources(
         self, *, from_cli: PartialConfig, from_file: PartialConfig, from_env: PartialConfig

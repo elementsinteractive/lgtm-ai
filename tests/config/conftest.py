@@ -37,6 +37,17 @@ def invalid_toml_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
+def toml_with_invalid_config_field(tmp_path: Path) -> Iterator[str]:
+    invalid_toml = tmp_path / "invalid.toml"
+    data = """
+    technologies = "foo"
+    model = "non-existing"
+    """
+    with create_tmp_file(invalid_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def inject_env_secrets() -> Iterator[None]:
     # Backup a copy of the current environment
     original_env = copy.deepcopy(os.environ)
