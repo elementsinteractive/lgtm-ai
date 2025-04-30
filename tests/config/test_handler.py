@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from lgtm.config.exceptions import ConfigFileNotFoundError, InvalidConfigFileError, MissingRequiredConfigError
 from lgtm.config.handler import ConfigHandler, PartialConfig
@@ -82,3 +84,30 @@ def test_cli_has_preference_over_env_for_secrets() -> None:
 
     assert config.git_api_key == "cli"
     assert config.ai_api_key == "cli"
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+@pytest.mark.parametrize(
+    ("cli", "file", "expected"),
+    [
+        (True, False, True),
+        (False, True, True),
+        (True, True, True),
+        (False, False, False),
+    ],
+)
+def test_boolean_flag_preference(cli: bool, file: bool, expected: bool) -> None:
+    """Contrary to other kinds of fields, boolean flags don't have normal preference order, because they are not set to "false" in the cli.
+
+    This means that `False` can also act as `None`/`Not Set`.
+    If set to `True` in either the cli or the file, then the config field is also set to `True`.
+    """
+    from_cli = PartialConfig(silent=cli, publish=cli)
+    from_file = PartialConfig(silent=file, publish=file)
+
+    with mock.patch("lgtm.config.handler.ConfigHandler._parse_config_file", return_value=from_file):
+        handler = ConfigHandler(cli_args=from_cli, config_file=mock.Mock())
+        config = handler.resolve_config()
+
+    assert config.silent == expected
+    assert config.publish == expected

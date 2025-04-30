@@ -73,7 +73,13 @@ def review(
     logger.info("Starting review of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
-            technologies=technologies, exclude=exclude, git_api_key=git_api_key, ai_api_key=ai_api_key, model=model
+            technologies=technologies,
+            exclude=exclude,
+            git_api_key=git_api_key,
+            ai_api_key=ai_api_key,
+            model=model,
+            publish=publish,
+            silent=silent,
         ),
         config_file=config,
     ).resolve_config()

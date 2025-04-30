@@ -21,6 +21,8 @@ class PartialConfig:
     model: ChatModel | None = None
     technologies: tuple[str, ...] | None = None
     exclude: tuple[str, ...] | None = None
+    publish: bool = False
+    silent: bool = False
 
     # Secrets
     git_api_key: str | None = None
@@ -42,6 +44,12 @@ class ResolvedConfig:
 
     exclude: tuple[str, ...] = ()
     """Pattern to exclude files from the review."""
+
+    publish: bool = False
+    """Publish the review to the git service as comments."""
+
+    silent: bool = False
+    """Suppress terminal output."""
 
     # Secrets
     git_api_key: str = field(default="", repr=False)
@@ -94,9 +102,13 @@ class ConfigHandler:
         logger.debug("Parsed config file: %s", config_data)
         technologies = config_data.get("technologies", None)
         exclude = config_data.get("exclude", None)
+        publish = config_data.get("publish", False)
+        silent = config_data.get("silent", False)
         return PartialConfig(
             technologies=technologies,
             exclude=exclude,
+            publish=publish,
+            silent=silent,
         )
 
     def _parse_cli_args(self) -> PartialConfig:
@@ -105,6 +117,8 @@ class ConfigHandler:
             exclude=self.cli_args.exclude or None,
             ai_api_key=self.cli_args.ai_api_key or None,
             git_api_key=self.cli_args.git_api_key or None,
+            silent=self.cli_args.silent,
+            publish=self.cli_args.publish,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -117,15 +131,13 @@ class ConfigHandler:
         self, *, from_cli: PartialConfig, from_file: PartialConfig, from_env: PartialConfig
     ) -> ResolvedConfig:
         """Resolve the config fields given all the config sources."""
-        technologies = self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file)
-        exclude = self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file)
-        git_api_key = self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env)
-        ai_api_key = self.resolver.resolve_string_field("ai_api_key", from_cli=from_cli, from_env=from_env)
         resolved = ResolvedConfig(
-            technologies=technologies,
-            exclude=exclude,
-            git_api_key=git_api_key,
-            ai_api_key=ai_api_key,
+            technologies=self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file),
+            exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
+            publish=from_cli.publish or from_file.publish,
+            silent=from_cli.silent or from_file.silent,
+            git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
+            ai_api_key=self.resolver.resolve_string_field("ai_api_key", from_cli=from_cli, from_env=from_env),
         )
         logger.debug("Resolved config: %s", resolved)
         return resolved
