@@ -40,6 +40,13 @@ def test_resolve_config_from_file(lgtm_toml_file: str) -> None:
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
+def test_resolve_config_from_pyproject_file(pyproject_toml_file: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=pyproject_toml_file)
+    config = handler.resolve_config()
+    assert config.technologies == ("COBOL", "javascript")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
 def test_resolve_config_from_file_invalid_file(invalid_toml_file: str) -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=invalid_toml_file)
     with pytest.raises(InvalidConfigFileError):
@@ -126,6 +133,48 @@ def test_lgtm_toml_is_autodetected(tmp_path: Path, lgtm_toml_file: str) -> None:
     with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
         config = handler.resolve_config()
     assert config.technologies == ("perl", "javascript")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_pyproject_toml_is_autodetected(tmp_path: Path, pyproject_toml_file: str) -> None:
+    """Test that the pyproject.toml file is autodetected in the current dir."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
+    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+        config = handler.resolve_config()
+    assert config.technologies == ("COBOL", "javascript")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_lgtm_file_has_preference_over_pyproject(tmp_path: Path, lgtm_toml_file: str, pyproject_toml_file: str) -> None:
+    """Test that the lgtm.toml file is preferred over the pyproject.toml file."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
+    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+        config = handler.resolve_config()
+    assert config.technologies == ("perl", "javascript")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_given_file_has_preference_over_autodetected_file(
+    tmp_path: Path, lgtm_toml_file: str, pyproject_toml_file: str
+) -> None:
+    """Test that the given file is preferred over any autodetected file."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file="does-not-exist.toml")
+    with (
+        mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)),
+        pytest.raises(ConfigFileNotFoundError),
+    ):
+        handler.resolve_config()
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_no_config_file_at_all_is_ok(tmp_path: Path) -> None:
+    """Test that no config file at all is ok and does not raise any errors."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
+    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+        # We still mock the current directory because this is a python project,
+        # and thus it has a pyproject.toml file that will be read during the test execution!
+        config = handler.resolve_config()
+    assert config.technologies == ()
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
