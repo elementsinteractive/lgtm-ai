@@ -11,7 +11,7 @@
 [![Latest Release](https://gitlab.com/namespace/elements/backend/lgtm/-/badges/release.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/releases)
 
 
-**Documentation:** https://namespace.gitlab.io/elements/backend/lgtm
+**Documentation:** https://namespace.gitlab.io/elements/tools/lgtm
 
 ---
 
