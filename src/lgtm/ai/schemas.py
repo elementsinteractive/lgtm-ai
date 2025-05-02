@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 from lgtm.git_client.schemas import PRDiff
 from pydantic import AfterValidator, BaseModel, Field, computed_field
 
-CommentCategory = Literal["Correctness", "Quality", "Testing"]
+CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
 CommentSeverityPriority = Literal[1, 2, 3]
 ReviewScore = Literal["LGTM", "Nitpicks", "Needs Work", "Needs a Lot of Work", "Abandon"]

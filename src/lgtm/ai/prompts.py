@@ -10,9 +10,10 @@ _SEVERITY_EXPLANATION = """
 
 
 _CATEGORIES_EXPLANATION: dict[CommentCategory, str] = {
-    "Correctness": "Is the code doing what it is supposed to be doing? Are there bugs or errors?",
-    "Quality": "Is the code clean, readable, and maintainable? Does it follow SOLID principles? Offer alternatives if necessary using snippets and suggestions.",
-    "Testing": "Are there enough tests? Are they covering all the edge cases? Are they testing the right things?",
+    "Correctness": "Does the code behave as intended? Identify logical errors, bugs, incorrect algorithms, broken functionality, or deviations from requirements. Focus on whether the code produces the correct output under expected and edge-case inputs.",
+    "Quality": "Is the code clean, readable, and maintainable? Evaluate naming, structure, modularity, and adherence to clean code principles (e.g., SOLID, DRY, KISS). Recommend improvements in organization, abstraction, or clarity, and provide alternative code snippets where helpful.",
+    "Testing": "Are there sufficient and appropriate tests? Check for meaningful test coverage, especially for edge cases and critical paths. Ensure tests are isolated, reliable, and aligned with the behavior being verified. Suggest missing test scenarios or improvements in test quality.",
+    "Security": "Does the code follow secure programming practices? Look for common vulnerabilities such as injection attacks, insecure data handling, improper access control, hardcoded credentials, or lack of input validation. Recommend secure alternatives and highlight potential attack vectors.",
 }
 
 assert set(_CATEGORIES_EXPLANATION.keys()) == set(get_args(CommentCategory)), (  # noqa: S101
