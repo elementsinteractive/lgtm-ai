@@ -194,4 +194,4 @@ def test_no_categories_uses_default(lgtm_toml_file: str) -> None:
     """Test that no categories in the config file uses the default categories."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=lgtm_toml_file)
     config = handler.resolve_config()
-    assert config.categories == ("Correctness", "Quality", "Testing")
+    assert config.categories == ("Correctness", "Quality", "Testing", "Security")
