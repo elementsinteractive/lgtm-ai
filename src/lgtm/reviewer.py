@@ -1,7 +1,7 @@
 import json
 import logging
 
-from lgtm.ai.schemas import Review, ReviewerDeps, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewerDeps, ReviewResponse, SummarizingDeps
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
 from lgtm.base.utils import file_matches_any_pattern
@@ -19,7 +19,7 @@ class CodeReviewer:
         self,
         *,
         reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
-        summarizing_agent: Agent[None, ReviewResponse],
+        summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
         model: OpenAIModel,
         git_client: GitClient[PRUrl],
         config: ResolvedConfig,
@@ -34,10 +34,14 @@ class CodeReviewer:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
         review_prompt = self._generate_review_prompt(pr_diff, context)
-        deps = ReviewerDeps(configured_technologies=self.config.technologies)
-
         logger.info("Running AI model on the PR diff")
-        raw_res = self.reviewer_agent.run_sync(model=self.model, user_prompt=review_prompt, deps=deps)
+        raw_res = self.reviewer_agent.run_sync(
+            model=self.model,
+            user_prompt=review_prompt,
+            deps=ReviewerDeps(
+                configured_technologies=self.config.technologies, configured_categories=self.config.categories
+            ),
+        )
         logger.info("Initial review completed")
         logger.debug(
             "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
@@ -45,7 +49,11 @@ class CodeReviewer:
 
         logger.info("Running AI model to summarize the review")
         summary_prompt = self._generate_summarizing_prompt(pr_diff, raw_res.output)
-        final_res = self.summarizing_agent.run_sync(model=self.model, user_prompt=summary_prompt)
+        final_res = self.summarizing_agent.run_sync(
+            model=self.model,
+            user_prompt=summary_prompt,
+            deps=SummarizingDeps(configured_categories=self.config.categories),
+        )
         logger.info("Final review completed")
         logger.debug(
             "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)

@@ -1,5 +1,6 @@
 import json
 import textwrap
+from typing import Literal
 from unittest import mock
 
 import pytest
@@ -105,7 +106,12 @@ def test_get_review_from_url_valid() -> None:
             ```
         """
     ).strip()
-    _assert_agent_message(messages, expected_message, expected_messages=3)
+    _assert_agent_message(
+        messages,
+        expected_message,
+        expected_messages=4,
+        expected_prompts=["system-prompt", "system-prompt", "system-prompt", "user-prompt"],
+    )
 
 
 def test_get_review_adds_technologies_to_prompt() -> None:
@@ -135,8 +141,43 @@ def test_get_review_adds_technologies_to_prompt() -> None:
     requests = _get_requests_from_messages(messages)
     assert requests
     first_request = requests[0]
-    assert len(first_request.parts) == 3
+    assert len(first_request.parts) == 4
     assert first_request.parts[1].content == 'You are an expert in "COBOL", "FORTRAN", "ODIN".'
+
+
+def test_get_review_adds_categories_to_prompt() -> None:
+    test_agent = reviewer_agent
+    test_summary_agent = summarizing_agent
+    with (
+        test_agent.override(
+            model=TestModel(),
+        ),
+        test_summary_agent.override(
+            model=TestModel(),
+        ),
+        capture_run_messages() as messages,
+    ):
+        code_reviewer = CodeReviewer(
+            reviewer_agent=test_agent,
+            summarizing_agent=test_summary_agent,
+            model=mock.Mock(spec=OpenAIModel),
+            git_client=MockGitClient(),
+            config=ResolvedConfig(categories=("Correctness", "Quality")),
+        )
+        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+
+    assert review
+    assert messages
+
+    requests = _get_requests_from_messages(messages)
+    assert requests
+    first_request = requests[0]
+    assert len(first_request.parts) == 4
+    # These two categories are in the prompt
+    assert "Correctness" in first_request.parts[2].content
+    assert "Quality" in first_request.parts[2].content
+    # This one is not
+    assert "Testing" not in first_request.parts[2].content
 
 
 def test_review_fails_if_all_files_are_excluded() -> None:
@@ -178,14 +219,20 @@ def test_file_is_excluded_from_prompt() -> None:
     assert not any("contents-of-file2" in str(message) for message in messages)
 
 
-def _assert_agent_message(messages: list[ModelMessage], expected_user_prompt: str, *, expected_messages: int) -> None:
+def _assert_agent_message(
+    messages: list[ModelMessage],
+    expected_user_prompt: str,
+    *,
+    expected_messages: int,
+    expected_prompts: list[Literal["system-prompt", "user-prompt"]],
+) -> None:
     requests = _get_requests_from_messages(messages)
     assert requests
 
     first_message = requests[0]
     assert len(first_message.parts) == expected_messages
     kinds = [part.part_kind for part in first_message.parts]
-    assert kinds == ["system-prompt", "system-prompt", "user-prompt"]
+    assert kinds == expected_prompts
 
     user_prompt = next(part for part in first_message.parts if part.part_kind == "user-prompt")
     assert user_prompt.content == expected_user_prompt

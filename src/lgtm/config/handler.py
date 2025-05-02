@@ -4,8 +4,9 @@ import pathlib
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, ClassVar, Literal, overload
+from typing import Any, ClassVar, Literal, cast, get_args, overload
 
+from lgtm.ai.schemas import CommentCategory
 from lgtm.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
@@ -26,6 +27,7 @@ class PartialConfig(BaseModel):
 
     model: ChatModel | None = None
     technologies: tuple[str, ...] | None = None
+    categories: tuple[CommentCategory, ...] | None = None
     exclude: tuple[str, ...] | None = None
     publish: bool = False
     silent: bool = False
@@ -46,6 +48,9 @@ class ResolvedConfig(BaseModel):
 
     technologies: tuple[str, ...] = ()
     """Technologies the reviewer is an expert in."""
+
+    categories: tuple[CommentCategory, ...] = get_args(CommentCategory)
+    """Categories of comments to include in the review."""
 
     exclude: tuple[str, ...] = ()
     """Pattern to exclude files from the review."""
@@ -108,6 +113,7 @@ class ConfigHandler:
             return PartialConfig(
                 model=config_data.get("model", None),
                 technologies=config_data.get("technologies", None),
+                categories=config_data.get("categories", None),
                 exclude=config_data.get("exclude", None),
                 publish=config_data.get("publish", False),
                 silent=config_data.get("silent", False),
@@ -159,6 +165,8 @@ class ConfigHandler:
         """Transform cli args into a PartialConfig object."""
         return PartialConfig(
             technologies=self.cli_args.technologies or None,
+            categories=self.cli_args.categories or None,
+            model=self.cli_args.model or None,
             exclude=self.cli_args.exclude or None,
             ai_api_key=self.cli_args.ai_api_key or None,
             git_api_key=self.cli_args.git_api_key or None,
@@ -182,7 +190,23 @@ class ConfigHandler:
         """Resolve the config fields given all the config sources."""
         resolved = ResolvedConfig(
             technologies=self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file),
+            categories=cast(
+                tuple[CommentCategory, ...],
+                self.resolver.resolve_tuple_field(
+                    "categories", from_cli=from_cli, from_file=from_file, default=get_args(CommentCategory)
+                ),
+            ),
             exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
+            model=cast(
+                ChatModel,
+                self.resolver.resolve_string_field(
+                    "model",
+                    from_cli=from_cli,
+                    from_file=from_file,
+                    required=False,
+                    default="gpt-4o-mini",
+                ),
+            ),
             publish=from_cli.publish or from_file.publish,
             silent=from_cli.silent or from_file.silent,
             git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),

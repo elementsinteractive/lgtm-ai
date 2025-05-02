@@ -187,3 +187,11 @@ def test_incorrect_config_field_raises(toml_with_invalid_config_field: str) -> N
     assert "Invalid config file" in error.message
     assert "'model': Input should be 'gpt-4.1'" in error.message
     assert "'technologies': Input should be a valid tuple" in error.message
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_no_categories_uses_default(lgtm_toml_file: str) -> None:
+    """Test that no categories in the config file uses the default categories."""
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=lgtm_toml_file)
+    config = handler.resolve_config()
+    assert config.categories == ("Correctness", "Quality", "Testing")

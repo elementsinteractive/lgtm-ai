@@ -1,7 +1,7 @@
 import logging
 
 from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
-from lgtm.ai.schemas import ReviewerDeps, ReviewResponse
+from lgtm.ai.schemas import ReviewerDeps, ReviewResponse, SummarizingDeps
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIModel
@@ -17,12 +17,13 @@ def get_ai_model(model_name: ChatModel, api_key: str) -> OpenAIModel:
 reviewer_agent = Agent(
     system_prompt=REVIEWER_SYSTEM_PROMPT,
     deps_type=ReviewerDeps,
-    result_type=ReviewResponse,
+    output_type=ReviewResponse,
 )
 
 summarizing_agent = Agent(
     system_prompt=SUMMARIZING_SYSTEM_PROMPT,
-    result_type=ReviewResponse,
+    deps_type=SummarizingDeps,
+    output_type=ReviewResponse,
 )
 
 
@@ -31,3 +32,15 @@ def get_pr_technologies(ctx: RunContext[ReviewerDeps]) -> str:
     if not ctx.deps.configured_technologies:
         return "You are an expert in whatever technologies the PR is using."
     return f"You are an expert in {', '.join([f'"{tech}"' for tech in ctx.deps.configured_technologies])}."
+
+
+@reviewer_agent.system_prompt
+def get_comment_categories(ctx: RunContext[ReviewerDeps]) -> str:
+    return f"The categories you should exclusively focus on for your review comments are: {
+        ', '.join(ctx.deps.configured_categories)
+    }"
+
+
+@summarizing_agent.system_prompt
+def get_summarizing_categories(ctx: RunContext[SummarizingDeps]) -> str:
+    return f"The only comment categories that you should keep in the review are: {', '.join(ctx.deps.configured_categories)}."

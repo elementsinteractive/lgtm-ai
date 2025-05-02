@@ -74,3 +74,11 @@ class ReviewerDeps:
     """
 
     configured_technologies: tuple[str, ...]
+    configured_categories: tuple[CommentCategory, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SummarizingDeps:
+    """Dependencies passed to the AI agent summarizing the code review."""
+
+    configured_categories: tuple[CommentCategory, ...]
