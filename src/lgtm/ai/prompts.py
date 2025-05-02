@@ -1,14 +1,31 @@
-_CATEGORIES_EXPLANATION = """
-        - `Correctness`: Is the code doing what it is supposed to be doing? Are there bugs or errors?
-        - `Quality`: Is the code clean, readable, and maintainable? Does it follow SOLID principles? Offer alternatives if necessary using snippets and suggestions.
-        - `Testing`: Are there enough tests? Are they covering all the edge cases? Are they testing the right things?
-"""
+from typing import get_args
+
+from lgtm.ai.schemas import CommentCategory
 
 _SEVERITY_EXPLANATION = """
         - `LOW`: nitpick, minor issues. It does not really affect functionality, it may affect correctness in a theoretical way (but not in practice), it affects maintainability but it's quite subjective, etc. Do not add informative or praising comments.
         - `MEDIUM`: can really be improved, there is a real issue that you are mostly sure about. Can affect functionality in some  cases, it can impact maintainability in a more objective manner.
         - `HIGH`: very wrong. There are critical bugs, the structure of the code is wrong, the approach is flawed, etc.
 """
+
+
+_CATEGORIES_EXPLANATION: dict[CommentCategory, str] = {
+    "Correctness": "Is the code doing what it is supposed to be doing? Are there bugs or errors?",
+    "Quality": "Is the code clean, readable, and maintainable? Does it follow SOLID principles? Offer alternatives if necessary using snippets and suggestions.",
+    "Testing": "Are there enough tests? Are they covering all the edge cases? Are they testing the right things?",
+}
+
+assert set(_CATEGORIES_EXPLANATION.keys()) == set(get_args(CommentCategory)), (  # noqa: S101
+    "All Comment Categories must have an explanation"
+)
+
+
+def _get_full_category_explanation() -> str:
+    lines = []
+    for cat in get_args(CommentCategory):
+        lines.append(f"        - `{cat}`: {_CATEGORIES_EXPLANATION[cat]}")
+    return "\n".join(lines)
+
 
 REVIEWER_SYSTEM_PROMPT = f"""
 You are a senior software developer making code reviews for your colleagues.
@@ -46,7 +63,7 @@ You should make two types of comments:
     - Comments have a severity, which can be:
         {_SEVERITY_EXPLANATION}
     - The comments should be grouped by category, and the categories are:
-        {_CATEGORIES_EXPLANATION}
+        {_get_full_category_explanation()}
     - Assume there are other steps in the CI/CD pipeline: type checking, linting, testing. Do not add comments asking the author to ensure stuff that will be picked up by those steps.
     - Do not feel like you need to say something for the sake of saying it. Filter out noise.
     - Do not ask the author to "check this", "validate this", "make sure this is correct", "ensure this does not break something", etc. Focus on issues you really see.
@@ -69,13 +86,14 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
     The review contains a summary and a list of comments. The summary is a general overview of the PR, and the comments are specific issues that need to be addressed.
     The comments are categorized, and each comment has a severity level.
     The categories are:
-        {_CATEGORIES_EXPLANATION}
+        {_get_full_category_explanation()}
     The comment severity levels are:
         {_SEVERITY_EXPLANATION}
 
     Follow these instructions:
     - Filter out noise. The reviewer agent has a tendency to include useless comments ("check that this is correct", "talk to your colleagues about this", etc.). Remove those.
     - Remove comments that are just praising or commenting on the code. These are useless.
+    - Remove comments that are not in the provided categories below.
     - Evaluate whether some comments are more likely to simply be incorrect. If they are likely to be incorrect, remove them.
     - Merge duplicate comments. If there are two comments that refer to the same issue, merge them into one.
     - Comments have a code snippet that they refer to. Consider whether the snippet needs a bit more code context, and if so, expand the snippet. Otherwise don't touch them.

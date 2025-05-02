@@ -5,6 +5,7 @@ from typing import get_args
 import click
 import gitlab
 from lgtm.ai.agent import get_ai_model, reviewer_agent, summarizing_agent
+from lgtm.ai.schemas import CommentCategory
 from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ConfigHandler, PartialConfig
 from lgtm.formatters.markdown import MarkDownFormatter
@@ -48,6 +49,12 @@ def entry_point() -> None:
     help="List of technologies the reviewer is an expert in. If not provided, the reviewer will be an expert of all technologies in the given PR. Use it if you want to guide the reviewer to focus on specific technologies.",
 )
 @click.option(
+    "--categories",
+    multiple=True,
+    type=click.Choice(get_args(CommentCategory)),
+    help="List of categories the reviewer should focus on. If not provided, the reviewer will focus on all categories.",
+)
+@click.option(
     "--exclude",
     multiple=True,
     help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
@@ -62,6 +69,7 @@ def review(
     ai_api_key: str | None,
     config: str | None,
     technologies: tuple[str, ...],
+    categories: tuple[CommentCategory, ...],
     exclude: tuple[str, ...],
     publish: bool,
     silent: bool,
@@ -74,6 +82,7 @@ def review(
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
             technologies=technologies,
+            categories=categories,
             exclude=exclude,
             git_api_key=git_api_key,
             ai_api_key=ai_api_key,
