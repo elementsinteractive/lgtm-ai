@@ -27,6 +27,17 @@ def lgtm_toml_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
+def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    data = """
+    [tool.lgtm]
+    technologies = ["COBOL", "javascript"]
+    """
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def invalid_toml_file(tmp_path: Path) -> Iterator[str]:
     invalid_toml = tmp_path / "invalid.toml"
     data = """

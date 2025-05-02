@@ -1,8 +1,10 @@
 import logging
 import os
+import pathlib
 import tomllib
 from collections.abc import Sequence
-from typing import ClassVar, Literal, overload
+from pathlib import Path
+from typing import Any, ClassVar, Literal, overload
 
 from lgtm.config.exceptions import (
     ConfigFileNotFoundError,
@@ -74,6 +76,7 @@ class ConfigHandler:
     """
 
     DEFAULT_CONFIG_FILE: ClassVar[str] = "lgtm.toml"
+    PYPROJECT_CONFIG_FILE: ClassVar[str] = "pyproject.toml"
 
     def __init__(self, cli_args: PartialConfig, config_file: str | None = None) -> None:
         self.cli_args = cli_args
@@ -92,31 +95,15 @@ class ConfigHandler:
     def _parse_config_file(self) -> PartialConfig:
         """Parse config file and return a PartialConfig object.
 
-        It no config file is given by the user, it will look for the default lgtm.toml file in the current directory.
-        In that case, if the file cannot be found, no error will be raised at all.
+        It no config file is given by the user, it will look for the default lgtm.toml or pyproject.toml file in the current directory.
+        In that case, if the files cannot be found, no error will be raised at all.
         """
-        file_to_read = self.config_file
-        fail_on_not_found = True
+        file_to_read = self._get_config_file_to_parse()
         if not file_to_read:
-            logger.info("No config file given, will look for %s in the current directory", self.DEFAULT_CONFIG_FILE)
-            file_to_read = os.path.join(os.getcwd(), self.DEFAULT_CONFIG_FILE)
-            fail_on_not_found = False
+            logger.debug("No config file given nor found, using defaults")
+            return PartialConfig()
 
-        try:
-            with open(file_to_read, "rb") as f:
-                config_data = tomllib.load(f)
-        except FileNotFoundError:
-            logger.debug("Error reading given config file %s", file_to_read, exc_info=True)
-            if fail_on_not_found:
-                raise ConfigFileNotFoundError(f"Config file {self.config_file} not found.") from None
-            else:
-                logger.info("Default config file %s not found, using defaults", file_to_read)
-                return PartialConfig()
-        except tomllib.TOMLDecodeError:
-            logger.debug("Error parsing config file", exc_info=True)
-            raise InvalidConfigFileError(f"Config file {self.config_file} is invalid.") from None
-
-        logger.debug("Parsed config file: %s - %s", file_to_read, config_data)
+        config_data = self._get_data_from_config_file(file_to_read)
         try:
             return PartialConfig(
                 model=config_data.get("model", None),
@@ -126,7 +113,47 @@ class ConfigHandler:
                 silent=config_data.get("silent", False),
             )
         except ValidationError as err:
-            raise InvalidConfigError(source=file_to_read, errors=err.errors()) from None
+            raise InvalidConfigError(source=file_to_read.name, errors=err.errors()) from None
+
+    def _get_config_file_to_parse(self) -> pathlib.Path | None:
+        """Select which config file needs to be parsed (if any)."""
+        if self.config_file:
+            if not Path(self.config_file).exists():
+                # If config_file is given by the user, it MUST exist.
+                logger.debug("Config file %s not found", self.config_file)
+                raise ConfigFileNotFoundError(f"Config file {self.config_file} not found.") from None
+            return Path(self.config_file)
+
+        # We prefer the lgtm.toml file, and finally the pyproject.toml file.
+        preference_order = (
+            Path.cwd() / self.DEFAULT_CONFIG_FILE,
+            Path.cwd() / self.PYPROJECT_CONFIG_FILE,
+        )
+        for file in preference_order:
+            file_path = Path(file)
+            if file_path.exists():
+                logger.debug("Found config file: %s", file)
+                return file_path
+
+    def _get_data_from_config_file(self, config_file: pathlib.Path) -> dict[str, Any]:
+        """Return unorganized data from the config file."""
+        try:
+            with config_file.open("rb") as f:
+                config_data = tomllib.load(f)
+        except FileNotFoundError:
+            logger.debug("Error reading given config file %s", config_file, exc_info=True)
+            raise ConfigFileNotFoundError(f"Config file {self.config_file} not found.") from None
+        except tomllib.TOMLDecodeError:
+            logger.debug("Error parsing config file", exc_info=True)
+            raise InvalidConfigFileError(f"Config file {self.config_file} is invalid.") from None
+
+        if config_file.name == self.PYPROJECT_CONFIG_FILE:
+            logger.debug("Config file is a pyproject.toml, looking for configs in the lgtm section")
+            config_data = config_data.get("tool", {}).get("lgtm", {})
+        else:
+            logger.debug("Config file is a lgtm.toml, looking for configs at the root level")
+        logger.debug("Parsed config file: %s - %s", config_file, config_data)
+        return config_data
 
     def _parse_cli_args(self) -> PartialConfig:
         """Transform cli args into a PartialConfig object."""
