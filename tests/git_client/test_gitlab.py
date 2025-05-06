@@ -328,7 +328,8 @@ def test_get_context_one_file_missing() -> None:
     )
 
     m_project.files.get.side_effect = [
-        gitlab.exceptions.GitlabGetError("File not found"),
+        gitlab.exceptions.GitlabGetError("File not found"),  # The initial call fails
+        gitlab.exceptions.GitlabGetError("File not found again"),  # The follow-up in case of deletion fails
         mock.Mock(content=b"c3VycHJpc2U="),
     ]
 
@@ -345,3 +346,39 @@ def test_get_context_one_file_missing() -> None:
             PRContextFileContents(file_path="logic.py", content="surprise"),
         ]
     )
+
+
+def test_get_context_deleted_file() -> None:
+    m_mr = mock_mr()
+    m_project = mock_project(m_mr)
+
+    pr_diff = PRDiff(
+        id=10,
+        changed_files=["missing.py"],
+        target_branch="main",
+        source_branch="feature",
+        diff=[],
+    )
+
+    m_project.files.get.side_effect = [
+        gitlab.exceptions.GitlabGetError("File not found"),  # The initial call on the PR sha fails
+        mock.Mock(content=b"c3VycHJpc2U="),  # The follow-up on main succeeds
+    ]
+
+    client = mock_gitlab_client(m_project)
+
+    context = client.get_context(
+        PRUrl(full_url="https://foo", project_path="path", mr_number=1),
+        pr_diff=pr_diff,
+    )
+
+    assert context == PRContext(
+        file_contents=[
+            PRContextFileContents(file_path="missing.py", content="surprise"),
+        ]
+    )
+    calls = m_project.files.get.call_args_list
+
+    assert len(calls) == 2
+    assert calls[0][1]["ref"] == mock.ANY
+    assert calls[1][1]["ref"] == "main"  # The target branch is used for the deleted file
