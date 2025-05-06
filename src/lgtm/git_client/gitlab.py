@@ -72,8 +72,19 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                     ref=pr.sha,
                 )
             except gitlab.exceptions.GitlabGetError:
-                logger.exception("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
-                continue
+                # If the download fails, attempt to download it from the target branch
+                # This can happen when a file is deleted in the PR: you cannot download it from the PR sha
+                logger.debug(
+                    "Failed to retrieve file %s from GitLab sha: %s, trying target branch...", file_path, pr.sha
+                )
+                try:
+                    file = project.files.get(
+                        file_path=file_path,
+                        ref=pr.target_branch,
+                    )
+                except gitlab.exceptions.GitlabGetError:
+                    logger.error("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                    continue
             content = base64.b64decode(file.content).decode()
             context.add_file(file_path, content)
         return context
