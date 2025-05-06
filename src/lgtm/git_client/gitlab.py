@@ -1,7 +1,7 @@
 import base64
 import functools
 import logging
-from typing import cast
+from typing import Any, cast
 
 import gitlab
 import gitlab.exceptions
@@ -127,7 +127,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
         The AI currently makes mistakes which make gitlab fail to accurately post a comment.
         For example with the line number a comment refers to (whether it's a line on the 'old' file vs the 'new file).
-        To avoid blocking the review, we try once with `new_line`, retry with `old_line` and otherwise return the comments to be posted with the main summary.
+        To avoid blocking the review, we try once with `new_line`, retry with `old_line`, then try to post the comment on the file level and finally return the comments to be posted with the main summary.
         TODO: Rework the prompt & the ReviewResponse so that the AI can be more accurate in providing the line & file information
 
         Returns:
@@ -156,22 +156,11 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 "position": position,
             }
 
-            try:
-                pr.discussions.create(gitlab_comment)
-            except gitlab.exceptions.GitlabError:
-                # Switch new_line <-> old_line in case the AI made a mistake with `is_comment_on_new_path`
-                logger.warning("Failed to post comment, retrying with new_line <-> old_line")
-                if "old_line" in position:
-                    position["new_line"] = position.pop("old_line")
-                else:
-                    position["old_line"] = position.pop("new_line")
-                gitlab_comment["position"] = position
+            comment_create_success = self._attempt_comment_at_positions(pr, gitlab_comment)
 
-                try:
-                    pr.discussions.create(gitlab_comment)
-                except gitlab.exceptions.GitlabError:
-                    # Add it to the list of failed comments to be published in the summary comment
-                    failed_comments.append(review_comment)
+            if not comment_create_success:
+                # Add it to the list of failed comments to be published in the summary comment
+                failed_comments.append(review_comment)
 
         if failed_comments:
             logger.warning(
@@ -180,6 +169,54 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 len(failed_comments),
             )
         return failed_comments
+
+    def _attempt_comment_at_positions(
+        self, pr: gitlab.v4.objects.ProjectMergeRequest, gitlab_comment: dict[str, Any]
+    ) -> bool:
+        """Try to post comments at decreasingly specific positions.
+
+        By default we want to just try original target, then swap lines, then post to file, then give up.
+
+        Returns whether any of the attempts were successful.
+        """
+        comment_create_success: bool = True
+        try:
+            pr.discussions.create(gitlab_comment)
+        except gitlab.exceptions.GitlabError:
+            comment_create_success = False
+
+        position = gitlab_comment["position"]
+        if not comment_create_success:
+            # Switch new_line <-> old_line in case the AI made a mistake with `is_comment_on_new_path`
+            logger.debug("Failed to post comment, retrying with new_line <-> old_line")
+            if "old_line" in position:
+                position["new_line"] = position.pop("old_line")
+            else:
+                position["old_line"] = position.pop("new_line")
+
+            comment_create_success = True
+            try:
+                pr.discussions.create(gitlab_comment)
+            except gitlab.exceptions.GitlabError:
+                comment_create_success = False
+
+        if not comment_create_success:
+            # Failed to attach to a line, so let's try at file level
+            logger.debug("Failed to post for neither line, retrying with a file-level comment")
+            _ = position.pop("new_line", None)
+            _ = position.pop("old_line", None)
+            position["position_type"] = "file"
+
+            comment_create_success = True
+            try:
+                pr.discussions.create(gitlab_comment)
+            except gitlab.exceptions.GitlabError:
+                comment_create_success = False
+                logger.debug(
+                    "Failed to post the comment anywhere specific, it will go to general decription (hopefully)"
+                )
+
+        return comment_create_success
 
     def _get_diff_from_pr(self, pr: gitlab.v4.objects.ProjectMergeRequest) -> gitlab.v4.objects.ProjectMergeRequestDiff:
         """Gitlab returns multiple "diff" objects for a single MR, which correspond to each pushed "version" of the MR.

@@ -189,6 +189,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
         mock.Mock(),
         gitlab.exceptions.GitlabError(),
         gitlab.exceptions.GitlabError(),
+        gitlab.exceptions.GitlabError(),
     ]
     m_project = mock_project(m_mr)
     m_project.diffs.list.return_value = [mock.Mock()]
@@ -276,6 +277,19 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                         "old_path": "bar",
                         "position_type": "text",
                         "new_line": 2,
+                    },
+                }
+            ),
+            mock.call(
+                {
+                    "body": mock.ANY,
+                    "position": {
+                        "base_sha": "base",
+                        "head_sha": "head",
+                        "start_sha": "start",
+                        "new_path": "bar",
+                        "old_path": "bar",
+                        "position_type": "file",
                     },
                 }
             ),
