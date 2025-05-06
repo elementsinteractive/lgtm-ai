@@ -1,0 +1,59 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Editor/IDE files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+.vscode/
+.idea/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# OS and misc
+.DS_Store
+Thumbs.db
+
+# Tests (optional, if not needed in the image)
+tests/
+
+# Documentation and markdown (if not needed)
+*.md
+
+# Poetry files you don't need in container (optional)
+poetry.lock  # If you're using only pyproject.toml
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Coverage
+.coverage
+htmlcov/
+.coverage.*
+
+# CI/CD
+.tox/
+.nox/
+*.coverage
+.pytest_cache/

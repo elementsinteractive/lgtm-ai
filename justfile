@@ -5,6 +5,7 @@ bin := venv + "/bin"
 python_version := "python3.13"
 run := "poetry run"
 target_dirs := "src tests"
+image := "registry.gitlab.com/namespace/lgtm"
 
 # SENTINELS
 venv-exists := path_exists(venv)
@@ -64,4 +65,12 @@ spellcheck *codespell-args: venv
 lint-commit: venv
     {{ run }} cz check --rev-range main..HEAD
 
+# Runs docker build
+build:
+	docker build -t lgtm .
+
+# Pushes the docker image to the registry
+push version: build
+	docker image tag lgtm {{ image }}:{{ version }}
+	docker image push {{ image }}:{{ version }}
 
