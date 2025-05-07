@@ -15,16 +15,74 @@
 
 ---
 
-Your AI-powered code review companion
+lgtm is your AI code review companion. It allows teams to perform reviews over pull requests (PRs) automatically without human intervention, using any of the supported AI models.
 
 
 **Table of Contents**
+- [Quick Usage](#quick-usage)
+- [How it works](#how-it-works)
+  - [CI/CD Integration](#cicd-integration)
+  - [Configuration](#configuration)
+    - [Configuration file](#configuration-file)
 - [Installation](#installation)
 - [Running the project](#running-the-project)
 - [Managing requirements](#managing-requirements)
 - [Contributing](#contributing)
+- [Evaluating lgtm](#evaluating-lgtm)
   - [API Development Guidelines](#api-development-guidelines)
   - [Code Review Guidelines](#code-review-guidelines)
+
+
+## Quick Usage
+
+```sh
+ lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN  --publish
+```
+
+## How it works
+
+lgtm reads the given pull request and feeds it to several AI agents to generate a code review. The philosophy of lgtm is to keep the models out of the picture and totally configurable, so that you can choose which model to use based on pricing, security, data privacy, or whatever is important to you.
+
+If instructed (with the option `--publish`), lgtm will publish the review to the pull request page as comments. The review will also be displayed in the terminal.
+
+### CI/CD Integration
+
+lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step. See the [CI/CD Configuration](https://namespace.gitlab.io/elements/tools/lgtm/cicd) section for a thorough explanation and some examples.
+
+### Configuration
+
+You can customize how lgtm works by passing cli arguments to it on invocation, or by using the *lgtm configuration file*. 
+
+#### Configuration file
+
+lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.toml` file in the current directory, or you can pass a specific file path with the CLI option `--config <path>`. These are the available options at the moment:
+
+- **technologies**: You can specify, as a list of free strings, which technologies lgtm specializes in. This can be helpful for directing the reviewer towards specific technologies. By default, lgtm won't assume any technology and will just review the PR considering itself an "expert" in it.
+- **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g.: if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas). 
+- **model**: Choose which AI model you want lgtm to use. For a full list of supported models, check out [this page](https://namespace.gitlab.io/elements/tools/lgtm/supported-models).
+- **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (`exclude = ["*.md", "package-lock.json"]`)
+- **silent**: Do not print the review in the terminal.
+- **publish**: If `true`, it will post the review as comments on the PR page.
+- **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
+- **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`).
+
+**Example `lgtm.toml`:**
+
+```toml
+technologies = ["Django", "Python"]
+categories = ["Correctness", "Quality"]
+exclude = ["*.md"]
+model = "gpt-4o"
+silent = false
+publish = true
+```
+
+Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) files, you just need to nest the options inside `[tool.lgtm]`.
+
+
+When it comes to preference for selecting options, lgtm follows this preference order:
+
+  `CLI options` > `lgtm.toml` > `pyproject.toml`
 
 ## Installation
 
@@ -138,7 +196,7 @@ configuring pre-commit to execute some of them can be beneficial to reduce late 
 just pre-commit
 ```
 
-## Evaluating lgtm (WIP)
+## Evaluating lgtm
 
 If you are working on improving the prompts of the AI, the models, or other areas of lgtm that might affect the quality of the reviews,
 this repo comes with a script that will help you bootstrap your evaluations.
