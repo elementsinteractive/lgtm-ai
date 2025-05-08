@@ -29,6 +29,7 @@ RUN python -m venv /venv \
 
 # ===== Stage 2: Final image =====
 FROM python:${PYTHON_VERSION}
+ENV PATH="/venv/bin:${PATH}"
 
 WORKDIR /app
 
@@ -45,5 +46,4 @@ RUN groupadd -g 1001 lgtm && \
 USER lgtm
 
 
-
-ENTRYPOINT ["/venv/bin/lgtm"]
+ENTRYPOINT ["lgtm"]
