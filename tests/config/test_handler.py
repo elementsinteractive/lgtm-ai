@@ -76,6 +76,7 @@ def test_resolve_multiple_config_keys(lgtm_toml_file: str) -> None:
     assert config.exclude == ("foo.py", "*.md")
 
 
+@pytest.mark.usefixtures("clean_env_secrets")
 def test_missing_secrets_raises_error() -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
     with pytest.raises(MissingRequiredConfigError):
@@ -170,10 +171,7 @@ def test_given_file_has_preference_over_autodetected_file(
 def test_no_config_file_at_all_is_ok(tmp_path: Path) -> None:
     """Test that no config file at all is ok and does not raise any errors."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
-    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
-        # We still mock the current directory because this is a python project,
-        # and thus it has a pyproject.toml file that will be read during the test execution!
-        config = handler.resolve_config()
+    config = handler.resolve_config()
     assert config.technologies == ()
 
 

@@ -1,0 +1,6 @@
+technologies = ["Python", "AI"]
+categories = ["Correctness", "Quality", "Testing", "Security"]
+exclude = ["*.md", "poetry.lock"]
+model = "gpt-4.1"
+silent = false
+publish = true
