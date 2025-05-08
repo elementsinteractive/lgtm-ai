@@ -1,4 +1,5 @@
 import base64
+import binascii
 import functools
 import logging
 from typing import Any, cast
@@ -85,7 +86,11 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 except gitlab.exceptions.GitlabGetError:
                     logger.error("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
                     continue
-            content = base64.b64decode(file.content).decode()
+            try:
+                content = base64.b64decode(file.content).decode()
+            except (binascii.Error, UnicodeDecodeError):
+                logger.error("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                continue
             context.add_file(file_path, content)
         return context
 

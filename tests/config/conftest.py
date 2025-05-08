@@ -3,6 +3,7 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -73,3 +74,32 @@ def inject_env_secrets() -> Iterator[None]:
         # Restore original environment
         os.environ.clear()
         os.environ.update(original_env)
+
+
+@pytest.fixture
+def clean_env_secrets() -> Iterator[None]:
+    """Remove environment variables for testing purposes.
+
+    It can happen that in CI there are variables set to run lgtm that
+    make certain tests fail or pass unexpectedly.
+
+    If your test requires a clean environment, use this fixture.
+    """
+    # Backup a copy of the current environment
+    original_env = copy.deepcopy(os.environ)
+    os.environ.clear()
+
+    try:
+        yield
+    finally:
+        # Restore original environment
+        os.environ.clear()
+        os.environ.update(original_env)
+
+
+@pytest.fixture(autouse=True)
+def mock_current_working_directory(tmp_path: Path) -> Iterator[None]:
+    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+        # We still mock the current directory because this is a python project,
+        # and thus it has a pyproject.toml file that will be read during the test execution!
+        yield

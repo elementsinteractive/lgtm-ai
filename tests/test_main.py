@@ -23,6 +23,7 @@ def test_set_logging_level(verbosity: int, expected_level: int) -> None:
 
 @mock.patch("lgtm.__main__.CodeReviewer")
 @mock.patch("lgtm.__main__.TerminalFormatter")
+@mock.patch("lgtm.__main__.GitlabClient")
 def test_review_cli(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(
