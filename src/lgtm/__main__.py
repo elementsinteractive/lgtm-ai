@@ -103,13 +103,13 @@ def review(
     review = code_reviewer.review_pull_request(pr_url=pr_url)
     logger.info("Review completed, total comments: %d", len(review.review_response.comments))
 
-    if not silent:
+    if not resolved_config.silent:
         logger.info("Printing review to console")
         terminal_formatter = TerminalFormatter()
         print(terminal_formatter.format_summary_section(review))
         print(terminal_formatter.format_comments_section(review.review_response.comments))
 
-    if publish:
+    if resolved_config.publish:
         logger.info("Publishing review to git service")
         git_client.publish_review(pr_url=pr_url, review=review)
         logger.info("Review published successfully")
