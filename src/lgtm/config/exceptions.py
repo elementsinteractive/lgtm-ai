@@ -18,7 +18,7 @@ class InvalidConfigError(LGMTException):
         return self.message
 
     def _generate_message(self) -> str:
-        messages = [f"'{'.'.join([str(loc) for loc in error['loc']])}': {error['msg']}" for error in self.errors]
+        messages = [f"'{str(error['loc'][0])}': {error['msg']}" for error in self.errors]
         return f"Invalid config file '{self.source}':\n" + "\n".join(messages)
 
 

@@ -9,7 +9,7 @@ from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from pydantic_ai import Agent
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models import Model
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -20,7 +20,7 @@ class CodeReviewer:
         *,
         reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
         summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
-        model: OpenAIModel,
+        model: Model,
         git_client: GitClient[PRUrl],
         config: ResolvedConfig,
     ) -> None:

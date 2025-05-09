@@ -1,17 +1,35 @@
 import logging
+from typing import TypeGuard, get_args
 
 from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
-from lgtm.ai.schemas import ReviewerDeps, ReviewResponse, SummarizingDeps
+from lgtm.ai.schemas import ReviewerDeps, ReviewResponse, SummarizingDeps, SupportedAIModels
+from lgtm.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.models import Model
+from pydantic_ai.models.gemini import GeminiModel, LatestGeminiModelNames
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.google_gla import GoogleGLAProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 logger = logging.getLogger("lgtm.ai")
 
 
-def get_ai_model(model_name: ChatModel, api_key: str) -> OpenAIModel:
-    return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
+def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:
+    def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[LatestGeminiModelNames]:
+        return model_name in get_args(LatestGeminiModelNames)
+
+    def _is_openai_model(model_name: SupportedAIModels) -> TypeGuard[ChatModel]:
+        return model_name in get_args(ChatModel)
+
+    if _is_gemini_model(model_name):
+        return GeminiModel(model_name, provider=GoogleGLAProvider(api_key=api_key))
+    elif _is_openai_model(model_name):
+        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
+    else:
+        # TypeIs is not available in Python 3.12 so we cannot narrow the type and use `assert_never`
+        # Also, mypy does not really do it well for tuples anyway...
+        raise IncorrectAIModelError(model=model_name)
 
 
 reviewer_agent = Agent(

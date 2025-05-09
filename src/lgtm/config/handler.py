@@ -6,14 +6,13 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
-from lgtm.ai.schemas import CommentCategory
+from lgtm.ai.schemas import CommentCategory, SupportedAIModels
 from lgtm.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
     InvalidConfigFileError,
     MissingRequiredConfigError,
 )
-from openai.types import ChatModel
 from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger("lgtm")
@@ -25,7 +24,7 @@ class PartialConfig(BaseModel):
     It has nullable values, indicating that the user has not set that particular option.
     """
 
-    model: ChatModel | None = None
+    model: SupportedAIModels | None = None
     technologies: tuple[str, ...] | None = None
     categories: tuple[CommentCategory, ...] | None = None
     exclude: tuple[str, ...] | None = None
@@ -43,7 +42,7 @@ class ResolvedConfig(BaseModel):
     All values are non-nullable and have appropriate defaults.
     """
 
-    model: ChatModel = "gpt-4o-mini"
+    model: SupportedAIModels = "gpt-4o-mini"
     """AI model to use for the review."""
 
     technologies: tuple[str, ...] = ()
@@ -198,7 +197,7 @@ class ConfigHandler:
             ),
             exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
             model=cast(
-                ChatModel,
+                SupportedAIModels,
                 self.resolver.resolve_string_field(
                     "model",
                     from_cli=from_cli,
