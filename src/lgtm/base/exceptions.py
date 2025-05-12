@@ -17,3 +17,8 @@ class NothingToReviewError(LGMTException):
     def __init__(self, exclude: tuple[str, ...] | None = None) -> None:
         exclude = exclude or ()
         super().__init__(f"Nothing to review after excluding file patterns {', '.join(exclude)}.")
+
+
+class IncorrectAIModelError(LGMTException):
+    def __init__(self, model: str) -> None:
+        super().__init__(f"Incorrect AI model name: {model}.")

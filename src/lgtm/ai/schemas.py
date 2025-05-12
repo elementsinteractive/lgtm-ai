@@ -1,16 +1,28 @@
 from dataclasses import dataclass
-from typing import Annotated, Literal
+from typing import Annotated, Final, Literal, get_args
 
 from lgtm.git_client.schemas import PRDiff
+from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
+from pydantic_ai.models.gemini import LatestGeminiModelNames
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
 CommentSeverityPriority = Literal[1, 2, 3]
 ReviewScore = Literal["LGTM", "Nitpicks", "Needs Work", "Needs a Lot of Work", "Abandon"]
-ReviewRawScore = Literal[1, 2, 3, 4, 5]
+ReviewRawScore = (
+    Literal[1, 2, 3, 4, 5]
+    | Literal[
+        "1", "2", "3", "4", "5"
+    ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
+)
+SupportedAIModels = ChatModel | LatestGeminiModelNames
+SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = get_args(ChatModel) + get_args(
+    LatestGeminiModelNames
+)  # Keep in sync with SupportedAIModels
 
-SCORE_MAP: dict[ReviewRawScore, ReviewScore] = {
+
+SCORE_MAP: Final[dict[ReviewRawScore, ReviewScore]] = {
     5: "LGTM",
     4: "Nitpicks",
     3: "Needs Work",
@@ -18,7 +30,7 @@ SCORE_MAP: dict[ReviewRawScore, ReviewScore] = {
     1: "Abandon",
 }
 
-SEVERITY_PRIORITY_MAP: dict[CommentSeverity, CommentSeverityPriority] = {
+SEVERITY_PRIORITY_MAP: Final[dict[CommentSeverity, CommentSeverityPriority]] = {
     "HIGH": 1,
     "MEDIUM": 2,
     "LOW": 3,
@@ -48,8 +60,9 @@ class ReviewResponse(BaseModel):
         list[ReviewComment], AfterValidator(lambda v: sorted(v, key=lambda x: SEVERITY_PRIORITY_MAP[x.severity]))
     ] = []
     raw_score: Annotated[
-        Literal[1, 2, 3, 4, 5],
+        ReviewRawScore,
         Field(description="Overall score of the review"),
+        AfterValidator(lambda v: int(v) if isinstance(v, str) else v),
     ]
 
     @computed_field  # type: ignore[prop-decorator]

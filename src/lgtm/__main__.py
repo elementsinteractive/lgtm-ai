@@ -5,7 +5,7 @@ from typing import get_args
 import click
 import gitlab
 from lgtm.ai.agent import get_ai_model, reviewer_agent, summarizing_agent
-from lgtm.ai.schemas import CommentCategory
+from lgtm.ai.schemas import CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ConfigHandler, PartialConfig
 from lgtm.formatters.markdown import MarkDownFormatter
@@ -13,7 +13,6 @@ from lgtm.formatters.terminal import TerminalFormatter
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.reviewer import CodeReviewer
 from lgtm.validators import parse_pr_url
-from openai.types import ChatModel
 from rich import print
 from rich.logging import RichHandler
 
@@ -37,7 +36,7 @@ def entry_point() -> None:
 @click.option("--pr-url", required=True, help="The URL of the pull request to review", callback=parse_pr_url)
 @click.option(
     "--model",
-    type=click.Choice(get_args(ChatModel)),
+    type=click.Choice(SupportedAIModelsList),
     help="The name of the model to use for the review",
 )
 @click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
@@ -64,7 +63,7 @@ def entry_point() -> None:
 @click.option("--verbose", "-v", count=True, help="Set logging level")
 def review(
     pr_url: PRUrl,
-    model: ChatModel | None,
+    model: SupportedAIModels | None,
     git_api_key: str | None,
     ai_api_key: str | None,
     config: str | None,
