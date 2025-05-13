@@ -6,6 +6,7 @@ from lgtm.base.utils import file_matches_any_pattern
     ("file_name", "patterns", "expected_match"),
     [
         ("foo/bar/baz.py", ("*.py",), True),
+        ("foo/bar/baz.py", ("foo/*",), True),
         ("foo/bar/baz.py", ("*.txt",), False),
         ("foo/bar/baz.py", ("*.py", "*.txt"), True),
         ("foo/bar/baz.py", ("*.txt", "*.py"), True),
