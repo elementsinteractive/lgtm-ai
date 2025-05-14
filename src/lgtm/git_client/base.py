@@ -2,7 +2,7 @@ from typing import Protocol, TypeVar
 
 from lgtm.ai.schemas import Review
 from lgtm.base.schemas import PRUrl
-from lgtm.git_client.schemas import PRContext, PRDiff
+from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
 
 _T_contra = TypeVar("_T_contra", contravariant=True, bound=PRUrl)
 
@@ -15,3 +15,5 @@ class GitClient(Protocol[_T_contra]):
     def publish_review(self, pr_url: _T_contra, review: Review) -> None: ...
 
     def get_context(self, pr_url: _T_contra, pr_diff: PRDiff) -> PRContext: ...
+
+    def get_pr_metadata(self, pr_url: _T_contra) -> PRMetadata: ...

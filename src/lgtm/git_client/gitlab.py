@@ -18,7 +18,7 @@ from lgtm.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm.git_client.schemas import PRContext, PRDiff
+from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
 from lgtm.git_parser.exceptions import GitDiffParseError
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
@@ -93,6 +93,13 @@ class GitlabClient(GitClient[GitlabPRUrl]):
                 continue
             context.add_file(file_path, content)
         return context
+
+    def get_pr_metadata(self, pr_url: GitlabPRUrl) -> PRMetadata:
+        pr = _get_pr_from_url(self.client, pr_url)
+        return PRMetadata(
+            title=pr.title or "",
+            description=pr.description or "",
+        )
 
     def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
         logger.info("Publishing review to GitLab")

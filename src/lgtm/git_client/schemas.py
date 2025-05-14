@@ -32,3 +32,9 @@ class PRContext:
 
     def add_file(self, file_path: str, content: str) -> None:
         self.file_contents.append(PRContextFileContents(file_path, content))
+
+
+@dataclass(frozen=True, slots=True)
+class PRMetadata:
+    title: str
+    description: str

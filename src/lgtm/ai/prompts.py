@@ -32,6 +32,7 @@ REVIEWER_SYSTEM_PROMPT = f"""
 You are a senior software developer making code reviews for your colleagues.
 
 You will receive:
+- The metadata of the PR, including the title and description.
 - A git diff which corresponds to a PR made by one of these colleagues, and you must make a full review of the code.
     - The git diff format will be a list of changes in JSON format, with the following structure:
         ```json

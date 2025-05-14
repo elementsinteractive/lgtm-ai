@@ -7,7 +7,7 @@ from lgtm.base.schemas import PRUrl
 from lgtm.base.utils import file_matches_any_pattern
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
@@ -33,7 +33,11 @@ class CodeReviewer:
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
-        review_prompt = self._generate_review_prompt(pr_diff, context)
+        metadata = self.git_client.get_pr_metadata(pr_url)
+
+        prompt_generator = PromptGenerator(self.config, metadata)
+
+        review_prompt = prompt_generator.generate_review_prompt(pr_diff=pr_diff, context=context)
         logger.info("Running AI model on the PR diff")
         raw_res = self.reviewer_agent.run_sync(
             model=self.model,
@@ -48,7 +52,7 @@ class CodeReviewer:
         )
 
         logger.info("Running AI model to summarize the review")
-        summary_prompt = self._generate_summarizing_prompt(pr_diff, raw_res.output)
+        summary_prompt = prompt_generator.generate_summarizing_prompt(pr_diff=pr_diff, raw_review=raw_res.output)
         final_res = self.summarizing_agent.run_sync(
             model=self.model,
             user_prompt=summary_prompt,
@@ -60,13 +64,23 @@ class CodeReviewer:
         )
         return Review(pr_diff, final_res.output)
 
-    def _generate_review_prompt(self, pr_diff: PRDiff, context: PRContext) -> str:
-        """Generate the prompt for the AI model to review the PR.
+
+class PromptGenerator:
+    """Generates the prompts for the AI model to review the PR."""
+
+    def __init__(self, config: ResolvedConfig, pr_metadata: PRMetadata) -> None:
+        self.config = config
+        self.pr_metadata = pr_metadata
+
+    def generate_review_prompt(self, *, pr_diff: PRDiff, context: PRContext) -> str:
+        """Generate the initial prompt for the AI model to review the PR.
 
         It includes the diff and the context of the PR, formatted for the AI to receive.
         """
+        # PR metadata section
+        pr_metadata_prompt = self._pr_metadata_prompt(self.pr_metadata)
         # Diff section
-        diff_prompt = f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
+        diff_prompt = self._pr_diff_prompt(pr_diff)
 
         # Context section
         context_prompt = ""
@@ -77,16 +91,21 @@ class CodeReviewer:
             context_prompt = "Context:\n"
             context_prompt += "\n\n".join(all_file_contexts)
 
-        return f"{diff_prompt}\n{context_prompt}" if context else diff_prompt
+        return (
+            f"{pr_metadata_prompt}\n{diff_prompt}\n{context_prompt}"
+            if context
+            else f"{pr_metadata_prompt}\n{diff_prompt}"
+        )
 
-    def _generate_summarizing_prompt(self, pr_diff: PRDiff, raw_review: ReviewResponse) -> str:
+    def generate_summarizing_prompt(self, *, pr_diff: PRDiff, raw_review: ReviewResponse) -> str:
         """Generate a prompt for the AI model to summarize the review.
 
         It includes the diff and the review, formatted for the AI to receive.
         """
-        diff_prompt = f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
+        pr_metadata_prompt = self._pr_metadata_prompt(self.pr_metadata)
+        diff_prompt = self._pr_diff_prompt(pr_diff)
         review_prompt = f"Review: {raw_review.model_dump()}\n"
-        return f"{diff_prompt}\n{review_prompt}"
+        return f"{pr_metadata_prompt}\n{diff_prompt}\n{review_prompt}"
 
     def _generate_context_prompt_for_file(self, file_context: PRContextFileContents) -> str:
         """Generate context prompt for a single file in the PR.
@@ -99,6 +118,14 @@ class CodeReviewer:
 
         content = self._indent(file_context.content)
         return f"    ```{file_context.file_path}\n{content}\n    ```"
+
+    def _pr_diff_prompt(self, pr_diff: PRDiff) -> str:
+        return f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
+
+    def _pr_metadata_prompt(self, pr_metadata: PRMetadata) -> str:
+        return "PR Metadata:\n" + self._indent(
+            f"```Title\n{pr_metadata.title}\n```\n" + f"```Description\n{pr_metadata.description or ''}\n```\n"
+        )
 
     def _serialize_pr_diff(self, pr_diff: PRDiff) -> str:
         """Serialize the PR diff to a JSON string for the AI model.
