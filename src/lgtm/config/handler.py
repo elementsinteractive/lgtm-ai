@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
 from lgtm.ai.schemas import CommentCategory, SupportedAIModels
+from lgtm.config.constants import DEFAULT_AI_MODEL
 from lgtm.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
@@ -43,7 +44,7 @@ class ResolvedConfig(BaseModel):
     All intrinsic values are non-nullable and have appropriate defaults. Optional settings passed toward pydantic-ai Agents are nullable, as they have their own defaults in the library.
     """
 
-    model: SupportedAIModels = "gpt-4o-mini"
+    model: SupportedAIModels = DEFAULT_AI_MODEL
     """AI model to use for the review."""
 
     technologies: tuple[str, ...] = ()
@@ -209,7 +210,7 @@ class ConfigHandler:
                     from_cli=from_cli,
                     from_file=from_file,
                     required=False,
-                    default="gpt-4o-mini",
+                    default=DEFAULT_AI_MODEL,
                 ),
             ),
             publish=from_cli.publish or from_file.publish,
