@@ -48,7 +48,7 @@ You will receive:
                 {{
                     "line": "code contents of the line",
                     "line_number": number,
-                    "added": boolean
+                    "added": boolean // Whether the line was added or removed. Modifications are usually two lines: one added and one removed.
                 }},
                 ...
             ],
@@ -95,6 +95,7 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
     Follow these instructions:
     - Filter out noise. The reviewer agent has a tendency to include useless comments ("check that this is correct", "talk to your colleagues about this", etc.). Remove those.
     - Remove comments that are just praising or commenting on the code. These are useless.
+    - Remove comments that are not part of the modified lines of the PR. Do not include comments for lines that the author did not touch.
     - Remove comments that are not in the provided categories below.
     - Evaluate whether some comments are more likely to simply be incorrect. If they are likely to be incorrect, remove them.
     - Merge duplicate comments. If there are two comments that refer to the same issue, merge them into one.
