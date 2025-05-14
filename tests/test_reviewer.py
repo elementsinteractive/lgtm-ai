@@ -10,7 +10,7 @@ from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import GitlabPRUrl
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from lgtm.reviewer import CodeReviewer
 from pydantic_ai import capture_run_messages, models
@@ -61,6 +61,9 @@ class MockGitClient(GitClient[GitlabPRUrl]):
             ]
         )
 
+    def get_pr_metadata(self, pr_url: GitlabPRUrl) -> PRMetadata:
+        return PRMetadata(title="foo", description="bar")
+
 
 def test_get_review_from_url_valid() -> None:
     test_agent = reviewer_agent
@@ -92,6 +95,13 @@ def test_get_review_from_url_valid() -> None:
     # There are messages with the correct prompts to the AI agent
     expected_message = textwrap.dedent(
         f"""
+        PR Metadata:
+            ```Title
+            foo
+            ```
+            ```Description
+            bar
+            ```
         PR Diff:
             ```
             {json.dumps([diff.model_dump() for diff in m_diff])}
