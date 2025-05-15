@@ -2,7 +2,7 @@ import logging
 from typing import TypeGuard, get_args
 
 from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
-from lgtm.ai.schemas import ReviewerDeps, ReviewResponse, SummarizingDeps, SupportedAIModels
+from lgtm.ai.schemas import DeepSeekModel, ReviewerDeps, ReviewResponse, SummarizingDeps, SupportedAIModels
 from lgtm.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
@@ -12,6 +12,7 @@ from pydantic_ai.models.gemini import GeminiModel, LatestGeminiModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames, MistralModel
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
+from pydantic_ai.providers.deepseek import DeepSeekProvider
 from pydantic_ai.providers.google_gla import GoogleGLAProvider
 from pydantic_ai.providers.mistral import MistralProvider
 from pydantic_ai.providers.openai import OpenAIProvider
@@ -19,7 +20,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 logger = logging.getLogger("lgtm.ai")
 
 
-def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:
+def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa: C901
     def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[LatestGeminiModelNames]:
         return model_name in get_args(LatestGeminiModelNames)
 
@@ -32,6 +33,9 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:
     def _is_mistral_model(model_name: SupportedAIModels) -> TypeGuard[LatestMistralModelNames]:
         return model_name in get_args(LatestMistralModelNames)
 
+    def _is_deepseek_model(model_name: SupportedAIModels) -> TypeGuard[DeepSeekModel]:
+        return model_name in get_args(DeepSeekModel)
+
     if _is_gemini_model(model_name):
         return GeminiModel(model_name, provider=GoogleGLAProvider(api_key=api_key))
     elif _is_openai_model(model_name):
@@ -40,6 +44,11 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:
         return AnthropicModel(model_name=model_name, provider=AnthropicProvider(api_key=api_key))
     elif _is_mistral_model(model_name):
         return MistralModel(model_name=model_name, provider=MistralProvider(api_key=api_key))
+    elif _is_deepseek_model(model_name):
+        return OpenAIModel(
+            model_name=model_name,
+            provider=DeepSeekProvider(api_key=api_key),
+        )
     else:
         # TypeIs is not available in Python 3.12 so we cannot narrow the type and use `assert_never`
         # Also, mypy does not really do it well for tuples anyway...
