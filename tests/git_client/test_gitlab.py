@@ -5,7 +5,7 @@ import click
 import gitlab
 import gitlab.exceptions
 import pytest
-from lgtm.ai.schemas import Review, ReviewComment, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewComment, ReviewMetadata, ReviewResponse
 from lgtm.base.schemas import GitlabPRUrl, PRUrl
 from lgtm.formatters.base import ReviewFormatter
 from lgtm.git_client.exceptions import PullRequestDiffError
@@ -144,6 +144,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
+        metadata=ReviewMetadata(model_name="whatever"),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)
@@ -229,6 +230,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                 ),
             ],
         ),
+        metadata=ReviewMetadata(model_name="whatever"),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)

@@ -18,6 +18,19 @@ class MarkDownFormatter(ReviewFormatter[str]):
         summary = header + review.review_response.summary
         if comments:
             summary += f"\n\n{self.format_comments_section(comments)}"
+
+        summary += textwrap.dedent(f"""
+
+        <details><summary>More information about this review</summary>
+
+        - **Review id**: `{review.metadata.review_uuid}`
+        - **Model**: `{review.metadata.model_name}`
+        - **Reviewed at**: `{review.metadata.reviewed_at}`
+
+        > See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.
+
+        </details>
+        """)
         return summary
 
     def format_comments_section(self, comments: list[ReviewComment]) -> str:

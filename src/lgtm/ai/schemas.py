@@ -1,5 +1,9 @@
+import datetime
+import zoneinfo
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Annotated, Final, Literal, get_args
+from uuid import uuid4
 
 from lgtm.git_client.schemas import PRDiff
 from openai.types import ChatModel
@@ -72,12 +76,26 @@ class ReviewResponse(BaseModel):
         return SCORE_MAP[self.raw_score]
 
 
+@dataclass(frozen=True)
+class ReviewMetadata:
+    model_name: str
+
+    @cached_property
+    def reviewed_at(self) -> str:
+        return datetime.datetime.now(zoneinfo.ZoneInfo("UTC")).isoformat()
+
+    @cached_property
+    def review_uuid(self) -> str:
+        return uuid4().hex
+
+
 @dataclass(frozen=True, slots=True)
 class Review:
     """Represent a full code review performed by any AI agent."""
 
     pr_diff: PRDiff
     review_response: ReviewResponse
+    metadata: ReviewMetadata
 
 
 @dataclass(frozen=True, slots=True)
