@@ -2,13 +2,20 @@ import logging
 from typing import TypeGuard, get_args
 
 from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
-from lgtm.ai.schemas import DeepSeekModel, ReviewerDeps, ReviewResponse, SummarizingDeps, SupportedAIModels
+from lgtm.ai.schemas import (
+    DeepSeekModel,
+    ReviewerDeps,
+    ReviewResponse,
+    SummarizingDeps,
+    SupportedAIModels,
+    SupportedGeminiModel,
+)
 from lgtm.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel, LatestAnthropicModelNames
-from pydantic_ai.models.gemini import GeminiModel, LatestGeminiModelNames
+from pydantic_ai.models.gemini import GeminiModel
 from pydantic_ai.models.mistral import LatestMistralModelNames, MistralModel
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
@@ -21,8 +28,8 @@ logger = logging.getLogger("lgtm.ai")
 
 
 def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa: C901
-    def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[LatestGeminiModelNames]:
-        return model_name in get_args(LatestGeminiModelNames)
+    def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[SupportedGeminiModel]:
+        return model_name in get_args(SupportedGeminiModel)
 
     def _is_openai_model(model_name: SupportedAIModels) -> TypeGuard[ChatModel]:
         return model_name in get_args(ChatModel)
