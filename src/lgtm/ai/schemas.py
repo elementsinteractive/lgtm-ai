@@ -10,6 +10,7 @@ from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.gemini import LatestGeminiModelNames
+from pydantic_ai.models.mistral import LatestMistralModelNames
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
@@ -21,9 +22,12 @@ ReviewRawScore = (
         "1", "2", "3", "4", "5"
     ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
 )
-SupportedAIModels = ChatModel | LatestGeminiModelNames | LatestAnthropicModelNames
+SupportedAIModels = ChatModel | LatestGeminiModelNames | LatestAnthropicModelNames | LatestMistralModelNames
 SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
-    get_args(ChatModel) + get_args(LatestGeminiModelNames) + get_args(LatestAnthropicModelNames)
+    get_args(ChatModel)
+    + get_args(LatestGeminiModelNames)
+    + get_args(LatestAnthropicModelNames)
+    + get_args(LatestMistralModelNames)
 )  # Keep in sync with SupportedAIModels
 
 
