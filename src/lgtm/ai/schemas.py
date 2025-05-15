@@ -4,6 +4,7 @@ from typing import Annotated, Final, Literal, get_args
 from lgtm.git_client.schemas import PRDiff
 from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
+from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.gemini import LatestGeminiModelNames
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
@@ -16,9 +17,9 @@ ReviewRawScore = (
         "1", "2", "3", "4", "5"
     ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
 )
-SupportedAIModels = ChatModel | LatestGeminiModelNames
-SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = get_args(ChatModel) + get_args(
-    LatestGeminiModelNames
+SupportedAIModels = ChatModel | LatestGeminiModelNames | LatestAnthropicModelNames
+SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
+    get_args(ChatModel) + get_args(LatestGeminiModelNames) + get_args(LatestAnthropicModelNames)
 )  # Keep in sync with SupportedAIModels
 
 

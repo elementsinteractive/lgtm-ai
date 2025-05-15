@@ -7,8 +7,10 @@ from lgtm.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
+from pydantic_ai.models.anthropic import AnthropicModel, LatestAnthropicModelNames
 from pydantic_ai.models.gemini import GeminiModel, LatestGeminiModelNames
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google_gla import GoogleGLAProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
@@ -22,10 +24,15 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:
     def _is_openai_model(model_name: SupportedAIModels) -> TypeGuard[ChatModel]:
         return model_name in get_args(ChatModel)
 
+    def _is_anthropic_model(model_name: SupportedAIModels) -> TypeGuard[LatestAnthropicModelNames]:
+        return model_name in get_args(LatestAnthropicModelNames)
+
     if _is_gemini_model(model_name):
         return GeminiModel(model_name, provider=GoogleGLAProvider(api_key=api_key))
     elif _is_openai_model(model_name):
         return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
+    elif _is_anthropic_model(model_name):
+        return AnthropicModel(model_name=model_name, provider=AnthropicProvider(api_key=api_key))
     else:
         # TypeIs is not available in Python 3.12 so we cannot narrow the type and use `assert_never`
         # Also, mypy does not really do it well for tuples anyway...
