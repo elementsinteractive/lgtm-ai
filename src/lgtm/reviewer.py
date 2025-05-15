@@ -1,7 +1,7 @@
 import json
 import logging
 
-from lgtm.ai.schemas import Review, ReviewerDeps, ReviewResponse, SummarizingDeps
+from lgtm.ai.schemas import Review, ReviewerDeps, ReviewMetadata, ReviewResponse, SummarizingDeps
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
 from lgtm.base.utils import file_matches_any_pattern
@@ -62,7 +62,7 @@ class CodeReviewer:
         logger.debug(
             "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)
         )
-        return Review(pr_diff, final_res.output)
+        return Review(pr_diff, final_res.output, metadata=ReviewMetadata(model_name=self.config.model))
 
 
 class PromptGenerator:

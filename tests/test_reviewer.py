@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 from lgtm.ai.agent import reviewer_agent, summarizing_agent
-from lgtm.ai.schemas import Review, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewMetadata, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import GitlabPRUrl
 from lgtm.config.handler import ResolvedConfig
@@ -90,6 +90,7 @@ def test_get_review_from_url_valid() -> None:
     assert review == Review(
         PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
         ReviewResponse(summary="a", raw_score=1),
+        metadata=ReviewMetadata(model_name="gpt-4o-mini"),
     )
 
     # There are messages with the correct prompts to the AI agent

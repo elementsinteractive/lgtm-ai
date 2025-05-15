@@ -1,6 +1,6 @@
 from unittest import mock
 
-from lgtm.ai.schemas import Review, ReviewComment, ReviewResponse
+from lgtm.ai.schemas import Review, ReviewComment, ReviewMetadata, ReviewResponse
 from lgtm.formatters.markdown import MarkDownFormatter
 
 
@@ -9,6 +9,12 @@ class TestMarkdownFormatter:
 
     def test_format_summary_section(self) -> None:
         review = Review(
+            metadata=mock.Mock(
+                review_uuid="fb64cb958fcf49219545912156e0a4a0",
+                model_name="whatever",
+                reviewed_at="2025-05-15T09:43:01.654374+00:00",
+                spec=ReviewMetadata,
+            ),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -16,10 +22,27 @@ class TestMarkdownFormatter:
             pr_diff=mock.Mock(),
         )
 
-        assert (
-            self.formatter.format_summary_section(review)
-            == "\n🦉 **lgtm Review**\n\n> **Score:** LGTM 👍\n\n**Summary:**\n\nsummary"
-        )
+        assert self.formatter.format_summary_section(review).split("\n") == [
+            "",
+            "🦉 **lgtm Review**",
+            "",
+            "> **Score:** LGTM 👍",
+            "",
+            "**Summary:**",
+            "",
+            "summary",
+            "",
+            "<details><summary>More information about this review</summary>",
+            "",
+            "- **Review id**: `fb64cb958fcf49219545912156e0a4a0`",
+            "- **Model**: `whatever`",
+            "- **Reviewed at**: `2025-05-15T09:43:01.654374+00:00`",
+            "",
+            "> See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.",
+            "",
+            "</details>",
+            "",
+        ]
 
     def test_format_comments_section_empty_comments(self) -> None:
         review = Review(
@@ -28,12 +51,14 @@ class TestMarkdownFormatter:
                 summary="summary",
             ),
             pr_diff=mock.Mock(),
+            metadata=ReviewMetadata(model_name="whatever"),
         )
 
         assert self.formatter.format_comments_section(review.review_response.comments) == ""
 
     def test_format_comments_section_several_comments(self) -> None:
         review = Review(
+            metadata=ReviewMetadata(model_name="whatever"),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -86,6 +111,7 @@ class TestMarkdownFormatter:
 
     def test_format_comment_with_snippet(self) -> None:
         review = Review(
+            metadata=ReviewMetadata(model_name="whatever"),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
