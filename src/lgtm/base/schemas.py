@@ -1,13 +1,10 @@
 from dataclasses import dataclass
-from typing import TypeAlias
+from typing import Literal
 
 
 @dataclass(frozen=True, slots=True)
-class GitlabPRUrl:
+class PRUrl:
     full_url: str
-    project_path: str
-    mr_number: int
-
-
-PRUrl: TypeAlias = GitlabPRUrl
-"""Type of PRUrl representation for different platforms."""
+    repo_path: str
+    pr_number: int
+    source: Literal["github", "gitlab"]

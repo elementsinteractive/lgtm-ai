@@ -21,7 +21,7 @@ class CodeReviewer:
         reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
         summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
         model: Model,
-        git_client: GitClient[PRUrl],
+        git_client: GitClient,
         config: ResolvedConfig,
     ) -> None:
         self.reviewer_agent = reviewer_agent

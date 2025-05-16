@@ -3,14 +3,17 @@ from importlib.metadata import version
 from typing import get_args
 
 import click
-import gitlab
-from lgtm.ai.agent import get_ai_model, get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
+from lgtm.ai.agent import (
+    get_ai_model,
+    get_reviewer_agent_with_settings,
+    get_summarizing_agent_with_settings,
+)
 from lgtm.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ConfigHandler, PartialConfig
 from lgtm.formatters.markdown import MarkDownFormatter
 from lgtm.formatters.terminal import TerminalFormatter
-from lgtm.git_client.gitlab import GitlabClient
+from lgtm.git_client.utils import get_git_client
 from lgtm.reviewer import CodeReviewer
 from lgtm.validators import parse_pr_url
 from rich import print
@@ -98,8 +101,8 @@ def review(
         ),
         config_file=config,
     ).resolve_config()
-    git_client = GitlabClient(gitlab.Gitlab(private_token=resolved_config.git_api_key), formatter=MarkDownFormatter())
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
+    git_client = get_git_client(pr_url=pr_url, config=resolved_config, formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(agent_extra_settings),
         summarizing_agent=get_summarizing_agent_with_settings(agent_extra_settings),

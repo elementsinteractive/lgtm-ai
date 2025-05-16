@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class ModifiedLine(BaseModel):
     line: str
     line_number: int
+    relative_line_number: int
     modification_type: Literal["added", "removed"]
 
 
@@ -32,6 +33,7 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: str) -> DiffResult:
 
     old_line_num = 0
     new_line_num = 0
+    rel_position = 1
 
     try:
         for line in lines:
@@ -39,21 +41,35 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: str) -> DiffResult:
             if hunk_match:
                 old_line_num = int(hunk_match.group(1))
                 new_line_num = int(hunk_match.group(2))
+                rel_position = 1  # Reset position for each hunk
                 continue
 
             if line.startswith("+") and not line.startswith("+++"):
-                modified_lines.append(ModifiedLine(line=line[1:], line_number=new_line_num, modification_type="added"))
+                modified_lines.append(
+                    ModifiedLine(
+                        line=line[1:],
+                        line_number=new_line_num,
+                        relative_line_number=rel_position,
+                        modification_type="added",
+                    )
+                )
                 new_line_num += 1
 
             elif line.startswith("-") and not line.startswith("---"):
                 modified_lines.append(
-                    ModifiedLine(line=line[1:], line_number=old_line_num, modification_type="removed")
+                    ModifiedLine(
+                        line=line[1:],
+                        line_number=old_line_num,
+                        relative_line_number=rel_position,
+                        modification_type="removed",
+                    )
                 )
                 old_line_num += 1
 
             else:
                 old_line_num += 1
                 new_line_num += 1
+            rel_position += 1
     except (ValueError, TypeError, KeyError) as err:
         raise GitDiffParseError("Failed to parse diff patch") from err
 

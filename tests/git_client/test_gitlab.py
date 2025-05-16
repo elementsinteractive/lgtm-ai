@@ -6,7 +6,7 @@ import gitlab
 import gitlab.exceptions
 import pytest
 from lgtm.ai.schemas import Review, ReviewComment, ReviewMetadata, ReviewResponse
-from lgtm.base.schemas import GitlabPRUrl, PRUrl
+from lgtm.base.schemas import PRUrl
 from lgtm.formatters.base import ReviewFormatter
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
@@ -14,10 +14,11 @@ from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import PARSED_GIT_DIFF
 
-MockGitlabUrl = GitlabPRUrl(
+MockGitlabUrl = PRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
-    project_path="foo",
-    mr_number=1,
+    repo_path="foo",
+    pr_number=1,
+    source="gitlab",
 )
 
 
@@ -127,6 +128,7 @@ def test_post_review_successful() -> None:
                     old_path="foo",
                     line_number=1,
                     comment="b",
+                    relative_line_number=1,
                     is_comment_on_new_path=True,
                     category="Correctness",
                     severity="LOW",
@@ -136,6 +138,7 @@ def test_post_review_successful() -> None:
                     new_path="bar",
                     old_path="bar",
                     line_number=2,
+                    relative_line_number=2,
                     comment="c",
                     is_comment_on_new_path=False,
                     category="Correctness",
@@ -212,6 +215,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                     new_path="foo",
                     old_path="foo",
                     line_number=1,
+                    relative_line_number=1,
                     comment="b",
                     is_comment_on_new_path=True,
                     category="Correctness",
@@ -222,6 +226,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                     new_path="bar",
                     old_path="bar",
                     line_number=2,
+                    relative_line_number=2,
                     comment="c",
                     is_comment_on_new_path=False,
                     category="Correctness",
@@ -319,7 +324,7 @@ def test_get_context_multiple_files() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", project_path="path", mr_number=1),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
         pr_diff=pr_diff,
     )
 
@@ -352,7 +357,7 @@ def test_get_context_one_file_missing() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", project_path="path", mr_number=1),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
         pr_diff=pr_diff,
     )
 
@@ -384,7 +389,7 @@ def test_get_context_deleted_file() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", project_path="path", mr_number=1),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
         pr_diff=pr_diff,
     )
 
