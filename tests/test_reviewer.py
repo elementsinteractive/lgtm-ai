@@ -31,7 +31,7 @@ m_diff = [
             new_path="file1.txt",
             old_path=None,
         ),
-        modified_lines=[ModifiedLine(line="contents-of-file1", line_number=2, added=False)],
+        modified_lines=[ModifiedLine(line="contents-of-file1", line_number=2, modification_type="removed")],
     ),
     DiffResult(
         metadata=DiffFileMetadata(
@@ -41,7 +41,7 @@ m_diff = [
             new_path="file2.txt",
             old_path=None,
         ),
-        modified_lines=[ModifiedLine(line="contents-of-file2", line_number=20, added=False)],
+        modified_lines=[ModifiedLine(line="contents-of-file2", line_number=20, modification_type="removed")],
     ),
 ]
 

@@ -1,4 +1,5 @@
 import re
+from typing import Literal
 
 from lgtm.git_parser.exceptions import GitDiffParseError
 from pydantic import BaseModel
@@ -7,7 +8,7 @@ from pydantic import BaseModel
 class ModifiedLine(BaseModel):
     line: str
     line_number: int
-    added: bool
+    modification_type: Literal["added", "removed"]
 
 
 class DiffFileMetadata(BaseModel):
@@ -41,11 +42,13 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: str) -> DiffResult:
                 continue
 
             if line.startswith("+") and not line.startswith("+++"):
-                modified_lines.append(ModifiedLine(line=line[1:], line_number=new_line_num, added=True))
+                modified_lines.append(ModifiedLine(line=line[1:], line_number=new_line_num, modification_type="added"))
                 new_line_num += 1
 
             elif line.startswith("-") and not line.startswith("---"):
-                modified_lines.append(ModifiedLine(line=line[1:], line_number=old_line_num, added=False))
+                modified_lines.append(
+                    ModifiedLine(line=line[1:], line_number=old_line_num, modification_type="removed")
+                )
                 old_line_num += 1
 
             else:
