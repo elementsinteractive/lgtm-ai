@@ -9,7 +9,6 @@ from lgtm.git_client.schemas import PRDiff
 from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames
-from pydantic_ai.models.gemini import LatestGeminiModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
@@ -26,17 +25,37 @@ DeepSeekModel: TypeAlias = Literal[
     "deepseek-chat",
     "deepseek-reasoner",
 ]
+SupportedGeminiModel = Literal[
+    # pydantic-ai does not keep track of all Gemini models available, so we add the ones we want to support explicitly.
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
+    "gemini-1.0-pro",
+    "gemini-2.0-flash-exp",
+    "gemini-2.0-flash-thinking-exp-01-21",
+    "gemini-exp-1206",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite-preview-02-05",
+    "gemini-2.0-pro-exp-02-05",
+    "gemini-2.5-flash-preview-04-17",
+    "gemini-2.5-pro-exp-03-25",
+    "gemini-2.5-pro-preview-03-25",
+    "gemini-2.5-pro-preview-05-06",
+]
+
 SupportedAIModels = (
-    ChatModel | LatestGeminiModelNames | LatestAnthropicModelNames | LatestMistralModelNames | DeepSeekModel
+    ChatModel | SupportedGeminiModel | LatestAnthropicModelNames | LatestMistralModelNames | DeepSeekModel
 )
+"""Type of all supported AI models in lgtm."""
 
 SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     get_args(ChatModel)
-    + get_args(LatestGeminiModelNames)
+    + get_args(SupportedGeminiModel)
     + get_args(LatestAnthropicModelNames)
     + get_args(LatestMistralModelNames)
     + get_args(DeepSeekModel)
 )  # Keep in sync with SupportedAIModels
+"""Tuple of all supported AI models in lgtm."""
 
 
 SCORE_MAP: Final[dict[ReviewRawScore, ReviewScore]] = {
