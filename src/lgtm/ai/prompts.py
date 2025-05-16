@@ -48,7 +48,7 @@ You will receive:
                 {{
                     "line": "code contents of the line",
                     "line_number": number,
-                    "added": boolean // Whether the line was added or removed. Modifications are usually two lines: one added and one removed.
+                    "modification_type": "added" | "removed", // Whether the line is added or removed in the PR. A line being modified usually is represented by a removal and an addition.
                 }},
                 ...
             ],
