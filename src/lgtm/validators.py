@@ -2,11 +2,12 @@ from enum import StrEnum
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm.base.schemas import GitlabPRUrl, PRUrl
+from lgtm.base.schemas import PRUrl
 
 
 class AllowedLocations(StrEnum):
     Gitlab = "gitlab.com"
+    Github = "github.com"
 
 
 class AllowedSchemes(StrEnum):
@@ -30,13 +31,15 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
     match parsed.netloc:
         case AllowedLocations.Gitlab:
             return _parse_gitlab_url(parsed)
+        case AllowedLocations.Github:
+            return _parse_github_url(parsed)
         case _:
             raise click.BadParameter(
                 f"The PR URL host must be one of: {', '.join([s.value for s in AllowedLocations.__members__.values()])}"
             )
 
 
-def _parse_gitlab_url(parsed: ParseResult) -> GitlabPRUrl:
+def _parse_gitlab_url(parsed: ParseResult) -> PRUrl:
     full_project_path = parsed.path
     try:
         project_path, mr = full_project_path.split("/-/merge_requests/")
@@ -48,8 +51,29 @@ def _parse_gitlab_url(parsed: ParseResult) -> GitlabPRUrl:
     except (ValueError, IndexError):
         raise click.BadParameter("The PR URL must contain a valid MR number.") from None
 
-    return GitlabPRUrl(
+    return PRUrl(
         full_url=parsed.geturl(),
-        project_path=project_path.strip("/"),
-        mr_number=mr_num,
+        repo_path=project_path.strip("/"),
+        pr_number=mr_num,
+        source="gitlab",
+    )
+
+
+def _parse_github_url(parsed: ParseResult) -> PRUrl:
+    full_project_path = parsed.path
+    try:
+        project_path, pr = full_project_path.split("/pull/")
+    except ValueError:
+        raise click.BadParameter("The PR URL must be a pull request URL.") from None
+
+    try:
+        pr_num = int(pr.split("/")[-1])
+    except (ValueError, IndexError):
+        raise click.BadParameter("The PR URL must contain a valid PR number.") from None
+
+    return PRUrl(
+        full_url=parsed.geturl(),
+        repo_path=project_path.strip("/"),
+        pr_number=pr_num,
+        source="github",
     )

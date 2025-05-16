@@ -9,7 +9,7 @@ import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
 from lgtm.ai.schemas import Review, ReviewComment
-from lgtm.base.schemas import GitlabPRUrl
+from lgtm.base.schemas import PRUrl
 from lgtm.formatters.base import ReviewFormatter
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
@@ -25,13 +25,13 @@ from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patc
 logger = logging.getLogger("lgtm.git")
 
 
-class GitlabClient(GitClient[GitlabPRUrl]):
+class GitlabClient(GitClient):
     def __init__(self, client: gitlab.Gitlab, formatter: ReviewFormatter[str]) -> None:
         self.client = client
         self.formatter = formatter
         self._pr: gitlab.v4.objects.ProjectMergeRequest | None = None
 
-    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> PRDiff:
+    def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
         """Return a PRDiff object containing an identifier to the diff and a stringified representation of the diff from latest version of the given pull request URL."""
         try:
             self.client.auth()
@@ -56,7 +56,7 @@ class GitlabClient(GitClient[GitlabPRUrl]):
             source_branch=pr.source_branch,
         )
 
-    def get_context(self, pr_url: GitlabPRUrl, pr_diff: PRDiff) -> PRContext:
+    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
         """Get the context by using the GitLab API to retrieve the files in the PR diff.
 
         It mimics the information a human reviewer might have access to, which usually implies
@@ -94,14 +94,14 @@ class GitlabClient(GitClient[GitlabPRUrl]):
             context.add_file(file_path, content)
         return context
 
-    def get_pr_metadata(self, pr_url: GitlabPRUrl) -> PRMetadata:
+    def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         pr = _get_pr_from_url(self.client, pr_url)
         return PRMetadata(
             title=pr.title or "",
             description=pr.description or "",
         )
 
-    def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
+    def publish_review(self, pr_url: PRUrl, review: Review) -> None:
         logger.info("Publishing review to GitLab")
         try:
             pr = _get_pr_from_url(self.client, pr_url)
@@ -244,14 +244,14 @@ class GitlabClient(GitClient[GitlabPRUrl]):
 
 
 @functools.lru_cache(maxsize=32)
-def _get_pr_from_url(client: gitlab.Gitlab, pr_url: GitlabPRUrl) -> gitlab.v4.objects.ProjectMergeRequest:
+def _get_pr_from_url(client: gitlab.Gitlab, pr_url: PRUrl) -> gitlab.v4.objects.ProjectMergeRequest:
     logger.debug("Fetching mr from GitLab (cache miss)")
     project = _get_project_from_url(client, pr_url)
-    return project.mergerequests.get(pr_url.mr_number)
+    return project.mergerequests.get(pr_url.pr_number)
 
 
 @functools.lru_cache(maxsize=32)
-def _get_project_from_url(client: gitlab.Gitlab, pr_url: GitlabPRUrl) -> gitlab.v4.objects.Project:
+def _get_project_from_url(client: gitlab.Gitlab, pr_url: PRUrl) -> gitlab.v4.objects.Project:
     """Get the project from the GitLab client using the project path from the PR URL."""
     logger.debug("Fetching project from GitLab (cache miss)")
-    return client.projects.get(pr_url.project_path)
+    return client.projects.get(pr_url.repo_path)

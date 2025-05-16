@@ -17,6 +17,7 @@ def test_sorted_comments() -> None:
                 old_path="old_path",
                 new_path="new_path",
                 line_number=1,
+                relative_line_number=1,
                 is_comment_on_new_path=True,
                 programming_language="python",
             )

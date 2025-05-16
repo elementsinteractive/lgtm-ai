@@ -24,11 +24,13 @@ PARSED_SIMPLE_DIFF = DiffResult(
         ModifiedLine(
             line='    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--format gitlab > tests/gl-code-quality-report.json" } else { "" } }}',
             line_number=48,
+            relative_line_number=4,
             modification_type="removed",
         ),
         ModifiedLine(
             line='    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--output-format gitlab > tests/gl-code-quality-report.json" } else { "" } }}',
             line_number=48,
+            relative_line_number=5,
             modification_type="added",
         ),
     ],
@@ -47,9 +49,11 @@ REFACTOR_DIFF = """@@ -10,7 +10,8 @@ def calculate_total(prices):
 PARSED_REFACTOR_DIFF = DiffResult(
     metadata=DUMMY_METADATA,
     modified_lines=[
-        ModifiedLine(line="    for p in prices:", line_number=11, modification_type="removed"),
-        ModifiedLine(line="        total += p", line_number=12, modification_type="removed"),
-        ModifiedLine(line="    for price in prices:", line_number=11, modification_type="added"),
-        ModifiedLine(line="        total += price", line_number=12, modification_type="added"),
+        ModifiedLine(line="    for p in prices:", line_number=11, relative_line_number=2, modification_type="removed"),
+        ModifiedLine(line="        total += p", line_number=12, relative_line_number=3, modification_type="removed"),
+        ModifiedLine(
+            line="    for price in prices:", line_number=11, relative_line_number=4, modification_type="added"
+        ),
+        ModifiedLine(line="        total += price", line_number=12, relative_line_number=5, modification_type="added"),
     ],
 )

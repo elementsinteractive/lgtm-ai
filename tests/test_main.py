@@ -23,8 +23,8 @@ def test_set_logging_level(verbosity: int, expected_level: int) -> None:
 
 @mock.patch("lgtm.__main__.CodeReviewer")
 @mock.patch("lgtm.__main__.TerminalFormatter")
-@mock.patch("lgtm.__main__.GitlabClient")
-def test_review_cli(*args: mock.MagicMock) -> None:
+@mock.patch("lgtm.__main__.get_git_client")
+def test_review_cli_gitlab(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(
         review,
@@ -37,6 +37,26 @@ def test_review_cli(*args: mock.MagicMock) -> None:
             "fake-token",
             "--ai-retries",
             "3",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+
+@mock.patch("lgtm.__main__.CodeReviewer")
+@mock.patch("lgtm.__main__.TerminalFormatter")
+@mock.patch("lgtm.__main__.get_git_client")
+def test_review_cli_github(*args: mock.MagicMock) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        review,
+        [
+            "--pr-url",
+            "https://github.com/user/repo/pull/1",
+            "--ai-api-key",
+            "fake-token",
+            "--git-api-key",
+            "fake-token",
         ],
     )
 

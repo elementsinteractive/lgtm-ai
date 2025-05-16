@@ -7,7 +7,7 @@ import pytest
 from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
 from lgtm.ai.schemas import Review, ReviewMetadata, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
-from lgtm.base.schemas import GitlabPRUrl
+from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
@@ -31,7 +31,9 @@ m_diff = [
             new_path="file1.txt",
             old_path=None,
         ),
-        modified_lines=[ModifiedLine(line="contents-of-file1", line_number=2, modification_type="removed")],
+        modified_lines=[
+            ModifiedLine(line="contents-of-file1", line_number=2, relative_line_number=1, modification_type="removed")
+        ],
     ),
     DiffResult(
         metadata=DiffFileMetadata(
@@ -41,19 +43,21 @@ m_diff = [
             new_path="file2.txt",
             old_path=None,
         ),
-        modified_lines=[ModifiedLine(line="contents-of-file2", line_number=20, modification_type="removed")],
+        modified_lines=[
+            ModifiedLine(line="contents-of-file2", line_number=20, relative_line_number=2, modification_type="removed")
+        ],
     ),
 ]
 
 
-class MockGitClient(GitClient[GitlabPRUrl]):
-    def get_diff_from_url(self, pr_url: GitlabPRUrl) -> PRDiff:
+class MockGitClient(GitClient):
+    def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
         return PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature")
 
-    def publish_review(self, pr_url: GitlabPRUrl, review: Review) -> None:
+    def publish_review(self, pr_url: PRUrl, review: Review) -> None:
         return None
 
-    def get_context(self, pr_url: GitlabPRUrl, pr_diff: PRDiff) -> PRContext:
+    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
         return PRContext(
             file_contents=[
                 PRContextFileContents(file_path="file1.txt", content="contents-of-file-1-context"),
@@ -61,7 +65,7 @@ class MockGitClient(GitClient[GitlabPRUrl]):
             ]
         )
 
-    def get_pr_metadata(self, pr_url: GitlabPRUrl) -> PRMetadata:
+    def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         return PRMetadata(title="foo", description="bar")
 
 
@@ -84,7 +88,9 @@ def test_get_review_from_url_valid() -> None:
             git_client=MockGitClient(),
             config=ResolvedConfig(),
         )
-        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+        review = code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+        )
 
     # We get an actual review object
     assert review == Review(
@@ -144,7 +150,9 @@ def test_get_review_adds_technologies_to_prompt() -> None:
             git_client=MockGitClient(),
             config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
         )
-        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+        review = code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+        )
 
     assert review
     assert messages
@@ -175,7 +183,9 @@ def test_get_review_adds_categories_to_prompt() -> None:
             git_client=MockGitClient(),
             config=ResolvedConfig(categories=("Correctness", "Quality")),
         )
-        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+        review = code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+        )
 
     assert review
     assert messages
@@ -200,7 +210,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
         config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
     )
     with pytest.raises(NothingToReviewError):
-        code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
 
 
 def test_file_is_excluded_from_prompt() -> None:
@@ -222,7 +232,9 @@ def test_file_is_excluded_from_prompt() -> None:
             git_client=MockGitClient(),
             config=ResolvedConfig(exclude=("file2.txt",)),
         )
-        review = code_reviewer.review_pull_request(pr_url=GitlabPRUrl(full_url="foo", project_path="foo", mr_number=1))
+        review = code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+        )
 
     assert review
 

@@ -82,6 +82,7 @@ class ReviewComment(BaseModel):
     category: Annotated[CommentCategory, Field(description="Category of the comment")]
     severity: Annotated[CommentSeverity, Field(description="Severity of the comment")]
     line_number: Annotated[int, Field(description="Line number to place the comment in the PR")]
+    relative_line_number: Annotated[int, Field(description="Relative line number (in the diff) to place the comment")]
     is_comment_on_new_path: Annotated[bool, Field(description="Whether the comment is on a new path")]
     programming_language: Annotated[str, Field(description="Programming language of the file")]
     quote_snippet: Annotated[str | None, Field(description="Quoted code snippet")] = None
