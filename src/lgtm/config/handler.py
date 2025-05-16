@@ -30,6 +30,7 @@ class PartialConfig(BaseModel):
     exclude: tuple[str, ...] | None = None
     publish: bool = False
     silent: bool = False
+    ai_retries: int | None = None
 
     # Secrets
     git_api_key: str | None = None
@@ -39,7 +40,7 @@ class PartialConfig(BaseModel):
 class ResolvedConfig(BaseModel):
     """Resolved configuration class to hold the final configuration.
 
-    All values are non-nullable and have appropriate defaults.
+    All intrinsic values are non-nullable and have appropriate defaults. Optional settings passed toward pydantic-ai Agents are nullable, as they have their own defaults in the library.
     """
 
     model: SupportedAIModels = "gpt-4o-mini"
@@ -59,6 +60,9 @@ class ResolvedConfig(BaseModel):
 
     silent: bool = False
     """Suppress terminal output."""
+
+    ai_retries: int | None = None
+    """Retry count for AI agent queries."""
 
     # Secrets
     git_api_key: str = Field(default="", repr=False)
@@ -116,6 +120,7 @@ class ConfigHandler:
                 exclude=config_data.get("exclude", None),
                 publish=config_data.get("publish", False),
                 silent=config_data.get("silent", False),
+                ai_retries=config_data.get("ai_retries", None),
             )
         except ValidationError as err:
             raise InvalidConfigError(source=file_to_read.name, errors=err.errors()) from None
@@ -171,6 +176,7 @@ class ConfigHandler:
             git_api_key=self.cli_args.git_api_key or None,
             silent=self.cli_args.silent,
             publish=self.cli_args.publish,
+            ai_retries=self.cli_args.ai_retries or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -208,6 +214,7 @@ class ConfigHandler:
             ),
             publish=from_cli.publish or from_file.publish,
             silent=from_cli.silent or from_file.silent,
+            ai_retries=from_cli.ai_retries or from_file.ai_retries,
             git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
             ai_api_key=self.resolver.resolve_string_field("ai_api_key", from_cli=from_cli, from_env=from_env),
         )

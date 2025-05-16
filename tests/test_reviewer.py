@@ -4,7 +4,7 @@ from typing import Literal
 from unittest import mock
 
 import pytest
-from lgtm.ai.agent import reviewer_agent, summarizing_agent
+from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
 from lgtm.ai.schemas import Review, ReviewMetadata, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import GitlabPRUrl
@@ -66,8 +66,8 @@ class MockGitClient(GitClient[GitlabPRUrl]):
 
 
 def test_get_review_from_url_valid() -> None:
-    test_agent = reviewer_agent
-    test_summary_agent = summarizing_agent
+    test_agent = get_reviewer_agent_with_settings()
+    test_summary_agent = get_summarizing_agent_with_settings()
     with (
         test_agent.override(
             model=TestModel(),
@@ -126,8 +126,8 @@ def test_get_review_from_url_valid() -> None:
 
 
 def test_get_review_adds_technologies_to_prompt() -> None:
-    test_agent = reviewer_agent
-    test_summary_agent = summarizing_agent
+    test_agent = get_reviewer_agent_with_settings()
+    test_summary_agent = get_summarizing_agent_with_settings()
     with (
         test_agent.override(
             model=TestModel(),
@@ -157,8 +157,8 @@ def test_get_review_adds_technologies_to_prompt() -> None:
 
 
 def test_get_review_adds_categories_to_prompt() -> None:
-    test_agent = reviewer_agent
-    test_summary_agent = summarizing_agent
+    test_agent = get_reviewer_agent_with_settings()
+    test_summary_agent = get_summarizing_agent_with_settings()
     with (
         test_agent.override(
             model=TestModel(),
@@ -204,8 +204,8 @@ def test_review_fails_if_all_files_are_excluded() -> None:
 
 
 def test_file_is_excluded_from_prompt() -> None:
-    test_agent = reviewer_agent
-    test_summary_agent = summarizing_agent
+    test_agent = get_reviewer_agent_with_settings()
+    test_summary_agent = get_summarizing_agent_with_settings()
     with (
         test_agent.override(
             model=TestModel(),

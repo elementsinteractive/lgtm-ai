@@ -35,6 +35,8 @@ def test_review_cli(*args: mock.MagicMock) -> None:
             "fake-token",
             "--git-api-key",
             "fake-token",
+            "--ai-retries",
+            "3",
         ],
     )
 
