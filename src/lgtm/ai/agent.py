@@ -1,8 +1,9 @@
 import logging
-from typing import TypeGuard, get_args
+from typing import Any, TypeGuard, get_args
 
 from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 from lgtm.ai.schemas import (
+    AgentSettings,
     DeepSeekModel,
     ReviewerDeps,
     ReviewResponse,
@@ -62,33 +63,58 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa:
         raise IncorrectAIModelError(model=model_name)
 
 
-reviewer_agent = Agent(
-    system_prompt=REVIEWER_SYSTEM_PROMPT,
-    deps_type=ReviewerDeps,
-    output_type=ReviewResponse,
-)
-
-summarizing_agent = Agent(
-    system_prompt=SUMMARIZING_SYSTEM_PROMPT,
-    deps_type=SummarizingDeps,
-    output_type=ReviewResponse,
-)
-
-
-@reviewer_agent.system_prompt
-def get_pr_technologies(ctx: RunContext[ReviewerDeps]) -> str:
-    if not ctx.deps.configured_technologies:
-        return "You are an expert in whatever technologies the PR is using."
-    return f"You are an expert in {', '.join([f'"{tech}"' for tech in ctx.deps.configured_technologies])}."
+def get_reviewer_agent_with_settings(
+    agent_settings: AgentSettings | None = None,
+) -> Agent[ReviewerDeps, ReviewResponse]:
+    extra_settings = _process_extra_settings(agent_settings)
+    agent = Agent(
+        system_prompt=REVIEWER_SYSTEM_PROMPT,
+        deps_type=ReviewerDeps,
+        output_type=ReviewResponse,
+        **extra_settings,
+    )
+    agent.system_prompt(get_pr_technologies)
+    agent.system_prompt(get_comment_categories)
+    return agent
 
 
-@reviewer_agent.system_prompt
+def get_summarizing_agent_with_settings(
+    agent_settings: AgentSettings | None = None,
+) -> Agent[SummarizingDeps, ReviewResponse]:
+    extra_settings = _process_extra_settings(agent_settings)
+    agent = Agent(
+        system_prompt=SUMMARIZING_SYSTEM_PROMPT,
+        deps_type=SummarizingDeps,
+        output_type=ReviewResponse,
+        **extra_settings,
+    )
+    agent.system_prompt(get_summarizing_categories)
+    return agent
+
+
+def _process_extra_settings(settings: AgentSettings | None) -> dict[str, Any]:
+    """Unpacks extra settings into a dict form.
+
+    These settings have defaults in pydantic-ai and are optional in the API, so we're skipping them comletely if they are not set on our side.
+    """
+    extra_settings: dict[str, Any] = {}
+    if settings is not None:
+        extra_settings = settings.model_dump(exclude_none=True)
+        logger.debug("Extra agent settings: %s", extra_settings)
+    return extra_settings
+
+
 def get_comment_categories(ctx: RunContext[ReviewerDeps]) -> str:
     return f"The categories you should exclusively focus on for your review comments are: {
         ', '.join(ctx.deps.configured_categories)
     }"
 
 
-@summarizing_agent.system_prompt
+def get_pr_technologies(ctx: RunContext[ReviewerDeps]) -> str:
+    if not ctx.deps.configured_technologies:
+        return "You are an expert in whatever technologies the PR is using."
+    return f"You are an expert in {', '.join([f'"{tech}"' for tech in ctx.deps.configured_technologies])}."
+
+
 def get_summarizing_categories(ctx: RunContext[SummarizingDeps]) -> str:
     return f"The only comment categories that you should keep in the review are: {', '.join(ctx.deps.configured_categories)}."

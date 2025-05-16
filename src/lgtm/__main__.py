@@ -4,8 +4,8 @@ from typing import get_args
 
 import click
 import gitlab
-from lgtm.ai.agent import get_ai_model, reviewer_agent, summarizing_agent
-from lgtm.ai.schemas import CommentCategory, SupportedAIModels, SupportedAIModelsList
+from lgtm.ai.agent import get_ai_model, get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
+from lgtm.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ConfigHandler, PartialConfig
 from lgtm.formatters.markdown import MarkDownFormatter
@@ -60,6 +60,11 @@ def entry_point() -> None:
 )
 @click.option("--publish", is_flag=True, help="Publish the review to the git service")
 @click.option("--silent", is_flag=True, help="Do not print the review to the console")
+@click.option(
+    "--ai-retries",
+    type=int,
+    help="How many times the AI agent can retry queries to the LLM (NOTE: can impact billing!)",
+)
 @click.option("--verbose", "-v", count=True, help="Set logging level")
 def review(
     pr_url: PRUrl,
@@ -72,6 +77,7 @@ def review(
     exclude: tuple[str, ...],
     publish: bool,
     silent: bool,
+    ai_retries: int | None,
     verbose: int,
 ) -> None:
     _set_logging_level(logger, verbose)
@@ -88,13 +94,15 @@ def review(
             model=model,
             publish=publish,
             silent=silent,
+            ai_retries=ai_retries,
         ),
         config_file=config,
     ).resolve_config()
     git_client = GitlabClient(gitlab.Gitlab(private_token=resolved_config.git_api_key), formatter=MarkDownFormatter())
+    agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
     code_reviewer = CodeReviewer(
-        reviewer_agent=reviewer_agent,
-        summarizing_agent=summarizing_agent,
+        reviewer_agent=get_reviewer_agent_with_settings(agent_extra_settings),
+        summarizing_agent=get_summarizing_agent_with_settings(agent_extra_settings),
         model=get_ai_model(model_name=resolved_config.model, api_key=resolved_config.ai_api_key),
         git_client=git_client,
         config=resolved_config,

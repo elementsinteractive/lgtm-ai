@@ -145,3 +145,11 @@ class SummarizingDeps:
     """Dependencies passed to the AI agent summarizing the code review."""
 
     configured_categories: tuple[CommentCategory, ...]
+
+
+class AgentSettings(BaseModel):
+    """Configurable settings to pass to pydantic-ai agents."""
+
+    retries: Annotated[
+        int | None, Field(description="Number of retries the agent will perform when querying the AI API")
+    ]
