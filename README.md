@@ -45,6 +45,15 @@ lgtm reads the given pull request and feeds it to several AI agents to generate 
 
 If instructed (with the option `--publish`), lgtm will publish the review to the pull request page as comments. The review will also be displayed in the terminal.
 
+### Code Repository Service Support
+
+lgtm aims to work with as many services as possible, and that includes remote repository providers. At the moment, lgtm supports:
+
+- [GitLab](https://gitlab.com) (only gitlab.com, not self-hosted)
+- [GitHub](https://github.com)
+
+lgtm will autodetect the url of the pull request passed to `--pr-url` automatically.
+
 ### CI/CD Integration
 
 lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step. See the [CI/CD Configuration](https://namespace.gitlab.io/elements/tools/lgtm/cicd) section for a thorough explanation and some examples.
@@ -70,11 +79,12 @@ lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.t
 
 ```toml
 technologies = ["Django", "Python"]
-categories = ["Correctness", "Quality"]
+categories = ["Correctness", "Quality", "Testing", "Security"]
 exclude = ["*.md"]
-model = "gpt-4o"
+model = "gpt-4.1"
 silent = false
 publish = true
+ai_retries = 1
 ```
 
 Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) files, you just need to nest the options inside `[tool.lgtm]`.
