@@ -8,6 +8,7 @@ from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agen
 from lgtm.ai.schemas import Review, ReviewMetadata, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
+from lgtm.config.constants import DEFAULT_AI_MODEL
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
@@ -96,7 +97,7 @@ def test_get_review_from_url_valid() -> None:
     assert review == Review(
         PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
         ReviewResponse(summary="a", raw_score=1),
-        metadata=ReviewMetadata(model_name="gpt-4o-mini"),
+        metadata=ReviewMetadata(model_name=DEFAULT_AI_MODEL),
     )
 
     # There are messages with the correct prompts to the AI agent
