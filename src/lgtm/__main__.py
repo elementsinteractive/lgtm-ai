@@ -3,6 +3,7 @@ from importlib.metadata import version
 from typing import get_args
 
 import click
+import rich
 from lgtm.ai.agent import (
     get_ai_model,
     get_reviewer_agent_with_settings,
@@ -16,7 +17,6 @@ from lgtm.formatters.terminal import TerminalFormatter
 from lgtm.git_client.utils import get_git_client
 from lgtm.reviewer import CodeReviewer
 from lgtm.validators import parse_pr_url
-from rich import print
 from rich.logging import RichHandler
 
 __version__ = version("lgtm")
@@ -116,8 +116,9 @@ def review(
     if not resolved_config.silent:
         logger.info("Printing review to console")
         terminal_formatter = TerminalFormatter()
-        print(terminal_formatter.format_summary_section(review))
-        print(terminal_formatter.format_comments_section(review.review_response.comments))
+        rich.print(terminal_formatter.format_summary_section(review))
+        if review.review_response.comments:
+            rich.print(terminal_formatter.format_comments_section(review.review_response.comments))
 
     if resolved_config.publish:
         logger.info("Publishing review to git service")
