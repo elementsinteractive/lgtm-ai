@@ -84,12 +84,12 @@ class GitlabClient(GitClient):
                         ref=pr.target_branch,
                     )
                 except gitlab.exceptions.GitlabGetError:
-                    logger.error("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                    logger.warning("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
                     continue
             try:
                 content = base64.b64decode(file.content).decode()
             except (binascii.Error, UnicodeDecodeError):
-                logger.error("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                logger.warning("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
                 continue
             context.add_file(file_path, content)
         return context
@@ -116,7 +116,7 @@ class GitlabClient(GitClient):
             try:
                 diff_text = diff.get("diff")
                 if diff_text is None:
-                    logger.error("Diff text is empty, skipping..., diff: %s", diff)
+                    logger.warning("Diff text is empty, skipping..., diff: %s", diff)
                     continue
                 parsed = parse_diff_patch(
                     metadata=DiffFileMetadata.model_validate(diff),

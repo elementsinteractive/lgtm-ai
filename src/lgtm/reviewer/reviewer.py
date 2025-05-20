@@ -8,6 +8,9 @@ from lgtm.base.utils import file_matches_any_pattern
 from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm.reviewer.exceptions import (
+    handle_ai_exceptions,
+)
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
@@ -15,6 +18,8 @@ logger = logging.getLogger("lgtm.ai")
 
 
 class CodeReviewer:
+    """Code reviewer that uses pydantic-ai agents to review pull requests."""
+
     def __init__(
         self,
         *,
@@ -35,17 +40,18 @@ class CodeReviewer:
         context = self.git_client.get_context(pr_url, pr_diff)
         metadata = self.git_client.get_pr_metadata(pr_url)
 
-        prompt_generator = PromptGenerator(self.config, metadata)
+        prompt_generator = _PromptGenerator(self.config, metadata)
 
         review_prompt = prompt_generator.generate_review_prompt(pr_diff=pr_diff, context=context)
         logger.info("Running AI model on the PR diff")
-        raw_res = self.reviewer_agent.run_sync(
-            model=self.model,
-            user_prompt=review_prompt,
-            deps=ReviewerDeps(
-                configured_technologies=self.config.technologies, configured_categories=self.config.categories
-            ),
-        )
+        with handle_ai_exceptions():
+            raw_res = self.reviewer_agent.run_sync(
+                model=self.model,
+                user_prompt=review_prompt,
+                deps=ReviewerDeps(
+                    configured_technologies=self.config.technologies, configured_categories=self.config.categories
+                ),
+            )
         logger.info("Initial review completed")
         logger.debug(
             "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
@@ -53,11 +59,12 @@ class CodeReviewer:
 
         logger.info("Running AI model to summarize the review")
         summary_prompt = prompt_generator.generate_summarizing_prompt(pr_diff=pr_diff, raw_review=raw_res.output)
-        final_res = self.summarizing_agent.run_sync(
-            model=self.model,
-            user_prompt=summary_prompt,
-            deps=SummarizingDeps(configured_categories=self.config.categories),
-        )
+        with handle_ai_exceptions():
+            final_res = self.summarizing_agent.run_sync(
+                model=self.model,
+                user_prompt=summary_prompt,
+                deps=SummarizingDeps(configured_categories=self.config.categories),
+            )
         logger.info("Final review completed")
         logger.debug(
             "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)
@@ -65,7 +72,7 @@ class CodeReviewer:
         return Review(pr_diff, final_res.output, metadata=ReviewMetadata(model_name=self.config.model))
 
 
-class PromptGenerator:
+class _PromptGenerator:
     """Generates the prompts for the AI model to review the PR."""
 
     def __init__(self, config: ResolvedConfig, pr_metadata: PRMetadata) -> None:
