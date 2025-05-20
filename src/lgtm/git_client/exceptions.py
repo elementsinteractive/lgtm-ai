@@ -1,42 +1,42 @@
-from lgtm.base.exceptions import LGMTException
+from lgtm.base.exceptions import LGTMException
 
 
-class PullRequestDiffError(LGMTException):
+class PullRequestDiffError(LGTMException):
     message = "Failed to retrieve the diff of the pull request"
 
     def __init__(self) -> None:
         super().__init__(self.message)
 
 
-class PullRequestMetadataError(LGMTException):
+class PullRequestMetadataError(LGTMException):
     message = "Failed to retrieve the metadata of the pull request"
 
     def __init__(self) -> None:
         super().__init__(self.message)
 
 
-class PullRequestDiffNotFoundError(LGMTException):
+class PullRequestDiffNotFoundError(LGTMException):
     message = "No diff found for this pull request"
 
     def __init__(self) -> None:
         super().__init__(self.message)
 
 
-class PublishReviewError(LGMTException):
+class PublishReviewError(LGTMException):
     message = "Failed to publish the review"
 
     def __init__(self) -> None:
         super().__init__(self.message)
 
 
-class InvalidGitAuthError(LGMTException):
+class InvalidGitAuthError(LGTMException):
     message = "Invalid Git service authentication token"
 
     def __init__(self) -> None:
         super().__init__(self.message)
 
 
-class DecodingFileError(LGMTException):
+class DecodingFileError(LGTMException):
     message = "Failed to decode the file"
 
     def __init__(self) -> None:

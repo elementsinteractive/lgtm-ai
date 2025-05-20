@@ -1,14 +1,14 @@
-from lgtm.base.exceptions import LGMTException
+from lgtm.base.exceptions import LGTMException
 from pydantic_core import ErrorDetails
 
 
-class ConfigFileNotFoundError(LGMTException): ...
+class ConfigFileNotFoundError(LGTMException): ...
 
 
-class InvalidConfigFileError(LGMTException): ...
+class InvalidConfigFileError(LGTMException): ...
 
 
-class InvalidConfigError(LGMTException):
+class InvalidConfigError(LGTMException):
     def __init__(self, source: str, errors: list[ErrorDetails]) -> None:
         self.source = source
         self.errors = errors
@@ -22,4 +22,4 @@ class InvalidConfigError(LGMTException):
         return f"Invalid config file '{self.source}':\n" + "\n".join(messages)
 
 
-class MissingRequiredConfigError(LGMTException): ...
+class MissingRequiredConfigError(LGTMException): ...

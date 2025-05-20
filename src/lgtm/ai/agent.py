@@ -95,7 +95,7 @@ def get_summarizing_agent_with_settings(
 def _process_extra_settings(settings: AgentSettings | None) -> dict[str, Any]:
     """Unpacks extra settings into a dict form.
 
-    These settings have defaults in pydantic-ai and are optional in the API, so we're skipping them comletely if they are not set on our side.
+    These settings have defaults in pydantic-ai and are optional in the API, so we're skipping them completely if they are not set on our side.
     """
     extra_settings: dict[str, Any] = {}
     if settings is not None:
