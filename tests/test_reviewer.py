@@ -14,7 +14,9 @@ from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from lgtm.reviewer import CodeReviewer
-from pydantic_ai import capture_run_messages, models
+from lgtm.reviewer.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
+from pydantic import ValidationError
+from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, capture_run_messages, models
 from pydantic_ai.messages import ModelMessage, ModelRequest
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.test import TestModel
@@ -49,6 +51,16 @@ m_diff = [
         ],
     ),
 ]
+
+
+def _get_ai_validation_error(*, is_validation_error: bool) -> UnexpectedModelBehavior:
+    exc = UnexpectedModelBehavior("Error")
+    exc_lvl2 = Exception("Error level 2")
+    exc_lvl3 = ValidationError("Error level 3", []) if is_validation_error else Exception("Error level 3")
+    exc_lvl2.__context__ = exc_lvl3
+    exc.__context__ = exc_lvl2
+
+    return exc
 
 
 class MockGitClient(GitClient):
@@ -241,6 +253,33 @@ def test_file_is_excluded_from_prompt() -> None:
 
     assert any("contents-of-file1" in str(message) for message in messages)
     assert not any("contents-of-file2" in str(message) for message in messages)
+
+
+@pytest.mark.parametrize(
+    ("raised_error", "expected_error"),
+    [
+        (AgentRunError("Error"), UnknownAIError),
+        (ModelHTTPError(500, "Error"), ServerError),
+        (ModelHTTPError(429, "Error"), UsageLimitsExceededError),
+        (ModelHTTPError(312, "Error"), UnknownAIError),
+        (_get_ai_validation_error(is_validation_error=True), InvalidAIResponseError),
+        (_get_ai_validation_error(is_validation_error=False), UnknownAIError),
+    ],
+)
+def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_error: type[Exception]) -> None:
+    error_agent = mock.Mock()
+    error_agent.run_sync.side_effect = raised_error
+
+    code_reviewer = CodeReviewer(
+        reviewer_agent=error_agent,
+        summarizing_agent=mock.Mock(),
+        model=mock.Mock(spec=OpenAIModel),
+        git_client=MockGitClient(),
+        config=ResolvedConfig(),
+    )
+
+    with pytest.raises(expected_error):
+        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
 
 
 def _assert_agent_message(
