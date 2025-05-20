@@ -152,5 +152,8 @@ class AgentSettings(BaseModel):
     """Configurable settings to pass to pydantic-ai agents."""
 
     retries: Annotated[
-        int | None, Field(description="Number of retries the agent will perform when querying the AI API")
+        int | None,
+        Field(
+            description="Number of retries the agent will perform when querying the AI API. Defaults to None, in which case pydantic-ai defaults will be used."
+        ),
     ]
