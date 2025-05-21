@@ -8,13 +8,14 @@ import github.GithubException
 import github.PullRequest
 import github.PullRequestReview
 import github.Repository
-from lgtm.ai.schemas import Review
+from lgtm.ai.schemas import Review, ReviewGuide
 from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.formatters.base import Formatter
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
     DecodingFileError,
     InvalidGitAuthError,
+    PublishGuideError,
     PublishReviewError,
     PullRequestDiffError,
     PullRequestMetadataError,
@@ -26,7 +27,7 @@ logger = logging.getLogger("lgtm.git")
 
 
 class GitHubClient(GitClient):
-    def __init__(self, client: github.Github, formatter: ReviewFormatter[str]) -> None:
+    def __init__(self, client: github.Github, formatter: Formatter[str]) -> None:
         self.client = client
         self.formatter = formatter
 
@@ -81,13 +82,13 @@ class GitHubClient(GitClient):
                 {
                     "path": c.new_path,
                     "position": c.relative_line_number,
-                    "body": self.formatter.format_comment(c),
+                    "body": self.formatter.format_review_comment(c),
                 }
             )
         try:
             commit = pr.base.repo.get_commit(pr.head.sha)
             pr.create_review(
-                body=self.formatter.format_summary_section(review),
+                body=self.formatter.format_review_summary_section(review),
                 event="COMMENT",
                 comments=comments,
                 commit=commit,
@@ -124,6 +125,19 @@ class GitHubClient(GitClient):
             raise PullRequestMetadataError from err
 
         return PRMetadata(title=pr.title, description=pr.body)
+
+    def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
+        pr = _get_pr(self.client, pr_url)
+        try:
+            commit = pr.base.repo.get_commit(pr.head.sha)
+            pr.create_review(
+                body=self.formatter.format_guide(guide),
+                event="COMMENT",
+                comments=[],
+                commit=commit,
+            )
+        except github.GithubException as err:
+            raise PublishGuideError from err
 
     def _get_file_contents(
         self, repo: github.Repository.Repository, file: github.File.File, target_branch: str

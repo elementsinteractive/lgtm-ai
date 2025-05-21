@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from lgtm.ai.schemas import Review
+from lgtm.ai.schemas import Review, ReviewGuide
 from lgtm.base.schemas import PRUrl
 from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
 
@@ -8,10 +8,17 @@ from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
 class GitClient(Protocol):
     """Interface for any Git service client."""
 
-    def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff: ...
+    def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
+        """Get the diff from the PR URL. It will be used to generate the review."""
 
-    def publish_review(self, pr_url: PRUrl, review: Review) -> None: ...
+    def publish_review(self, pr_url: PRUrl, review: Review) -> None:
+        """Publish a whole review to the PR. It will create several comments/reviews etc. depending on the git service."""
 
-    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext: ...
+    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
+        """Get context for the PR given its URL and diff."""
 
-    def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata: ...
+    def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
+        """Get metadata for the PR given its URL."""
+
+    def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
+        """Publish a review guide to the PR."""

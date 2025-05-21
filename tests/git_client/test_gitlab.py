@@ -5,14 +5,20 @@ import click
 import gitlab
 import gitlab.exceptions
 import pytest
-from lgtm.ai.schemas import Review, ReviewComment, ReviewMetadata, ReviewResponse
+from lgtm.ai.schemas import (
+    PublishMetadata,
+    Review,
+    ReviewComment,
+    ReviewGuide,
+    ReviewResponse,
+)
 from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.formatters.base import Formatter
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.gitlab import GitlabClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from tests.conftest import CopyingMock
-from tests.git_client.fixtures import PARSED_GIT_DIFF
+from tests.git_client.fixtures import FAKE_GUIDE, PARSED_GIT_DIFF
 
 MockGitlabUrl = PRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
@@ -68,15 +74,18 @@ def mock_gitlab_client(project: mock.Mock | None = None) -> GitlabClient:
     return client
 
 
-class MockFormatter(ReviewFormatter[str]):
-    def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
+class MockFormatter(Formatter[str]):
+    def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
         return f"summary section {review.review_response.summary}"
 
-    def format_comments_section(self, comments: list[ReviewComment]) -> str:
-        return "comments section" + "".join(self.format_comment(comment) for comment in comments)
+    def format_review_comments_section(self, comments: list[ReviewComment]) -> str:
+        return "comments section" + "".join(self.format_review_comment(comment) for comment in comments)
 
-    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
+    def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
         return f"comment {comment.comment}"
+
+    def format_guide(self, guide: ReviewGuide) -> str:
+        return "guide section"
 
 
 def test_project_not_found_error() -> None:
@@ -147,17 +156,17 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=ReviewMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever"),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)
 
-    m_mr.notes.create.assert_called_with({"body": client.formatter.format_summary_section(fake_review)})
+    m_mr.notes.create.assert_called_with({"body": client.formatter.format_review_summary_section(fake_review)})
     m_mr.discussions.create.assert_has_calls(
         [
             mock.call(
                 {
-                    "body": client.formatter.format_comment(fake_review.review_response.comments[0]),
+                    "body": client.formatter.format_review_comment(fake_review.review_response.comments[0]),
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -171,7 +180,7 @@ def test_post_review_successful() -> None:
             ),
             mock.call(
                 {
-                    "body": client.formatter.format_comment(fake_review.review_response.comments[1]),
+                    "body": client.formatter.format_review_comment(fake_review.review_response.comments[1]),
                     "position": {
                         "base_sha": "base",
                         "head_sha": "head",
@@ -235,13 +244,15 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                 ),
             ],
         ),
-        metadata=ReviewMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever"),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)
 
     m_mr.notes.create.assert_called_with(
-        {"body": f"{client.formatter.format_summary_section(fake_review, [fake_review.review_response.comments[1]])}"}
+        {
+            "body": f"{client.formatter.format_review_summary_section(fake_review, [fake_review.review_response.comments[1]])}"
+        }
     )
     m_mr.discussions.create.assert_has_calls(
         [
@@ -403,3 +414,15 @@ def test_get_context_deleted_file() -> None:
     assert len(calls) == 2
     assert calls[0][1]["ref"] == mock.ANY
     assert calls[1][1]["ref"] == "main"  # The target branch is used for the deleted file
+
+
+def test_publish_guide_successful() -> None:
+    m_mr = mock_mr()
+    m_project = mock_project(m_mr)
+    m_project.diffs.list.return_value = [mock.Mock()]
+    client = mock_gitlab_client(m_project)
+
+    client.publish_guide(MockGitlabUrl, FAKE_GUIDE)
+
+    assert m_mr.notes.create.call_count == 1
+    assert m_mr.notes.create.call_args_list == [mock.call({"body": "guide section"})]

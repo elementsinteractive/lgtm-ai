@@ -1,11 +1,11 @@
 from typing import Protocol, TypeVar
 
-from lgtm.ai.schemas import Review, ReviewComment
+from lgtm.ai.schemas import Review, ReviewComment, ReviewGuide
 
 _T = TypeVar("_T", covariant=True)
 
 
-class ReviewFormatter(Protocol[_T]):
+class Formatter(Protocol[_T]):
     """Formatter for LGTM reviews.
 
     There are several ways in which one may want to display a review (in the terminal, as a markdown file, etc.).
@@ -14,7 +14,7 @@ class ReviewFormatter(Protocol[_T]):
     Specialize the generic type `_T` to the return type of the formatting methods.
     """
 
-    def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> _T:
+    def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> _T:
         """Format the summary section of the review.
 
         Args:
@@ -25,6 +25,8 @@ class ReviewFormatter(Protocol[_T]):
             The formatted summary section.
         """
 
-    def format_comments_section(self, comments: list[ReviewComment]) -> _T: ...
+    def format_review_comments_section(self, comments: list[ReviewComment]) -> _T: ...
 
-    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> _T: ...
+    def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> _T: ...
+
+    def format_guide(self, guide: ReviewGuide) -> _T: ...

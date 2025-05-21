@@ -1,3 +1,13 @@
+from unittest import mock
+
+from lgtm.ai.schemas import (
+    GuideChecklistItem,
+    GuideKeyChange,
+    GuideReference,
+    GuideResponse,
+    PublishMetadata,
+    ReviewGuide,
+)
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 
 PARSED_GIT_DIFF = [
@@ -37,3 +47,17 @@ PARSED_GIT_DIFF = [
         ],
     ),
 ]
+
+FAKE_GUIDE = ReviewGuide(
+    mock.Mock(),
+    GuideResponse(
+        summary="a",
+        key_changes=[
+            GuideKeyChange(file_name="foo.py", description="description"),
+            GuideKeyChange(file_name="bar.py", description="description"),
+        ],
+        checklist=[GuideChecklistItem(description="item 1")],
+        references=[GuideReference(title="title", url="https://example.com")],
+    ),
+    PublishMetadata(model_name="whatever"),
+)

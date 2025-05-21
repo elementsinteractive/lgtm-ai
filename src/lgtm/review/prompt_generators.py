@@ -1,78 +1,16 @@
 import json
 import logging
 
-from lgtm.ai.schemas import Review, ReviewerDeps, ReviewMetadata, ReviewResponse, SummarizingDeps
+from lgtm.ai.schemas import ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
-from lgtm.base.schemas import PRUrl
 from lgtm.base.utils import file_matches_any_pattern
 from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
-from lgtm.reviewer.exceptions import (
-    handle_ai_exceptions,
-)
-from pydantic_ai import Agent
-from pydantic_ai.models import Model
 
 logger = logging.getLogger("lgtm.ai")
 
 
-class CodeReviewer:
-    """Code reviewer that uses pydantic-ai agents to review pull requests."""
-
-    def __init__(
-        self,
-        *,
-        reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
-        summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
-        model: Model,
-        git_client: GitClient,
-        config: ResolvedConfig,
-    ) -> None:
-        self.reviewer_agent = reviewer_agent
-        self.summarizing_agent = summarizing_agent
-        self.model = model
-        self.git_client = git_client
-        self.config = config
-
-    def review_pull_request(self, pr_url: PRUrl) -> Review:
-        pr_diff = self.git_client.get_diff_from_url(pr_url)
-        context = self.git_client.get_context(pr_url, pr_diff)
-        metadata = self.git_client.get_pr_metadata(pr_url)
-
-        prompt_generator = _PromptGenerator(self.config, metadata)
-
-        review_prompt = prompt_generator.generate_review_prompt(pr_diff=pr_diff, context=context)
-        logger.info("Running AI model on the PR diff")
-        with handle_ai_exceptions():
-            raw_res = self.reviewer_agent.run_sync(
-                model=self.model,
-                user_prompt=review_prompt,
-                deps=ReviewerDeps(
-                    configured_technologies=self.config.technologies, configured_categories=self.config.categories
-                ),
-            )
-        logger.info("Initial review completed")
-        logger.debug(
-            "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
-        )
-
-        logger.info("Running AI model to summarize the review")
-        summary_prompt = prompt_generator.generate_summarizing_prompt(pr_diff=pr_diff, raw_review=raw_res.output)
-        with handle_ai_exceptions():
-            final_res = self.summarizing_agent.run_sync(
-                model=self.model,
-                user_prompt=summary_prompt,
-                deps=SummarizingDeps(configured_categories=self.config.categories),
-            )
-        logger.info("Final review completed")
-        logger.debug(
-            "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)
-        )
-        return Review(pr_diff, final_res.output, metadata=ReviewMetadata(model_name=self.config.model))
-
-
-class _PromptGenerator:
+class PromptGenerator:
     """Generates the prompts for the AI model to review the PR."""
 
     def __init__(self, config: ResolvedConfig, pr_metadata: PRMetadata) -> None:
@@ -113,6 +51,9 @@ class _PromptGenerator:
         diff_prompt = self._pr_diff_prompt(pr_diff)
         review_prompt = f"Review: {raw_review.model_dump()}\n"
         return f"{pr_metadata_prompt}\n{diff_prompt}\n{review_prompt}"
+
+    def generate_guide_prompt(self, *, pr_diff: PRDiff, context: PRContext) -> str:
+        return self.generate_review_prompt(pr_diff=pr_diff, context=context)  # FIXME: They are the same for now?
 
     def _generate_context_prompt_for_file(self, file_context: PRContextFileContents) -> str:
         """Generate context prompt for a single file in the PR.

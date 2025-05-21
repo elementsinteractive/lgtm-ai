@@ -8,12 +8,13 @@ import gitlab
 import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
-from lgtm.ai.schemas import Review, ReviewComment
+from lgtm.ai.schemas import Review, ReviewComment, ReviewGuide
 from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.formatters.base import Formatter
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.exceptions import (
     InvalidGitAuthError,
+    PublishGuideError,
     PublishReviewError,
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
@@ -26,7 +27,7 @@ logger = logging.getLogger("lgtm.git")
 
 
 class GitlabClient(GitClient):
-    def __init__(self, client: gitlab.Gitlab, formatter: ReviewFormatter[str]) -> None:
+    def __init__(self, client: gitlab.Gitlab, formatter: Formatter[str]) -> None:
         self.client = client
         self.formatter = formatter
         self._pr: gitlab.v4.objects.ProjectMergeRequest | None = None
@@ -105,10 +106,17 @@ class GitlabClient(GitClient):
         logger.info("Publishing review to GitLab")
         try:
             pr = _get_pr_from_url(self.client, pr_url)
-            failed_comments = self._post_comments(pr, review)
-            self._post_summary(pr, review, failed_comments)
+            failed_comments = self._post_review_comments(pr, review)
+            self._post_review_summary(pr, review, failed_comments)
         except gitlab.exceptions.GitlabError as err:
             raise PublishReviewError from err
+
+    def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
+        try:
+            pr = _get_pr_from_url(self.client, pr_url)
+            pr.notes.create({"body": self.formatter.format_guide(guide)})
+        except gitlab.exceptions.GitlabError as err:
+            raise PublishGuideError from err
 
     def _parse_gitlab_git_diff(self, diffs: list[dict[str, object]]) -> list[DiffResult]:
         parsed_diffs: list[DiffResult] = []
@@ -129,12 +137,12 @@ class GitlabClient(GitClient):
 
         return parsed_diffs
 
-    def _post_summary(
+    def _post_review_summary(
         self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review, failed_comments: list[ReviewComment]
     ) -> None:
-        pr.notes.create({"body": self.formatter.format_summary_section(review, failed_comments)})
+        pr.notes.create({"body": self.formatter.format_review_summary_section(review, failed_comments)})
 
-    def _post_comments(self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review) -> list[ReviewComment]:
+    def _post_review_comments(self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review) -> list[ReviewComment]:
         """Post comments on the file & filenumber they refer to.
 
         The AI currently makes mistakes which make gitlab fail to accurately post a comment.
@@ -164,7 +172,7 @@ class GitlabClient(GitClient):
                 position["old_line"] = review_comment.line_number
 
             gitlab_comment = {
-                "body": self.formatter.format_comment(review_comment),
+                "body": self.formatter.format_review_comment(review_comment),
                 "position": position,
             }
 

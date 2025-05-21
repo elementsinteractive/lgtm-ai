@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
-from lgtm.ai.schemas import Review, ReviewMetadata, ReviewResponse
+from lgtm.ai.schemas import PublishMetadata, Review, ReviewGuide, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
 from lgtm.config.constants import DEFAULT_AI_MODEL
@@ -13,8 +13,8 @@ from lgtm.config.handler import ResolvedConfig
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
-from lgtm.reviewer import CodeReviewer
-from lgtm.reviewer.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
+from lgtm.review import CodeReviewer
+from lgtm.review.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
 from pydantic import ValidationError
 from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, capture_run_messages, models
 from pydantic_ai.messages import ModelMessage, ModelRequest
@@ -81,6 +81,9 @@ class MockGitClient(GitClient):
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         return PRMetadata(title="foo", description="bar")
 
+    def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
+        return None
+
 
 def test_get_review_from_url_valid() -> None:
     test_agent = get_reviewer_agent_with_settings()
@@ -109,7 +112,7 @@ def test_get_review_from_url_valid() -> None:
     assert review == Review(
         PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
         ReviewResponse(summary="a", raw_score=1),
-        metadata=ReviewMetadata(model_name=DEFAULT_AI_MODEL),
+        metadata=PublishMetadata(model_name=DEFAULT_AI_MODEL),
     )
 
     # There are messages with the correct prompts to the AI agent
