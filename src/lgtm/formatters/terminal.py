@@ -32,7 +32,7 @@ class TerminalFormatter(ReviewFormatter[Panel | Layout]):
         layout.split_column(*panels)
         return layout
 
-    def format_comment(self, comment: ReviewComment) -> Panel:
+    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> Panel:
         content: Text | Group
         if comment.quote_snippet:
             snippet_panel = Panel(

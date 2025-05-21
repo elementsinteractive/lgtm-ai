@@ -2,17 +2,17 @@ import textwrap
 
 from lgtm.ai.schemas import Review, ReviewComment, ReviewScore
 from lgtm.formatters.base import ReviewFormatter
-from lgtm.formatters.constants import SCORE_MAP, SEVERITY_MAP
+from lgtm.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
 
 
 class MarkDownFormatter(ReviewFormatter[str]):
     def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
         header = textwrap.dedent(f"""
-        🦉 **lgtm Review**
+        ## 🦉 lgtm Review
 
         > **Score:** {self._format_score(review.review_response.score)}
 
-        **Summary:**
+        ### 🔍 Summary
 
         """)
         summary = header + review.review_response.summary
@@ -38,18 +38,36 @@ class MarkDownFormatter(ReviewFormatter[str]):
             return ""
         lines = ["**Specific Comments:**"]
         for comment in comments:
-            lines.append(f"- {self.format_comment(comment)}")
+            lines.append(f"- {self.format_comment(comment, with_footer=False)}")
         return "\n\n".join(lines)
 
-    def format_comment(self, comment: ReviewComment) -> str:
-        header_section = (
-            f"🦉 **[{comment.category}]** {SEVERITY_MAP[comment.severity]} `{comment.new_path}:{comment.line_number}`"
+    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
+        header_section = "\n\n".join(
+            [
+                f"#### 🦉 {CATEGORY_MAP[comment.category]} {comment.category}",
+                f"> **Severity:** {comment.severity} {SEVERITY_MAP[comment.severity]}",
+            ]
         )
         comment_section = (
             f"\n{self._format_snippet(comment)}\n{comment.comment}" if comment.quote_snippet else comment.comment
         )
 
-        return f"{header_section}\n\n{comment_section}"
+        footer_section = (
+            textwrap.dedent(f"""
+
+        <details><summary>More information about this comment</summary>
+
+        - **File**: `{comment.new_path}`
+        - **Line**: `{comment.line_number}`
+        - **Relative line**: `{comment.relative_line_number}`
+
+        </details>
+        """)
+            if with_footer
+            else ""
+        )
+
+        return f"{header_section}\n\n{comment_section}\n\n{footer_section}"
 
     def _format_score(self, score: ReviewScore) -> str:
         return f"{score} {SCORE_MAP[score]}"

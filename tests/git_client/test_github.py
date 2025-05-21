@@ -70,7 +70,7 @@ class MockFormatter(ReviewFormatter[str]):
     def format_comments_section(self, comments: list[ReviewComment]) -> str:
         return "comments section" + "".join(self.format_comment(comment) for comment in comments)
 
-    def format_comment(self, comment: ReviewComment) -> str:
+    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
         return f"comment {comment.comment}"
 
 

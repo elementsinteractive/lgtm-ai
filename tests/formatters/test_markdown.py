@@ -24,11 +24,11 @@ class TestMarkdownFormatter:
 
         assert self.formatter.format_summary_section(review).split("\n") == [
             "",
-            "🦉 **lgtm Review**",
+            "## 🦉 lgtm Review",
             "",
             "> **Score:** LGTM 👍",
             "",
-            "**Summary:**",
+            "### 🔍 Summary",
             "",
             "summary",
             "",
@@ -103,12 +103,18 @@ class TestMarkdownFormatter:
 
         expected = [
             "**Specific Comments:**",
-            "- 🦉 **[Testing]** 🔴 `new_path:1`",
+            "- #### 🦉 🧪 Testing",
+            "> **Severity:** HIGH 🔴",
             "comment 2",
-            "- 🦉 **[Testing]** 🟡 `new_path:1`",
+            "",
+            "- #### 🦉 🧪 Testing",
+            "> **Severity:** MEDIUM 🟡",
             "comment 3",
-            "- 🦉 **[Correctness]** 🔵 `new_path:1`",
+            "",
+            "- #### 🦉 ✅ Correctness",
+            "> **Severity:** LOW 🔵",
             "comment 1",
+            "",
         ]
         assert self.formatter.format_comments_section(review.review_response.comments) == "\n\n".join(expected)
 
@@ -137,9 +143,14 @@ class TestMarkdownFormatter:
         )
 
         expected = [
-            "🦉 **[Correctness]** 🔵 `new_path:1`",
+            "#### 🦉 ✅ Correctness",
+            "> **Severity:** LOW 🔵",
             "",
             "\n```python\nprint('Hello World')\n```",
             "\ncomment",
+            "",
+            "<details><summary>More information about this comment</summary>",
+            "- **File**: `new_path`\n- **Line**: `1`\n- **Relative line**: `1`",
+            "</details>\n",
         ]
         assert self.formatter.format_comment(review.review_response.comments[0]) == "\n\n".join(expected)

@@ -1,6 +1,6 @@
 from typing import Final
 
-from lgtm.ai.schemas import CommentSeverity, ReviewScore
+from lgtm.ai.schemas import CommentCategory, CommentSeverity, ReviewScore
 
 SEVERITY_MAP: Final[dict[CommentSeverity, str]] = {
     "LOW": "🔵",
@@ -14,4 +14,11 @@ SCORE_MAP: Final[dict[ReviewScore, str]] = {
     "Needs Work": "🔧",
     "Needs a Lot of Work": "🚨",
     "Abandon": "❌",
+}
+
+CATEGORY_MAP: Final[dict[CommentCategory, str]] = {
+    "Correctness": "✅",
+    "Quality": "✨",
+    "Testing": "🧪",
+    "Security": "🔒",
 }
