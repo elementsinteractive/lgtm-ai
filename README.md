@@ -33,8 +33,17 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
 ## Quick Usage
 
 ```sh
- lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN --model gpt-4.1 --publish
+ lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
+             --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN \
+             --model gpt-4.1 \
+             --publish
 ```
+
+This will generate a review like this one:
+
+<img src="./assets/review.png" alt="lgtm-review" height="250"/>
+<br/>
+<img src="./assets/review-comment.png" alt="lgtm-review-comment" height="250"/>
 
 ## How it works
 
