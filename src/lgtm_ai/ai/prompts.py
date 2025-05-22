@@ -1,6 +1,6 @@
 from typing import get_args
 
-from lgtm.ai.schemas import CommentCategory
+from lgtm_ai.ai.schemas import CommentCategory
 
 _SEVERITY_EXPLANATION = """
         - `LOW`: nitpick, minor issues. It does not really affect functionality, it may affect correctness in a theoretical way (but not in practice), it affects maintainability but it's quite subjective, etc. Do not add informative or praising comments.

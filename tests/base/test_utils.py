@@ -1,5 +1,5 @@
 import pytest
-from lgtm.base.utils import file_matches_any_pattern
+from lgtm_ai.base.utils import file_matches_any_pattern
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-from lgtm.base.exceptions import LGTMException
+from lgtm_ai.base.exceptions import LGTMException
 
 
 class PullRequestDiffError(LGTMException):

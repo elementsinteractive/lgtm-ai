@@ -1,6 +1,6 @@
 from unittest import mock
 
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.schemas import (
     GuideChecklistItem,
     GuideKeyChange,
     GuideReference,
@@ -8,7 +8,7 @@ from lgtm.ai.schemas import (
     PublishMetadata,
     ReviewGuide,
 )
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 
 PARSED_GIT_DIFF = [
     DiffResult(

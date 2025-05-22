@@ -5,18 +5,18 @@ import click
 import gitlab
 import gitlab.exceptions
 import pytest
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.schemas import (
     PublishMetadata,
     Review,
     ReviewComment,
     ReviewGuide,
     ReviewResponse,
 )
-from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import Formatter
-from lgtm.git_client.exceptions import PullRequestDiffError
-from lgtm.git_client.gitlab import GitlabClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git_client.exceptions import PullRequestDiffError
+from lgtm_ai.git_client.gitlab import GitlabClient
+from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE, PARSED_GIT_DIFF
 

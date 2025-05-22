@@ -1,8 +1,8 @@
 from typing import Protocol
 
-from lgtm.ai.schemas import Review, ReviewGuide
-from lgtm.base.schemas import PRUrl
-from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
+from lgtm_ai.ai.schemas import Review, ReviewGuide
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.git_client.schemas import PRContext, PRDiff, PRMetadata
 
 
 class GitClient(Protocol):

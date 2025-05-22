@@ -1,8 +1,8 @@
 import textwrap
 
-from lgtm.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewGuide, ReviewScore
-from lgtm.formatters.base import Formatter
-from lgtm.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
+from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewGuide, ReviewScore
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
 
 
 class MarkDownFormatter(Formatter[str]):

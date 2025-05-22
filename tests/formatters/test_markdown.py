@@ -1,6 +1,6 @@
 from unittest import mock
 
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.schemas import (
     GuideChecklistItem,
     GuideKeyChange,
     GuideReference,
@@ -11,7 +11,7 @@ from lgtm.ai.schemas import (
     ReviewGuide,
     ReviewResponse,
 )
-from lgtm.formatters.markdown import MarkDownFormatter
+from lgtm_ai.formatters.markdown import MarkDownFormatter
 
 
 class TestMarkdownFormatter:

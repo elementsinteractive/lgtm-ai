@@ -2,9 +2,9 @@ from typing import cast
 from unittest import mock
 
 import rich.markdown
-from lgtm.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewResponse
-from lgtm.formatters.terminal import TerminalFormatter
-from lgtm.git_client.schemas import PRDiff
+from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewResponse
+from lgtm_ai.formatters.terminal import TerminalFormatter
+from lgtm_ai.git_client.schemas import PRDiff
 
 
 def test_format_summary_section() -> None:

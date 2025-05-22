@@ -1,11 +1,11 @@
 import logging
 
-from lgtm.ai.schemas import GuideResponse, PublishMetadata, ReviewGuide
-from lgtm.base.schemas import PRUrl
-from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.base import GitClient
-from lgtm.review.exceptions import handle_ai_exceptions
-from lgtm.review.prompt_generators import PromptGenerator
+from lgtm_ai.ai.schemas import GuideResponse, PublishMetadata, ReviewGuide
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.review.exceptions import handle_ai_exceptions
+from lgtm_ai.review.prompt_generators import PromptGenerator
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 

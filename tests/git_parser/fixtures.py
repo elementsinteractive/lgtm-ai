@@ -1,4 +1,4 @@
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 
 DUMMY_METADATA = DiffFileMetadata(
     new_file=True,

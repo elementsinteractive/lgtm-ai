@@ -1,11 +1,11 @@
 import json
 import logging
 
-from lgtm.ai.schemas import ReviewResponse
-from lgtm.base.exceptions import NothingToReviewError
-from lgtm.base.utils import file_matches_any_pattern
-from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.ai.schemas import ReviewResponse
+from lgtm_ai.base.exceptions import NothingToReviewError
+from lgtm_ai.base.utils import file_matches_any_pattern
+from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 
 logger = logging.getLogger("lgtm.ai")
 

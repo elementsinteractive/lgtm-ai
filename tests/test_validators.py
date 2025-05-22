@@ -5,8 +5,8 @@ from unittest import mock
 
 import click
 import pytest
-from lgtm.base.schemas import PRUrl
-from lgtm.validators import parse_pr_url
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.validators import parse_pr_url
 
 
 @pytest.mark.parametrize(

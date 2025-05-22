@@ -8,20 +8,20 @@ import gitlab
 import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
-from lgtm.ai.schemas import Review, ReviewComment, ReviewGuide
-from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import Formatter
-from lgtm.git_client.base import GitClient
-from lgtm.git_client.exceptions import (
+from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.git_client.exceptions import (
     InvalidGitAuthError,
     PublishGuideError,
     PublishReviewError,
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm.git_client.schemas import PRContext, PRDiff, PRMetadata
-from lgtm.git_parser.exceptions import GitDiffParseError
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
+from lgtm_ai.git_client.schemas import PRContext, PRDiff, PRMetadata
+from lgtm_ai.git_parser.exceptions import GitDiffParseError
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
 logger = logging.getLogger("lgtm.git")
 

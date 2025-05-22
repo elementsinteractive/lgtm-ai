@@ -2,7 +2,7 @@ from enum import StrEnum
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRUrl
 
 
 class AllowedLocations(StrEnum):

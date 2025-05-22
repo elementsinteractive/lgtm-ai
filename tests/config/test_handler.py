@@ -2,13 +2,14 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from lgtm.config.exceptions import (
+
+from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
     InvalidConfigFileError,
     MissingRequiredConfigError,
 )
-from lgtm.config.handler import ConfigHandler, PartialConfig
+from lgtm_ai.config.handler import ConfigHandler, PartialConfig
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
@@ -119,7 +120,7 @@ def test_boolean_flag_preference(cli: bool, file: bool, expected: bool) -> None:
     from_cli = PartialConfig(silent=cli, publish=cli)
     from_file = PartialConfig(silent=file, publish=file)
 
-    with mock.patch("lgtm.config.handler.ConfigHandler._parse_config_file", return_value=from_file):
+    with mock.patch("lgtm_ai.config.handler.ConfigHandler._parse_config_file", return_value=from_file):
         handler = ConfigHandler(cli_args=from_cli, config_file=mock.Mock())
         config = handler.resolve_config()
 
@@ -131,7 +132,7 @@ def test_boolean_flag_preference(cli: bool, file: bool, expected: bool) -> None:
 def test_lgtm_toml_is_autodetected(tmp_path: Path, lgtm_toml_file: str) -> None:
     """Test that the lgtm.toml file is autodetected in the current dir."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
-    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+    with mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)):
         config = handler.resolve_config()
     assert config.technologies == ("perl", "javascript")
 
@@ -140,7 +141,7 @@ def test_lgtm_toml_is_autodetected(tmp_path: Path, lgtm_toml_file: str) -> None:
 def test_pyproject_toml_is_autodetected(tmp_path: Path, pyproject_toml_file: str) -> None:
     """Test that the pyproject.toml file is autodetected in the current dir."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
-    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+    with mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)):
         config = handler.resolve_config()
     assert config.technologies == ("COBOL", "javascript")
 
@@ -149,7 +150,7 @@ def test_pyproject_toml_is_autodetected(tmp_path: Path, pyproject_toml_file: str
 def test_lgtm_file_has_preference_over_pyproject(tmp_path: Path, lgtm_toml_file: str, pyproject_toml_file: str) -> None:
     """Test that the lgtm.toml file is preferred over the pyproject.toml file."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
-    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+    with mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)):
         config = handler.resolve_config()
     assert config.technologies == ("perl", "javascript")
 
@@ -161,7 +162,7 @@ def test_given_file_has_preference_over_autodetected_file(
     """Test that the given file is preferred over any autodetected file."""
     handler = ConfigHandler(cli_args=PartialConfig(), config_file="does-not-exist.toml")
     with (
-        mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)),
+        mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)),
         pytest.raises(ConfigFileNotFoundError),
     ):
         handler.resolve_config()

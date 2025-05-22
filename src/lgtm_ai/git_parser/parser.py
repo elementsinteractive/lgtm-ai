@@ -1,7 +1,7 @@
 import re
 from typing import Literal
 
-from lgtm.git_parser.exceptions import GitDiffParseError
+from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from pydantic import BaseModel
 
 

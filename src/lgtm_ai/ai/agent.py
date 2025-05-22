@@ -1,8 +1,8 @@
 import logging
 from typing import Any, TypeGuard, get_args
 
-from lgtm.ai.prompts import GUIDE_SYSTEM_PROMPT, REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.prompts import GUIDE_SYSTEM_PROMPT, REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
+from lgtm_ai.ai.schemas import (
     AgentSettings,
     DeepSeekModel,
     GuideResponse,
@@ -12,7 +12,7 @@ from lgtm.ai.schemas import (
     SupportedAIModels,
     SupportedGeminiModel,
 )
-from lgtm.base.exceptions import IncorrectAIModelError
+from lgtm_ai.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model

@@ -1,11 +1,11 @@
 import github
 import gitlab
-from lgtm.base.schemas import PRUrl
-from lgtm.config.handler import ResolvedConfig
-from lgtm.formatters.base import Formatter
-from lgtm.git_client.base import GitClient
-from lgtm.git_client.github import GitHubClient
-from lgtm.git_client.gitlab import GitlabClient
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.git_client.github import GitHubClient
+from lgtm_ai.git_client.gitlab import GitlabClient
 
 
 def get_git_client(pr_url: PRUrl, config: ResolvedConfig, formatter: Formatter[str]) -> GitClient:

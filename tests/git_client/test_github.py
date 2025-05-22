@@ -5,19 +5,19 @@ import click
 import github
 import pytest
 from github import GithubException as MockGithubException
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.schemas import (
     PublishMetadata,
     Review,
     ReviewComment,
     ReviewGuide,
     ReviewResponse,
 )
-from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import Formatter
-from lgtm.git_client.exceptions import PullRequestDiffError
-from lgtm.git_client.github import GitHubClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git_client.exceptions import PullRequestDiffError
+from lgtm_ai.git_client.github import GitHubClient
+from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE
 

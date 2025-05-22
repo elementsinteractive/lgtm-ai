@@ -2,8 +2,8 @@ from contextlib import nullcontext as does_not_raise
 from typing import Any
 
 import pytest
-from lgtm.ai.agent import get_ai_model
-from lgtm.base.exceptions import IncorrectAIModelError
+from lgtm_ai.ai.agent import get_ai_model
+from lgtm_ai.base.exceptions import IncorrectAIModelError
 from pydantic_ai.models.gemini import GeminiModel
 from pydantic_ai.models.openai import OpenAIModel
 

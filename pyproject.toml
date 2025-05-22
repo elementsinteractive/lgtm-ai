@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "lgtm"
-version = "0.34.0"
+name = "lgtm-ai"
+version = "0.36.2"
 description = "Your AI-powered code review companion"
 authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
 
@@ -30,7 +30,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-lgtm = "lgtm.__main__:entry_point"
+lgtm = "lgtm_ai.__main__:entry_point"
 
 [tool.pytest.ini_options]
 addopts = """
@@ -81,7 +81,7 @@ max-complexity = 10
 convention = "pep257"
 
 [tool.ruff.lint.isort]
-known-third-party = ["lgtm", "tests"]
+known-third-party = ["lgtm_ai", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
@@ -114,7 +114,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "0.34.0"
+version = "0.36.2"
 tag_format = "v$version"
 
 [tool.commitizen.customize]

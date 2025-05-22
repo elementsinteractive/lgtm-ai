@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from lgtm.git_parser.parser import DiffResult
+from lgtm_ai.git_parser.parser import DiffResult
 
 
 @dataclass(frozen=True, slots=True)

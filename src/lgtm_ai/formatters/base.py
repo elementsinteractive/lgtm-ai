@@ -1,6 +1,6 @@
 from typing import Protocol, TypeVar
 
-from lgtm.ai.schemas import Review, ReviewComment, ReviewGuide
+from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
 
 _T = TypeVar("_T", covariant=True)
 

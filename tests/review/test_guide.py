@@ -1,9 +1,9 @@
 from unittest import mock
 
-from lgtm.ai.agent import (
+from lgtm_ai.ai.agent import (
     get_guide_agent_with_settings,
 )
-from lgtm.ai.schemas import (
+from lgtm_ai.ai.schemas import (
     GuideChecklistItem,
     GuideKeyChange,
     GuideReference,
@@ -11,10 +11,10 @@ from lgtm.ai.schemas import (
     PublishMetadata,
     ReviewGuide,
 )
-from lgtm.base.schemas import PRUrl
-from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.schemas import PRDiff
-from lgtm.review.guide import ReviewGuideGenerator
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.git_client.schemas import PRDiff
+from lgtm_ai.review.guide import ReviewGuideGenerator
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.test import TestModel
 from tests.review.utils import MOCK_DIFF, MockGitClient

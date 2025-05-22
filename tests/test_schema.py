@@ -1,6 +1,6 @@
 from typing import get_args
 
-from lgtm.ai.schemas import CommentSeverity, ReviewComment, ReviewResponse
+from lgtm_ai.ai.schemas import CommentSeverity, ReviewComment, ReviewResponse
 
 
 def test_sorted_comments() -> None:

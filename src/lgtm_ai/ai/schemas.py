@@ -5,7 +5,7 @@ from functools import cached_property
 from typing import Annotated, Final, Literal, TypeAlias, get_args
 from uuid import uuid4
 
-from lgtm.git_client.schemas import PRDiff
+from lgtm_ai.git_client.schemas import PRDiff
 from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames

@@ -2,25 +2,25 @@
   <img alt="lgtm-logo" width="150" src="./assets/lgtm-large.png">
 </p>
 
-# lgtm
+# lgtm-ai
 
-[![💀 - Made with Skeleton](https://img.shields.io/badge/💀-Made_with_Skeleton-0e7fbf)](https://gitlab.com/namespace/elements/backend/pypackage-skeleton)
 ![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=yellow)
-[![pipeline status](https://gitlab.com/namespace/elements/backend/lgtm/badges/main/pipeline.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/commits/main)
-[![coverage report](https://gitlab.com/namespace/elements/backend/lgtm/badges/main/coverage.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/commits/main)
-[![Latest Release](https://gitlab.com/namespace/elements/backend/lgtm/-/badges/release.svg)](https://gitlab.com/namespace/elements/backend/lgtm/-/releases)
-
-
-**Documentation:** https://namespace.gitlab.io/elements/tools/lgtm
 
 ---
 
-lgtm is your AI code review companion. It allows teams to perform reviews over pull requests (PRs) automatically without human intervention, using any of the supported AI models.
+lgtm is your AI code review companion. It allows teams to perform reviews over pull requests (PRs) automatically without human intervention, using any of the supported AI models. It also can generate reviewer guides, to help human reviewers do their job faster!
 
 
 **Table of Contents**
 - [Quick Usage](#quick-usage)
 - [How it works](#how-it-works)
+  - [Code Repository Service Support](#code-repository-service-support)
+  - [Supported AI models](#supported-ai-models)
+    - [OpenAI](#openai)
+    - [Google Gemini](#google-gemini)
+    - [Anthropic's Claude](#anthropics-claude)
+    - [Mistral AI](#mistral-ai)
+- [DeepSeek](#deepseek)
   - [CI/CD Integration](#cicd-integration)
   - [Configuration](#configuration)
     - [Configuration file](#configuration-file)
@@ -28,15 +28,12 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
 - [Running the project](#running-the-project)
 - [Managing requirements](#managing-requirements)
 - [Contributing](#contributing)
-- [Evaluating lgtm](#evaluating-lgtm)
-  - [API Development Guidelines](#api-development-guidelines)
-  - [Code Review Guidelines](#code-review-guidelines)
 
 
 ## Quick Usage
 
 ```sh
- lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN  --publish
+ lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN --model gpt-4.1 --publish
 ```
 
 ## How it works
@@ -54,9 +51,150 @@ lgtm aims to work with as many services as possible, and that includes remote re
 
 lgtm will autodetect the url of the pull request passed to `--pr-url` automatically.
 
+### Supported AI models
+
+lgtm supports several AI models so you can hook up your preferred LLM to perform reviews for you.
+
+This is the full list of supported models:
+
+#### OpenAI
+
+Check out the OpenAI platform page to see [all available models provided by OpenAI](https://platform.openai.com/docs/overview). If you need to use one that is not supported by lgtm, consider [opening an issue](https://makerstreet.atlassian.net/jira/software/c/projects/WBSOAI/boards/818).
+
+To use OpenAI LLMs, you need to provide lgtm with an API Key, which can be generated in the [OpenAI platform page for your project, or your user](https://platform.openai.com/api-keys).
+
+
+<details>
+
+<summary>Supported OpenAI models</summary>
+
+These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
+
+| Model name |  Description | 
+| --------   |  ----- | 
+| **gpt-4.1** * | Powerful and reliable model for detailed code analysis. Strong at coding tasks. | 
+| **gpt-4.1-mini** | Lightweight variant of GPT-4.1 offering faster responses and lower cost—ideal for iterative or high-volume reviews. | 
+| gpt-4.1-nano | Ultra-light model focused on speed and affordability—best for basic code checks or initial feedback. | 
+| gpt-4o * | Cutting-edge model with strong reasoning and code capabilities—ideal for detailed, context-aware reviews. | 
+| gpt-4o-mini | Streamlined GPT-4o variant optimized for fast, cost-effective feedback on code. | 
+| o4-mini | - |
+| o3-mini | - |
+| o3 | - |
+| o1-preview | - |
+| o1-mini | - |
+| o1 | - |
+| gpt-4-turbo | - |
+| gpt-4 | - |
+| gpt-3.5-turbo | - |
+| chatgpt-4o-latest | - |
+
+</details>
+
+#### Google Gemini
+
+Check out the [Gemini developer docs](https://ai.google.dev/gemini-api/docs/models) to see all models provided by Google.
+
+To use Gemini LLMs, you need to provide lgtm an API Key, which can be generated [here](https://aistudio.google.com/apikey). 
+
+These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev). Gemini timestamps models, so be sure to always use the latest model of each family, if possible.
+
+
+<details>
+
+<summary>Supported Google's Gemini models</summary>
+
+
+| Model name  | Description |
+| -----------  | --- |
+| gemini-2.5-pro-preview-05-06       | Most advanced publicly available Gemini model. Strong code reasoning and long-context support. Ideal for complex or large reviews. |
+| **gemini-2.0-pro-exp-02-05**            | High-performing general-purpose model. Balances accuracy and efficiency—ideal for robust reviews without 2.5's higher cost.        |
+| **gemini-2.0-flash**                    | Optimized for low-latency, lower-cost analysis. Ideal for iterative feedback and smaller reviews.                                  |
+| gemini-1.5-pro                      |  Proven performer with solid context and reasoning. Still excellent for general code understanding.                                 |
+| gemini-1.5-flash                    |  Lightweight and fast—suited for real-time or continuous code review loops.                                                         |
+
+</details>
+
+#### Anthropic's Claude
+
+Check out [Anthropic documentation](https://docs.anthropic.com/en/docs/about-claude/models/all-models) to see which models they provide. lgtm works with a subset of Claude models. To use Anthropic LLMs, you need to provide lgtm with an API Key, which can be generated from the [Anthropic Console](https://console.anthropic.com/dashboard).
+
+<details>
+
+<summary>Supported Anthropic models</summary>
+
+These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
+
+| Model name |   Description |
+| ---------------------------- | ---- |
+| claude-3-opus-latest      |  Anthropic's most advanced model. Highest accuracy, reasoning, and context length—ideal for deep code reviews or complex projects. |
+| claude-3-7-sonnet-latest      |  High-performance version of Sonnet 3.7. Stronger accuracy and broader context window than 3.5—best for nuanced reviews or mid-to-large projects. |
+| claude-3-5-sonnet-latest      | Optimized for efficiency while maintaining solid accuracy. Better latency and cost-performance—ideal for scalable or frequent reviews. |
+| claude-3-5-haiku-latest       |  Lightweight and fast. Designed for quick iterations and basic checks—ideal for continuous or CI-based review flows. |
+
+</details>
+
+#### Mistral AI
+
+Check out the [Mistral documentation](https://docs.mistral.ai/getting-started/models/models_overview/) to see all models provided by Mistral.
+
+To use Mistral LLMs, you need to provide lgtm with an API Key, which can be generated from Mistral's [Le Platforme](https://console.mistral.ai/api-keys).
+
+<details>
+
+<summary>Supported Mistral AI models</summary>
+
+These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
+
+| Model name         | Description                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
+| **mistral-large-latest** |  Mistral's top-tier reasoning model for high-complexity tasks. |
+| mistral-small        |  Lightweight and fast. Best used for simple syntax or formatting checks where cost and speed are priorities. |
+| codestrallatest     |   Codestral specializes in low-latency, high-frequency tasks such as fill-in-the-middle (FIM), code correction and test generation.
+
+</details>
+
+## DeepSeek
+
+Check out the [DeepSeek documentation](https://api-docs.deepseek.com/quick_start/pricing) to see all models provided by DeepSeek.
+
+At the moment, lgtm only supports DeepSeek from `https://api.deepseek.com`: other providers and custom URLs are not supported. However, this is in our roadmap!
+
+To get an API key for DeepSeek, create one at [DeepSeek Platform](https://platform.deepseek.com/usage).
+
+<details>
+
+<summary>Supported DeepSeek models</summary>
+
+| Model name         |  Description                                                                                         |
+ ----------- | --------------------------------------------------------------------------------------------------- |
+| **deepseek-chat**     | General-purpose LLM optimized for chat and code assistance. Ideal for standard reviews and developer interactions. |
+| **deepseek-reasoner** | Advanced model specialized in reasoning and problem solving—ideal for complex code analysis and critical thinking tasks. |
+
+</details>
+
 ### CI/CD Integration
 
-lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step. See the [CI/CD Configuration](https://namespace.gitlab.io/elements/tools/lgtm/cicd) section for a thorough explanation and some examples.
+lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step. 
+
+For GitLab, you can use this .gitlab-ci.yml step as inspiration:
+
+```yaml
+lgtm-review:
+image:
+  name: docker.io/elementsinteractive/lgtm-ai
+  entrypoint: [""]
+stage: ai-review
+needs: []
+rules:
+ - if: $CI_MERGE_REQUEST_ID
+when: manual
+script:
+  - lgtm review --pr-url ${MR_URL} --git-api-key ${LGTM_GIT_API_KEY} --ai-api-key ${LGTM_AI_API_KEY} -v
+variables:
+  MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
+```
+
+For GitHub, we plan to provide a GitHub action soon.
 
 ### Configuration
 
@@ -68,7 +206,7 @@ lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.t
 
 - **technologies**: You can specify, as a list of free strings, which technologies lgtm specializes in. This can be helpful for directing the reviewer towards specific technologies. By default, lgtm won't assume any technology and will just review the PR considering itself an "expert" in it.
 - **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g.: if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas). 
-- **model**: Choose which AI model you want lgtm to use. For a full list of supported models, check out [this page](https://namespace.gitlab.io/elements/tools/lgtm/supported-models).
+- **model**: Choose which AI model you want lgtm to use.
 - **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (`exclude = ["*.md", "package-lock.json"]`)
 - **silent**: Do not print the review in the terminal.
 - **publish**: If `true`, it will post the review as comments on the PR page.
@@ -89,37 +227,19 @@ ai_retries = 1
 
 Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) files, you just need to nest the options inside `[tool.lgtm]`.
 
-
 When it comes to preference for selecting options, lgtm follows this preference order:
 
   `CLI options` > `lgtm.toml` > `pyproject.toml`
 
+
 ## Installation
 
-To install this package, you need a [personal access token](https://gitlab.com/-/profile/personal_access_tokens). 
-
-
 ```sh
-# through the project repository
-pip install lgtm --index-url https://__token__:<your_personal_token>@gitlab.com/api/v4/projects/<PROJECT-ID>/packages/pypi/simple
-
-# through a group repository
-pip install lgtm --index-url https://__token__:<your_personal_token>@gitlab.com/api/v4/groups/<GROUP-ID>/-/packages/pypi/simple
+pip install lgtm-ai
 ```
-
-You can also configure `pip` globally in your `.pypirc` file:
-
-```
-[gitlab]
-repository = https://gitlab.com/api/v4/projects/<PROJECT-ID>/packages/pypi
-username = __token__
-password = <your personal access token>
-```
-
-For a comprehensive guide of how to set this up, and to make it work with `poetry` and/or `docker`, take a look at [this guide](https://www.notion.so/msdevelopment/How-to-use-Gitlab-s-registry-for-PyPi-d9f8fdbc00144dc786de550153c56cd9?pvs=4).
-
 
 ## Running the project
+
 This project uses [`just`](https://github.com/casey/just) recipes to do all the basic operations (testing the package, formatting the code, etc.).
 
 Installation: 
@@ -144,7 +264,6 @@ Available recipes:
     test-all                    # Runs all tests including coverage report.
     format                      # Format all code in the project.
     lint                        # Lint all code in the project.
-    docs                        # Serve the documentation in a local server.
     pre-commit *precommit-args  # Runs pre-commit with the given arguments (defaults to install).
     spellcheck *codespell-args  # Spellchecks your markdown files.
     lint-commit                 # Lints commit messages according to conventional commit rules.
@@ -189,7 +308,6 @@ As a short summary:
 
         poetry lock --check
 
-
 ## Contributing
 In this project we enforce [conventional commits](https://www.conventionalcommits.org) guidelines for commit messages. The usage of [commitizen](https://commitizen-tools.github.io/commitizen/) is recommended, but not required. Story numbers (JIRA, etc.) must go in the scope section of the commit message. Example message:
 
@@ -202,26 +320,6 @@ Merge requests must be approved before they can be merged to the `main` branch, 
 This project includes an optional pre-commit configuration. Note that all necessary checks are always executed in the ci pipeline, but
 configuring pre-commit to execute some of them can be beneficial to reduce late errors. To do so, simply execute the following just recipe:
 
-```
+```sh
 just pre-commit
 ```
-
-## Evaluating lgtm
-
-If you are working on improving the prompts of the AI, the models, or other areas of lgtm that might affect the quality of the reviews,
-this repo comes with a script that will help you bootstrap your evaluations.
-
-In your branch, run the following command:
-
-```sh
-python scripts/evaluate_review_quality.py --git-api-key $GITLAB_TOKEN --ai-api-key $OPENAI_API_KEY
-```
-
-That will create several markdown files with the results of several reviews done with the changes in your branch.
-
-You can use these reviews to evaluate the quality of them, and whether your changes are improving lgtm!
-
-Be sure to include the results of the assessment in your PR, because that will help reviewers see your improvements.
-
-### [API Development Guidelines](https://www.notion.so/msdevelopment/Development-Guidelines-623677e75f69473abc743ce1d381eb6b)
-### [Code Review Guidelines](https://www.notion.so/msdevelopment/Code-Review-Guidelines-82023d1814b442e486ed38e648c5d86e)

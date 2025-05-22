@@ -1,5 +1,5 @@
 import pytest
-from lgtm.git_parser.parser import DiffResult, parse_diff_patch
+from lgtm_ai.git_parser.parser import DiffResult, parse_diff_patch
 from tests.git_parser.fixtures import (
     DUMMY_METADATA,
     PARSED_REFACTOR_DIFF,

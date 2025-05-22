@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from http import HTTPStatus
 from typing import Final, NoReturn
 
-from lgtm.base.exceptions import LGTMException
+from lgtm_ai.base.exceptions import LGTMException
 from pydantic import ValidationError
 from pydantic_ai import AgentRunError, UnexpectedModelBehavior
 from pydantic_ai.exceptions import (

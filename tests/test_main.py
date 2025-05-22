@@ -3,7 +3,8 @@ from unittest import mock
 
 import pytest
 from click.testing import CliRunner
-from lgtm.__main__ import _set_logging_level, guide, review
+
+from lgtm_ai.__main__ import _set_logging_level, guide, review
 
 
 @pytest.mark.parametrize(
@@ -21,9 +22,9 @@ def test_set_logging_level(verbosity: int, expected_level: int) -> None:
     assert fake_logger.level == expected_level
 
 
-@mock.patch("lgtm.__main__.CodeReviewer")
-@mock.patch("lgtm.__main__.TerminalFormatter")
-@mock.patch("lgtm.__main__.get_git_client")
+@mock.patch("lgtm_ai.__main__.CodeReviewer")
+@mock.patch("lgtm_ai.__main__.TerminalFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
 def test_review_cli_gitlab(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(
@@ -43,9 +44,9 @@ def test_review_cli_gitlab(*args: mock.MagicMock) -> None:
     assert result.exit_code == 0
 
 
-@mock.patch("lgtm.__main__.CodeReviewer")
-@mock.patch("lgtm.__main__.TerminalFormatter")
-@mock.patch("lgtm.__main__.get_git_client")
+@mock.patch("lgtm_ai.__main__.CodeReviewer")
+@mock.patch("lgtm_ai.__main__.TerminalFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
 def test_review_cli_github(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(
@@ -63,9 +64,9 @@ def test_review_cli_github(*args: mock.MagicMock) -> None:
     assert result.exit_code == 0
 
 
-@mock.patch("lgtm.__main__.ReviewGuideGenerator")
-@mock.patch("lgtm.__main__.TerminalFormatter")
-@mock.patch("lgtm.__main__.get_git_client")
+@mock.patch("lgtm_ai.__main__.ReviewGuideGenerator")
+@mock.patch("lgtm_ai.__main__.TerminalFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
 def test_guide_cli_gitlab(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(

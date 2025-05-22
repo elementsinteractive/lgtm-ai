@@ -6,9 +6,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
-from lgtm.ai.schemas import CommentCategory, SupportedAIModels
-from lgtm.config.constants import DEFAULT_AI_MODEL
-from lgtm.config.exceptions import (
+from lgtm_ai.ai.schemas import CommentCategory, SupportedAIModels
+from lgtm_ai.config.constants import DEFAULT_AI_MODEL
+from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
     InvalidConfigFileError,

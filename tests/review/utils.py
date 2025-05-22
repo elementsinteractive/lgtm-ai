@@ -1,8 +1,8 @@
-from lgtm.ai.schemas import Review, ReviewGuide
-from lgtm.base.schemas import PRUrl
-from lgtm.git_client.base import GitClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from lgtm_ai.ai.schemas import Review, ReviewGuide
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 
 MOCK_DIFF = [
     DiffResult(

@@ -4,15 +4,15 @@ from typing import Literal
 from unittest import mock
 
 import pytest
-from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
-from lgtm.ai.schemas import PublishMetadata, Review, ReviewResponse
-from lgtm.base.exceptions import NothingToReviewError
-from lgtm.base.schemas import PRUrl
-from lgtm.config.constants import DEFAULT_AI_MODEL
-from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.schemas import PRDiff
-from lgtm.review import CodeReviewer
-from lgtm.review.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
+from lgtm_ai.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
+from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewResponse
+from lgtm_ai.base.exceptions import NothingToReviewError
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.config.constants import DEFAULT_AI_MODEL
+from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.git_client.schemas import PRDiff
+from lgtm_ai.review import CodeReviewer
+from lgtm_ai.review.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
 from pydantic import ValidationError
 from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, capture_run_messages, models
 from pydantic_ai.messages import ModelMessage, ModelRequest

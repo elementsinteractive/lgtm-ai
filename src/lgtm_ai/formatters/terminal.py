@@ -1,8 +1,8 @@
 import logging
 
-from lgtm.ai.schemas import Review, ReviewComment, ReviewGuide
-from lgtm.formatters.base import Formatter
-from lgtm.formatters.constants import SCORE_MAP, SEVERITY_MAP
+from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.formatters.constants import SCORE_MAP, SEVERITY_MAP
 from rich.console import Group
 from rich.layout import Layout
 from rich.markdown import Markdown

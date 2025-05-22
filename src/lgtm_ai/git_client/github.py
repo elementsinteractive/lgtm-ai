@@ -8,11 +8,11 @@ import github.GithubException
 import github.PullRequest
 import github.PullRequestReview
 import github.Repository
-from lgtm.ai.schemas import Review, ReviewGuide
-from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import Formatter
-from lgtm.git_client.base import GitClient
-from lgtm.git_client.exceptions import (
+from lgtm_ai.ai.schemas import Review, ReviewGuide
+from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.git_client.exceptions import (
     DecodingFileError,
     InvalidGitAuthError,
     PublishGuideError,
@@ -20,8 +20,8 @@ from lgtm.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestMetadataError,
 )
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
+from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
 logger = logging.getLogger("lgtm.git")
 

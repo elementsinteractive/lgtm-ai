@@ -99,7 +99,7 @@ def clean_env_secrets() -> Iterator[None]:
 
 @pytest.fixture(autouse=True)
 def mock_current_working_directory(tmp_path: Path) -> Iterator[None]:
-    with mock.patch("lgtm.config.handler.os.getcwd", return_value=str(tmp_path)):
+    with mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)):
         # We still mock the current directory because this is a python project,
         # and thus it has a pyproject.toml file that will be read during the test execution!
         yield
