@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytest
 from click.testing import CliRunner
-
 from lgtm_ai.__main__ import _set_logging_level, guide, review
 
 
