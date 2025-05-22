@@ -5,14 +5,12 @@ from unittest import mock
 
 import pytest
 from lgtm.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
-from lgtm.ai.schemas import PublishMetadata, Review, ReviewGuide, ReviewResponse
+from lgtm.ai.schemas import PublishMetadata, Review, ReviewResponse
 from lgtm.base.exceptions import NothingToReviewError
 from lgtm.base.schemas import PRUrl
 from lgtm.config.constants import DEFAULT_AI_MODEL
 from lgtm.config.handler import ResolvedConfig
-from lgtm.git_client.base import GitClient
-from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
-from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from lgtm.git_client.schemas import PRDiff
 from lgtm.review import CodeReviewer
 from lgtm.review.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
 from pydantic import ValidationError
@@ -20,37 +18,11 @@ from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, 
 from pydantic_ai.messages import ModelMessage, ModelRequest
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.test import TestModel
+from tests.review.utils import MOCK_DIFF, MockGitClient
 
 # This is a safety measure to make sure we don't accidentally make real requests to the LLM while testing,
 # see ALLOW_MODEL_REQUESTS for more details.
 models.ALLOW_MODEL_REQUESTS = False
-
-m_diff = [
-    DiffResult(
-        metadata=DiffFileMetadata(
-            new_file=True,
-            deleted_file=False,
-            renamed_file=False,
-            new_path="file1.txt",
-            old_path=None,
-        ),
-        modified_lines=[
-            ModifiedLine(line="contents-of-file1", line_number=2, relative_line_number=1, modification_type="removed")
-        ],
-    ),
-    DiffResult(
-        metadata=DiffFileMetadata(
-            new_file=True,
-            deleted_file=False,
-            renamed_file=False,
-            new_path="file2.txt",
-            old_path=None,
-        ),
-        modified_lines=[
-            ModifiedLine(line="contents-of-file2", line_number=20, relative_line_number=2, modification_type="removed")
-        ],
-    ),
-]
 
 
 def _get_ai_validation_error(*, is_validation_error: bool) -> UnexpectedModelBehavior:
@@ -61,28 +33,6 @@ def _get_ai_validation_error(*, is_validation_error: bool) -> UnexpectedModelBeh
     exc.__context__ = exc_lvl2
 
     return exc
-
-
-class MockGitClient(GitClient):
-    def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
-        return PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature")
-
-    def publish_review(self, pr_url: PRUrl, review: Review) -> None:
-        return None
-
-    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
-        return PRContext(
-            file_contents=[
-                PRContextFileContents(file_path="file1.txt", content="contents-of-file-1-context"),
-                PRContextFileContents(file_path="file2.txt", content="contents-of-file-2-context"),
-            ]
-        )
-
-    def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
-        return PRMetadata(title="foo", description="bar")
-
-    def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
-        return None
 
 
 def test_get_review_from_url_valid() -> None:
@@ -110,7 +60,7 @@ def test_get_review_from_url_valid() -> None:
 
     # We get an actual review object
     assert review == Review(
-        PRDiff(1, m_diff, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
+        PRDiff(1, MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
         ReviewResponse(summary="a", raw_score=1),
         metadata=PublishMetadata(model_name=DEFAULT_AI_MODEL),
     )
@@ -127,7 +77,7 @@ def test_get_review_from_url_valid() -> None:
             ```
         PR Diff:
             ```
-            {json.dumps([diff.model_dump() for diff in m_diff])}
+            {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
             ```
         Context:
             ```file1.txt
