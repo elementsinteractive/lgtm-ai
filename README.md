@@ -323,3 +323,28 @@ configuring pre-commit to execute some of them can be beneficial to reduce late 
 ```sh
 just pre-commit
 ```
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/scastlara"><img src="https://avatars.githubusercontent.com/u/7606872?v=4?s=50" width="50px;" alt="Sergio Castillo"/><br /><sub><b>Sergio Castillo</b></sub></a><br /><a href="https://github.com/elementsinteractive/sheriff/commits?author=scastlara" title="Code">💻</a> <a href="#design-scastlara" title="Design">🎨</a> <a href="#ideas-scastlara" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-scastlara" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jbozanowski"><img src="https://avatars.githubusercontent.com/u/114900?v=4?s=50" width="50px;" alt="Jakub Bożanowski"/><br /><sub><b>Jakub Bożanowski</b></sub></a><br /><a href="https://github.com/elementsinteractive/sheriff/commits?author=jbozanowski" title="Code">💻</a> <a href="#ideas-jbozanowski" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-jbozanowski" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sacha-c"><img src="https://avatars.githubusercontent.com/u/3247529?v=4?s=50" width="50px;" alt="Sacha Brouté"/><br /><sub><b>Sacha Brouté</b></sub></a><br /><a href="https://github.com/elementsinteractive/sheriff/commits?author=sacha-c" title="Code">💻</a> <a href="#ideas-sacha-c" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sdn4z"><img src="https://avatars.githubusercontent.com/u/13658011?v=4?s=50" width="50px;" alt="Daniel"/><br /><sub><b>Daniel</b></sub></a><br /><a href="#ideas-sdn4z" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
