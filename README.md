@@ -44,7 +44,7 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
              --publish
 ```
 
-This will generate a review like this one:
+This will generate a **review** like this one:
 
 <img src="./assets/review.png" alt="lgtm-review" height="250"/>
 <br/>
@@ -60,7 +60,7 @@ This will generate a review like this one:
              --publish
 ```
 
-This will generate a **reviewer guide*** like this one:
+This will generate a **reviewer guide** like this one:
 
 <img src="./assets/reviewer-guide.png" alt="lgtm-review-guide" height="250"/>
 
