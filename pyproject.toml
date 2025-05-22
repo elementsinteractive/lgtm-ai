@@ -1,18 +1,43 @@
-[tool.poetry]
+[project]
 name = "lgtm-ai"
 version = "0.36.2"
 description = "Your AI-powered code review companion"
-authors = ["Sergio Castillo Lara <sergio.lara@elementsinteractive.es>"]
+authors = [ 
+    {name = "Sergio Castillo Lara", email = "s.cast.lara@gmail.com"},
+    {name = "Jakub Bożanowski", email= "jakub@bozanowski.eu"}
+]
+requires-python = ">=3.13,<4"
+readme = "README.md"
+keywords = [
+    "AI",
+    "code-review",
+    "linting",
+    "static-analysis",
+    "machine-learning",
+    "developer-tools",
+    "automation"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.12,<4"
-click = "^8.1.7"
-pydantic-ai = ">=0.1.12"
-pydantic = "^2.10.3"
-python-gitlab = "^5.1.0"
-rich = "^13.9.4"
-h11 = ">=0.15.0"
-pygithub = "^2.6.1"
+dependencies = [
+    "click>=8.1.7,<9.0.0",
+    "pydantic-ai>=0.1.12",
+    "pydantic>=2.10.3,<3.0.0",
+    "python-gitlab>=5.1.0,<6.0.0",
+    "rich>=13.9.4,<14.0.0",
+    "pygithub>=2.6.1,<3.0.0"
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -25,12 +50,12 @@ mkdocs-material = "*"
 codespell = "*"
 pre-commit = "*"
 
+[project.scripts]
+lgtm = "lgtm_ai.__main__:entry_point"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-lgtm = "lgtm_ai.__main__:entry_point"
 
 [tool.pytest.ini_options]
 addopts = """
