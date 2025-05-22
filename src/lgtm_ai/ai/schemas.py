@@ -2,7 +2,7 @@ import datetime
 import zoneinfo
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Annotated, Final, Literal, TypeAlias, get_args
+from typing import Annotated, Final, Literal, get_args
 from uuid import uuid4
 
 from lgtm_ai.git_client.schemas import PRDiff
@@ -21,7 +21,7 @@ ReviewRawScore = (
         "1", "2", "3", "4", "5"
     ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
 )
-DeepSeekModel: TypeAlias = Literal[
+type DeepSeekModel = Literal[
     "deepseek-chat",
     "deepseek-reasoner",
 ]

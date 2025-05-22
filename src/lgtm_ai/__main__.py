@@ -6,8 +6,6 @@ from typing import get_args
 
 import click
 import rich
-from rich.logging import RichHandler
-
 from lgtm_ai.ai.agent import (
     get_ai_model,
     get_guide_agent_with_settings,
@@ -23,6 +21,7 @@ from lgtm_ai.git_client.utils import get_git_client
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.guide import ReviewGuideGenerator
 from lgtm_ai.validators import parse_pr_url
+from rich.logging import RichHandler
 
 __version__ = version("lgtm-ai")
 

@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
