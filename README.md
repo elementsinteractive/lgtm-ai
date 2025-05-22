@@ -8,8 +8,7 @@
 
 ---
 
-lgtm is your AI code review companion. It allows teams to perform reviews over pull requests (PRs) automatically without human intervention, using any of the supported AI models. It also can generate reviewer guides, to help human reviewers do their job faster!
-
+lgtm-ai is your AI-powered code review companion. It automates code reviews using your favorite LLMs and helps human reviewers with detailed, context-aware reviewer guides. Supports GitHub, GitLab, and major models including GPT-4, Claude, Gemini, and more.
 
 **Table of Contents**
 - [Quick Usage](#quick-usage)
@@ -39,7 +38,8 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
 
 ```sh
  lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
-             --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN \
+             --ai-api-key $OPENAI_API_KEY \
+             --git-api-key $GITLAB_TOKEN \
              --model gpt-4.1 \
              --publish
 ```
@@ -55,7 +55,8 @@ This will generate a **review** like this one:
 
 ```sh
  lgtm guide --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
-             --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN \
+             --ai-api-key $OPENAI_API_KEY \
+             --git-api-key $GITLAB_TOKEN \
              --model gpt-4.1 \
              --publish
 ```
@@ -87,7 +88,7 @@ This is the full list of supported models:
 
 #### OpenAI
 
-Check out the OpenAI platform page to see [all available models provided by OpenAI](https://platform.openai.com/docs/overview). If you need to use one that is not supported by lgtm, consider [opening an issue](https://makerstreet.atlassian.net/jira/software/c/projects/WBSOAI/boards/818).
+Check out the OpenAI platform page to see [all available models provided by OpenAI](https://platform.openai.com/docs/overview).
 
 To use OpenAI LLMs, you need to provide lgtm with an API Key, which can be generated in the [OpenAI platform page for your project, or your user](https://platform.openai.com/api-keys).
 
