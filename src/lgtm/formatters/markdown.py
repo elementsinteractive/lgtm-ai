@@ -1,12 +1,12 @@
 import textwrap
 
-from lgtm.ai.schemas import Review, ReviewComment, ReviewScore
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewGuide, ReviewScore
+from lgtm.formatters.base import Formatter
 from lgtm.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
 
 
-class MarkDownFormatter(ReviewFormatter[str]):
-    def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
+class MarkDownFormatter(Formatter[str]):
+    def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
         header = textwrap.dedent(f"""
         ## 🦉 lgtm Review
 
@@ -17,31 +17,20 @@ class MarkDownFormatter(ReviewFormatter[str]):
         """)
         summary = header + review.review_response.summary
         if comments:
-            summary += f"\n\n{self.format_comments_section(comments)}"
+            summary += f"\n\n{self.format_review_comments_section(comments)}"
 
-        summary += textwrap.dedent(f"""
-
-        <details><summary>More information about this review</summary>
-
-        - **Review id**: `{review.metadata.review_uuid}`
-        - **Model**: `{review.metadata.model_name}`
-        - **Reviewed at**: `{review.metadata.reviewed_at}`
-
-        > See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.
-
-        </details>
-        """)
+        summary += self._format_metadata(review.metadata)
         return summary
 
-    def format_comments_section(self, comments: list[ReviewComment]) -> str:
+    def format_review_comments_section(self, comments: list[ReviewComment]) -> str:
         if not comments:
             return ""
         lines = ["**Specific Comments:**"]
         for comment in comments:
-            lines.append(f"- {self.format_comment(comment, with_footer=False)}")
+            lines.append(f"- {self.format_review_comment(comment, with_footer=False)}")
         return "\n\n".join(lines)
 
-    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
+    def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
         header_section = "\n\n".join(
             [
                 f"#### 🦉 {CATEGORY_MAP[comment.category]} {comment.category}",
@@ -69,8 +58,60 @@ class MarkDownFormatter(ReviewFormatter[str]):
 
         return f"{header_section}\n\n{comment_section}\n\n{footer_section}"
 
+    def format_guide(self, guide: ReviewGuide) -> str:
+        header = textwrap.dedent("""
+        ## 🦉 lgtm Reviewer Guide
+
+        """)
+
+        summary = guide.guide_response.summary
+        # Format key changes as a markdown table
+        key_changes = ["| File Name | Description |", "| ---- | ---- |"] + [
+            f"| {change.file_name} | {change.description} |" for change in guide.guide_response.key_changes
+        ]
+
+        # Format checklist items as a checklist
+        checklist = [f"- [ ] {item.description}" for item in guide.guide_response.checklist]
+
+        # Format references as a list
+        if guide.guide_response.references:
+            references = [f"- [{item.title}]({item.url})" for item in guide.guide_response.references]
+        else:
+            references = []
+
+        # Combine all sections
+
+        summary = (
+            header
+            + "### 🔍 Summary\n\n"
+            + summary
+            + "\n\n### 🔑 Key Changes\n\n"
+            + "\n".join(key_changes)
+            + "\n\n### ✅ Reviewer Checklist\n\n"
+            + "\n".join(checklist)
+        )
+        if references:
+            summary += "\n\n### 📚 References\n\n" + "\n".join(references)
+
+        summary += self._format_metadata(guide.metadata)
+        return summary
+
     def _format_score(self, score: ReviewScore) -> str:
         return f"{score} {SCORE_MAP[score]}"
 
     def _format_snippet(self, comment: ReviewComment) -> str:
         return f"\n\n```{comment.programming_language.lower()}\n{comment.quote_snippet}\n```\n\n"
+
+    def _format_metadata(self, metadata: PublishMetadata) -> str:
+        return textwrap.dedent(f"""
+
+        <details><summary>More information</summary>
+
+        - **Id**: `{metadata.uuid}`
+        - **Model**: `{metadata.model_name}`
+        - **Created at**: `{metadata.created_at}`
+
+        > See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.
+
+        </details>
+        """)

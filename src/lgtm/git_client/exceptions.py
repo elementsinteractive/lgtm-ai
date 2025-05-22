@@ -29,6 +29,13 @@ class PublishReviewError(LGTMException):
         super().__init__(self.message)
 
 
+class PublishGuideError(LGTMException):
+    message = "Failed to publish the review guide"
+
+    def __init__(self) -> None:
+        super().__init__(self.message)
+
+
 class InvalidGitAuthError(LGTMException):
     message = "Invalid Git service authentication token"
 

@@ -1,10 +1,11 @@
 import logging
 from typing import Any, TypeGuard, get_args
 
-from lgtm.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
+from lgtm.ai.prompts import GUIDE_SYSTEM_PROMPT, REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 from lgtm.ai.schemas import (
     AgentSettings,
     DeepSeekModel,
+    GuideResponse,
     ReviewerDeps,
     ReviewResponse,
     SummarizingDeps,
@@ -89,6 +90,18 @@ def get_summarizing_agent_with_settings(
         **extra_settings,
     )
     agent.system_prompt(get_summarizing_categories)
+    return agent
+
+
+def get_guide_agent_with_settings(
+    agent_settings: AgentSettings | None = None,
+) -> Agent[None, GuideResponse]:
+    extra_settings = _process_extra_settings(agent_settings)
+    agent = Agent(
+        system_prompt=GUIDE_SYSTEM_PROMPT,
+        output_type=GuideResponse,
+        **extra_settings,
+    )
     return agent
 
 

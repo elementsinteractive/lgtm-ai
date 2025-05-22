@@ -2,13 +2,13 @@ import github
 import gitlab
 from lgtm.base.schemas import PRUrl
 from lgtm.config.handler import ResolvedConfig
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.formatters.base import Formatter
 from lgtm.git_client.base import GitClient
 from lgtm.git_client.github import GitHubClient
 from lgtm.git_client.gitlab import GitlabClient
 
 
-def get_git_client(pr_url: PRUrl, config: ResolvedConfig, formatter: ReviewFormatter[str]) -> GitClient:
+def get_git_client(pr_url: PRUrl, config: ResolvedConfig, formatter: Formatter[str]) -> GitClient:
     """Return a GitClient instance based on the provided PR URL."""
     git_client: GitClient
 

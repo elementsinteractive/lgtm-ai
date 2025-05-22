@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 from click.testing import CliRunner
-from lgtm.__main__ import _set_logging_level, review
+from lgtm.__main__ import _set_logging_level, guide, review
 
 
 @pytest.mark.parametrize(
@@ -53,6 +53,26 @@ def test_review_cli_github(*args: mock.MagicMock) -> None:
         [
             "--pr-url",
             "https://github.com/user/repo/pull/1",
+            "--ai-api-key",
+            "fake-token",
+            "--git-api-key",
+            "fake-token",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+
+@mock.patch("lgtm.__main__.ReviewGuideGenerator")
+@mock.patch("lgtm.__main__.TerminalFormatter")
+@mock.patch("lgtm.__main__.get_git_client")
+def test_guide_cli_gitlab(*args: mock.MagicMock) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        guide,
+        [
+            "--pr-url",
+            "https://gitlab.com/user/repo/-/merge_requests/1",
             "--ai-api-key",
             "fake-token",
             "--git-api-key",

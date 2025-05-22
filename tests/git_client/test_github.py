@@ -5,14 +5,21 @@ import click
 import github
 import pytest
 from github import GithubException as MockGithubException
-from lgtm.ai.schemas import Review, ReviewComment, ReviewMetadata, ReviewResponse
+from lgtm.ai.schemas import (
+    PublishMetadata,
+    Review,
+    ReviewComment,
+    ReviewGuide,
+    ReviewResponse,
+)
 from lgtm.base.schemas import PRUrl
-from lgtm.formatters.base import ReviewFormatter
+from lgtm.formatters.base import Formatter
 from lgtm.git_client.exceptions import PullRequestDiffError
 from lgtm.git_client.github import GitHubClient
 from lgtm.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from lgtm.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from tests.conftest import CopyingMock
+from tests.git_client.fixtures import FAKE_GUIDE
 
 MockGithubUrl = PRUrl(
     full_url="https://github.com/foo/bar/pull/1",
@@ -63,15 +70,18 @@ def mock_github_client(repo: mock.Mock | None = None) -> GitHubClient:
     return client
 
 
-class MockFormatter(ReviewFormatter[str]):
-    def format_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
+class MockFormatter(Formatter[str]):
+    def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
         return f"summary section {review.review_response.summary}"
 
-    def format_comments_section(self, comments: list[ReviewComment]) -> str:
-        return "comments section" + "".join(self.format_comment(comment) for comment in comments)
+    def format_review_comments_section(self, comments: list[ReviewComment]) -> str:
+        return "comments section" + "".join(self.format_review_comment(comment) for comment in comments)
 
-    def format_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
+    def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
         return f"comment {comment.comment}"
+
+    def format_guide(self, guide: ReviewGuide) -> str:
+        return "guide section"
 
 
 def test_repo_not_found_error() -> None:
@@ -322,7 +332,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=ReviewMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever"),
     )
 
     client.publish_review(
@@ -339,6 +349,23 @@ def test_post_review_successful() -> None:
                 {"path": "foo", "position": 288, "body": "comment b"},
                 {"path": "bar", "position": 299, "body": "comment c"},
             ],
+            commit=mock.ANY,
+        )
+    ]
+
+
+def test_publish_guide_successful() -> None:
+    m_pr = mock_pr()
+    m_repo = mock_repo(m_pr)
+    client = mock_github_client(m_repo)
+
+    client.publish_guide(PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"), FAKE_GUIDE)
+
+    assert m_pr.create_review.call_args_list == [
+        mock.call(
+            body="guide section",
+            event="COMMENT",
+            comments=[],
             commit=mock.ANY,
         )
     ]
