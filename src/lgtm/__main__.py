@@ -1,4 +1,6 @@
+import functools
 import logging
+from collections.abc import Callable
 from importlib.metadata import version
 from typing import get_args
 
@@ -37,16 +39,39 @@ def entry_point() -> None:
     pass
 
 
+def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
+    """Wrap a click command and adds common options for lgtm commands."""
+
+    @click.option("--pr-url", required=True, help="The URL of the pull request to work on.", callback=parse_pr_url)
+    @click.option(
+        "--model",
+        type=click.Choice(SupportedAIModelsList),
+        help="The name of the model to use for the review or guide.",
+    )
+    @click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
+    @click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
+    @click.option("--config", type=click.STRING, help="Path to the configuration file.")
+    @click.option(
+        "--exclude",
+        multiple=True,
+        help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
+    )
+    @click.option("--publish", is_flag=True, help="Publish the review or guide to the git service.")
+    @click.option("--silent", is_flag=True, help="Do not print the review or guide to the console.")
+    @click.option(
+        "--ai-retries",
+        type=int,
+        help="How many times the AI agent can retry queries to the LLM (NOTE: can impact billing!).",
+    )
+    @click.option("--verbose", "-v", count=True, help="Set logging level.")
+    @functools.wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 @entry_point.command()
-@click.option("--pr-url", required=True, help="The URL of the pull request to review", callback=parse_pr_url)
-@click.option(
-    "--model",
-    type=click.Choice(SupportedAIModelsList),
-    help="The name of the model to use for the review",
-)
-@click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
-@click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
-@click.option("--config", type=click.STRING, help="Path to the configuration file")
 @click.option(
     "--technologies",
     multiple=True,
@@ -58,32 +83,20 @@ def entry_point() -> None:
     type=click.Choice(get_args(CommentCategory)),
     help="List of categories the reviewer should focus on. If not provided, the reviewer will focus on all categories.",
 )
-@click.option(
-    "--exclude",
-    multiple=True,
-    help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
-)
-@click.option("--publish", is_flag=True, help="Publish the review to the git service")
-@click.option("--silent", is_flag=True, help="Do not print the review to the console")
-@click.option(
-    "--ai-retries",
-    type=int,
-    help="How many times the AI agent can retry queries to the LLM (NOTE: can impact billing!)",
-)
-@click.option("--verbose", "-v", count=True, help="Set logging level")
+@_common_options
 def review(
     pr_url: PRUrl,
     model: SupportedAIModels | None,
     git_api_key: str | None,
     ai_api_key: str | None,
     config: str | None,
-    technologies: tuple[str, ...],
-    categories: tuple[CommentCategory, ...],
     exclude: tuple[str, ...],
     publish: bool,
     silent: bool,
     ai_retries: int | None,
     verbose: int,
+    technologies: tuple[str, ...],
+    categories: tuple[CommentCategory, ...],
 ) -> None:
     """Review a Pull Request using AI."""
     _set_logging_level(logger, verbose)
@@ -130,28 +143,7 @@ def review(
 
 
 @entry_point.command()
-@click.option("--pr-url", required=True, help="The URL of the pull request to review", callback=parse_pr_url)
-@click.option(
-    "--model",
-    type=click.Choice(SupportedAIModelsList),
-    help="The name of the model to use for the review",
-)
-@click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
-@click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
-@click.option("--config", type=click.STRING, help="Path to the configuration file")
-@click.option(
-    "--exclude",
-    multiple=True,
-    help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
-)
-@click.option("--publish", is_flag=True, help="Publish the review to the git service")
-@click.option("--silent", is_flag=True, help="Do not print the review to the console")
-@click.option(
-    "--ai-retries",
-    type=int,
-    help="How many times the AI agent can retry queries to the LLM (NOTE: can impact billing!)",
-)
-@click.option("--verbose", "-v", count=True, help="Set logging level")
+@_common_options
 def guide(
     pr_url: PRUrl,
     model: SupportedAIModels | None,
