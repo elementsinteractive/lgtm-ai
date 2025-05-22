@@ -13,6 +13,8 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
 
 **Table of Contents**
 - [Quick Usage](#quick-usage)
+  - [Review](#review)
+  - [Reviewer Guide](#reviewer-guide)
 - [How it works](#how-it-works)
   - [Code Repository Service Support](#code-repository-service-support)
   - [Supported AI models](#supported-ai-models)
@@ -20,7 +22,7 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
     - [Google Gemini](#google-gemini)
     - [Anthropic's Claude](#anthropics-claude)
     - [Mistral AI](#mistral-ai)
-- [DeepSeek](#deepseek)
+    - [DeepSeek](#deepseek)
   - [CI/CD Integration](#cicd-integration)
   - [Configuration](#configuration)
     - [Configuration file](#configuration-file)
@@ -28,9 +30,12 @@ lgtm is your AI code review companion. It allows teams to perform reviews over p
 - [Running the project](#running-the-project)
 - [Managing requirements](#managing-requirements)
 - [Contributing](#contributing)
+- [Contributors ✨](#contributors-)
 
 
 ## Quick Usage
+
+### Review
 
 ```sh
  lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
@@ -44,6 +49,20 @@ This will generate a review like this one:
 <img src="./assets/review.png" alt="lgtm-review" height="250"/>
 <br/>
 <img src="./assets/review-comment.png" alt="lgtm-review-comment" height="250"/>
+
+
+### Reviewer Guide
+
+```sh
+ lgtm guide --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
+             --ai-api-key $OPENAI_API_KEY --git-api-key $GITLAB_TOKEN \
+             --model gpt-4.1 \
+             --publish
+```
+
+This will generate a **reviewer guide*** like this one:
+
+<img src="./assets/reviewer-guide.png" alt="lgtm-review-guide" height="250"/>
 
 ## How it works
 
@@ -162,7 +181,7 @@ These are the main supported models, though the CLI may support additional ones 
 
 </details>
 
-## DeepSeek
+#### DeepSeek
 
 Check out the [DeepSeek documentation](https://api-docs.deepseek.com/quick_start/pricing) to see all models provided by DeepSeek.
 
