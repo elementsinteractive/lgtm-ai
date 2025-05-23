@@ -48,7 +48,7 @@ class TestMarkdownFormatter:
             "- **Model**: `whatever`",
             "- **Created at**: `2025-05-15T09:43:01.654374+00:00`",
             "",
-            "> See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.",
+            "> See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.",
             "",
             "</details>",
             "",
@@ -205,6 +205,6 @@ class TestMarkdownFormatter:
             "- [title](https://example.com)",
             "<details><summary>More information</summary>",
             "- **Id**: `fb64cb958fcf49219545912156e0a4a0`\n- **Model**: `whatever`\n- **Created at**: `2025-05-15T09:43:01.654374+00:00`",
-            "> See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.",
+            "> See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.",
             "</details>\n",
         ]

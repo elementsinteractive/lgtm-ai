@@ -111,7 +111,7 @@ class MarkDownFormatter(Formatter[str]):
         - **Model**: `{metadata.model_name}`
         - **Created at**: `{metadata.created_at}`
 
-        > See the [📚 lgtm documentation](https://namespace.gitlab.io/elements/tools/lgtm) for more information about lgtm.
+        > See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.
 
         </details>
         """)
