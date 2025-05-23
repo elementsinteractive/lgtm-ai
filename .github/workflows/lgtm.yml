@@ -1,0 +1,20 @@
+name: Run on PR Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  run-on-comment:
+    if: |
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/lgtm review')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/merge
+
+      - name: Run logic
+        run: echo "Running manually triggered workflow on PR #${{ github.event.issue.number }}"
