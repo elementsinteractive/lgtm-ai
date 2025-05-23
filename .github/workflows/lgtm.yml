@@ -5,7 +5,7 @@ on:
     types: [created]
 
 jobs:
-  run-on-comment:
+  lgtm-review:
     if: |
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/lgtm review')
@@ -16,12 +16,42 @@ jobs:
         with:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install just
+        run: |
+          sudo apt update
+          sudo snap install --edge --classic just
+
+      - name: Set up Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+
+      - name: Cache Poetry virtualenv and dependencies
+        id: cache-poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.virtualenvs
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: poetry install
+
       - name: Run LGTM Review
         run: |
-          docker run --rm elementsinteractive/lgtm-ai \
-          lgtm review --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
-                      --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
-                      --ai-api-key "${{ secrets.AI_API_TOKEN }}" \ 
-                      --model "gemini-2.5-pro-preview-05-06" \
-                      --publish
-                      -vv
+          poetry run lgtm \
+                  review \
+                  --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
+                  --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
+                  --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
+                  --model "gemini-2.5-pro-preview-05-06" \
+                  --publish \
+                  -vv
