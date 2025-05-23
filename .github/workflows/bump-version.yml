@@ -1,0 +1,30 @@
+name: Bump version
+
+on:
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  bump_version:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+    runs-on: ubuntu-latest
+    name: "Bump version and create changelog with commitizen"
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.ELEMENTSINTERACTIVE_BOT_APP_ID }}
+          private-key: ${{ secrets.ELEMENTSINTERACTIVE_BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ github.head_ref }}
+          # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
+          persist-credentials: false
+      - id: cz
+        name: Create bump and changelog
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ steps.app-token.outputs.token }}
+      - name: Print Version
+        run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
