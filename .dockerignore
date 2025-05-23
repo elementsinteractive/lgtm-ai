@@ -34,6 +34,8 @@ tests/
 
 # Documentation and markdown (if not needed)
 *.md
+# We need the README.md for the image description
+!README.md
 
 # Poetry files you don't need in container (optional)
 poetry.lock  # If you're using only pyproject.toml
