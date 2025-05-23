@@ -135,15 +135,15 @@ Your output must include the following sections:
 
     2. Key Changes by File
     For each significant file or logical group of files, describe:
-    - What changed
-    - What the reviewer should pay attention to
+    - Most important changes for each item. Highlight new features, bug fixes, or refactorings.
     Be very concise, and use a single line for each file. Avoid excessive detail or jargon. The goal is to help the reviewer quickly understand the key changes without overwhelming them with information.
+    Sort them logically from a top-down perspective, so that the changes can be read like a story.
 
     3. Reviewer Checklist
     Generate a list of tailored review items. The checklist should focus on review priorities specific to this PR (e.g., "Is error handling sufficient in the new API?"). Avoid generic or boilerplate suggestions.
 
     4. References (optional)
-    If relevant, include references to internal documentation, external specifications, or style guides that can help the reviewer better understand the context of the change.
+    If relevant, include references to external documentation of projects, libraries, or frameworks used in the PR. This can help the reviewer understand the context and make informed decisions.
     For instance, if the PR introduces new SQLALchemy queries using the ORM, you could link to the relevant section of the SQLAlchemy documentation.
     The urls MUST be valid and accessible.
 
