@@ -1,3 +1,16 @@
+## v0.1.2 (2025-05-23)
+
+### Fix
+
+- lgtm yml entrypoint
+
+### CI
+
+- restrict usage of lgtm reviews to maintainers
+- add docker command for lgtm to action
+- testing lgtm
+- add lgtm to lgtm
+
 ## v0.1.1 (2025-05-23)
 
 ### Feat
