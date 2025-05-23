@@ -240,7 +240,7 @@ lgtm-review:
     MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
 ```
 
-For GitHub, we plan to provide a GitHub action soon.
+For GitHub, we plan to provide a GitHub action soon. In the meantime, check out this repo's [lgtm workflow](./.github/workflows/lgtm.yml), with which you can trigger reviews in PRs by commenting `/lgtm review`.
 
 ### Configuration
 
