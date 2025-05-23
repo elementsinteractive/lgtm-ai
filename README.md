@@ -19,7 +19,7 @@ lgtm-ai is your AI-powered code review companion. It automates code reviews usin
   - [Reviewer Guide](#reviewer-guide)
 - [Installation](#installation)
 - [How it works](#how-it-works)
-  - [Code Repository Service Support](#code-repository-service-support)
+  - [Supported Code Repository Services](#supported-code-repository-services)
   - [Supported AI models](#supported-ai-models)
     - [OpenAI](#openai)
     - [Google Gemini](#google-gemini)
@@ -87,7 +87,7 @@ lgtm reads the given pull request and feeds it to several AI agents to generate 
 
 If instructed (with the option `--publish`), lgtm will publish the review or guide to the pull request page as comments.
 
-### Code Repository Service Support
+### Supported Code Repository Services
 
 lgtm aims to work with as many services as possible, and that includes remote repository providers. At the moment, lgtm supports:
 
