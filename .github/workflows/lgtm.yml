@@ -17,4 +17,6 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
       - name: Run logic
-        run: echo "Running manually triggered workflow on PR #${{ github.event.issue.number }}"
+        run: |
+          echo "Running manually triggered workflow on PR #${{ github.event.issue.number }}"
+          echo "Pull Request URL: https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}"
