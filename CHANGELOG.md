@@ -1,3 +1,19 @@
+## v0.1.3 (2025-05-23)
+
+### Fix
+
+- lgtm link after moving to github
+- yml was incorrect
+
+### Docs
+
+- mention lgtm workflow in README
+
+### Technical
+
+- fix gh action name
+- add more CODEOWNERS to allow more reviewers
+
 ## v0.1.2 (2025-05-23)
 
 ### Fix
