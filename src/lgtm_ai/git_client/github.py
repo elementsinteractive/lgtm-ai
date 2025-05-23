@@ -33,13 +33,6 @@ class GitHubClient(GitClient):
 
     def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
         """Return a PRDiff object containing an identifier to the diff and a stringified representation of the diff from the latest version of the given pull request URL."""
-        try:
-            _ = self.client.get_user().login
-            logger.info("Authenticated with GitHub")
-        except github.GithubException as err:
-            logger.error("Invalid GitHub authentication token")
-            raise InvalidGitAuthError from err
-
         logger.info("Fetching diff from GitHub")
 
         try:
