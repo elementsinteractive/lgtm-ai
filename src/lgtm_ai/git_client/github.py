@@ -14,7 +14,6 @@ from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.exceptions import (
     DecodingFileError,
-    InvalidGitAuthError,
     PublishGuideError,
     PublishReviewError,
     PullRequestDiffError,

@@ -11,47 +11,43 @@ jobs:
       startsWith(github.event.comment.body, '/lgtm review')
     runs-on: ubuntu-latest
     steps:
+      - name: Check if commenter has write access
+        id: check-permission
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USER=${{ github.event.comment.user.login }}
+          REPO=${{ github.repository }}
+          PERMISSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/$REPO/collaborators/$USER/permission \
+            | jq -r '.permission')
+
+          echo "User $USER has permission: $PERMISSION"
+
+          if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" || "$PERMISSION" == "write" ]]; then
+            echo "HAS_PERMISSION=true" >> $GITHUB_ENV
+          else
+            echo "HAS_PERMISSION=false" >> $GITHUB_ENV
+          fi
+
+      - name: Fail if unauthorized
+        if: env.HAS_PERMISSION == 'false'
+        run: |
+          echo "User ${{ github.event.comment.user.login }} is not authorized to trigger this workflow."
+          exit 1
+
       - name: Checkout PR code
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install just
-        run: |
-          sudo apt update
-          sudo snap install --edge --classic just
-
-      - name: Set up Poetry
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install poetry
-
-      - name: Cache Poetry virtualenv and dependencies
-        id: cache-poetry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.virtualenvs
-          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            poetry-${{ runner.os }}-${{ matrix.python-version }}-
-
-      - name: Install dependencies
-        run: poetry install
-
       - name: Run LGTM Review
         run: |
-          poetry run lgtm \
-                  review \
-                  --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
-                  --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
-                  --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
-                  --model "gemini-2.5-pro-preview-05-06" \
-                  --publish \
-                  -vv
+          docker run --rm elementsinteractive/lgtm-ai \
+          lgtm review \
+          --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
+          --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
+          --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
+          --model "gemini-2.5-pro-preview-05-06" \
+          --publish \
+          -vv
