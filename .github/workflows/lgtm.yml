@@ -1,4 +1,4 @@
-name: Run on PR Comment
+name: LGTM Review
 
 on:
   issue_comment:
