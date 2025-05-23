@@ -5,6 +5,9 @@
 # lgtm-ai
 
 ![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=yellow)
+![Build Status](https://github.com/elementsinteractive/lgtm-ai/actions/workflows/test.yml/badge.svg)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/github/license/elementsinteractive/lgtm-ai)](LICENSE)
 
 ---
 
