@@ -225,18 +225,18 @@ For GitLab, you can use this .gitlab-ci.yml step as inspiration:
 
 ```yaml
 lgtm-review:
-image:
-  name: docker.io/elementsinteractive/lgtm-ai
-  entrypoint: [""]
-stage: ai-review
-needs: []
-rules:
- - if: $CI_MERGE_REQUEST_ID
-when: manual
-script:
-  - lgtm review --pr-url ${MR_URL} --git-api-key ${LGTM_GIT_API_KEY} --ai-api-key ${LGTM_AI_API_KEY} -v
-variables:
-  MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
+  image:
+    name: docker.io/elementsinteractive/lgtm-ai
+    entrypoint: [""]
+  stage: ai-review
+  needs: []
+  rules:
+   - if: $CI_MERGE_REQUEST_ID
+  when: manual
+  script:
+    - lgtm review --pr-url ${MR_URL} --git-api-key ${LGTM_GIT_API_KEY} --ai-api-key ${LGTM_AI_API_KEY} -v
+  variables:
+    MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
 ```
 
 For GitHub, we plan to provide a GitHub action soon.
