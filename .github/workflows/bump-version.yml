@@ -5,7 +5,7 @@ on:
 
 jobs:
   bump_version:
-    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+    if: "!startsWith(github.event.head_commit.message, 'bump:') && github.ref == 'refs/heads/main'"
     runs-on: ubuntu-latest
     name: "Bump version and create changelog with commitizen"
     steps:
