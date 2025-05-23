@@ -14,6 +14,7 @@ lgtm-ai is your AI-powered code review companion. It automates code reviews usin
 - [Quick Usage](#quick-usage)
   - [Review](#review)
   - [Reviewer Guide](#reviewer-guide)
+- [Installation](#installation)
 - [How it works](#how-it-works)
   - [Code Repository Service Support](#code-repository-service-support)
   - [Supported AI models](#supported-ai-models)
@@ -25,10 +26,10 @@ lgtm-ai is your AI-powered code review companion. It automates code reviews usin
   - [CI/CD Integration](#cicd-integration)
   - [Configuration](#configuration)
     - [Configuration file](#configuration-file)
-- [Installation](#installation)
-- [Running the project](#running-the-project)
-- [Managing requirements](#managing-requirements)
 - [Contributing](#contributing)
+  - [Running the project](#running-the-project)
+  - [Managing requirements](#managing-requirements)
+  - [Commit messages](#commit-messages)
 - [Contributors ✨](#contributors-)
 
 
@@ -65,11 +66,23 @@ This will generate a **reviewer guide** like this one:
 
 <img src="./assets/reviewer-guide.png" alt="lgtm-review-guide" height="250"/>
 
+## Installation
+
+```sh
+pip install lgtm-ai
+```
+
+Or you can use the official Docker image:
+
+```sh
+docker pull elementsinteractive/lgtm-ai
+```
+
 ## How it works
 
-lgtm reads the given pull request and feeds it to several AI agents to generate a code review. The philosophy of lgtm is to keep the models out of the picture and totally configurable, so that you can choose which model to use based on pricing, security, data privacy, or whatever is important to you.
+lgtm reads the given pull request and feeds it to several AI agents to generate a code review or a reviewer guide. The philosophy of lgtm is to keep the models out of the picture and totally configurable, so that you can choose which model to use based on pricing, security, data privacy, or whatever is important to you.
 
-If instructed (with the option `--publish`), lgtm will publish the review to the pull request page as comments. The review will also be displayed in the terminal.
+If instructed (with the option `--publish`), lgtm will publish the review or guide to the pull request page as comments.
 
 ### Code Repository Service Support
 
@@ -241,6 +254,7 @@ lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.t
 - **publish**: If `true`, it will post the review as comments on the PR page.
 - **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
 - **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`).
+- **ai_retries**: How many times to retry calls to the LLM when they do not succeed. By default, this is set to 1 (no retries at all).
 
 **Example `lgtm.toml`:**
 
@@ -261,13 +275,9 @@ When it comes to preference for selecting options, lgtm follows this preference 
   `CLI options` > `lgtm.toml` > `pyproject.toml`
 
 
-## Installation
+## Contributing
 
-```sh
-pip install lgtm-ai
-```
-
-## Running the project
+### Running the project
 
 This project uses [`just`](https://github.com/casey/just) recipes to do all the basic operations (testing the package, formatting the code, etc.).
 
@@ -311,7 +321,7 @@ just t tests/test_dummy.py
 just t -k test_dummy -vv
 ```
 
-## Managing requirements
+### Managing requirements
 
 `poetry` is the tool we use for managing requirements in this project. The generated virtual environment is kept within the directory of the project (in a directory named `.venv`), thanks to the option `POETRY_VIRTUALENVS_IN_PROJECT=1`. Refer to the [poetry documentation](https://python-poetry.org/docs/cli/) to see the list of available commands.
 
@@ -337,11 +347,12 @@ As a short summary:
 
         poetry lock --check
 
-## Contributing
+### Commit messages
+
 In this project we enforce [conventional commits](https://www.conventionalcommits.org) guidelines for commit messages. The usage of [commitizen](https://commitizen-tools.github.io/commitizen/) is recommended, but not required. Story numbers (JIRA, etc.) must go in the scope section of the commit message. Example message:
 
 ```
-feat(JIRA-XXX): add new feature x
+feat(#<issue-number>): add new feature x
 ```
 
 Merge requests must be approved before they can be merged to the `main` branch, and all the steps in the `ci` pipeline must pass.
@@ -352,6 +363,8 @@ configuring pre-commit to execute some of them can be beneficial to reduce late 
 ```sh
 just pre-commit
 ```
+
+Feel free to create [GitHub Issues](https://github.com/elementsinteractive/lgtm-ai/issues) for any feature request, bug, or suggestion!
 
 ## Contributors ✨
 
