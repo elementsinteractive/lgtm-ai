@@ -232,7 +232,3 @@ default = false
 type = "input"
 name = "footer"
 message = "Footer. Information about Breaking Changes and reference issues that this commit closes: (press [enter] to skip)\n"
-
-# TODO: Find a way to include pyproject.toml without the version changes
-[tool.cruft]
-skip = ["pyproject.toml"]
