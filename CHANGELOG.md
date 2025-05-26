@@ -1,3 +1,9 @@
+## v0.1.4 (2025-05-26)
+
+### Docs
+
+- add explanation for categories and severities to README
+
 ## v0.1.3 (2025-05-23)
 
 ### Fix
