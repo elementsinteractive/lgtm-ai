@@ -1,0 +1,25 @@
+name: Dependencies Security
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**/poetry.lock"
+
+jobs:
+  osv-scanner:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/google/osv-scanner:v1.9.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OSV Scanner
+        run: /osv-scanner --skip-git --format table --config .osv-scanner.toml -r .
+  twyn:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/elementsinteractive/twyn:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Twyn against our dependencies
+        run: twyn run -vv

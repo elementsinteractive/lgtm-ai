@@ -122,6 +122,10 @@ strict = true          # strict type checking.
 warn_no_return = false # allow functions without explicit return.
 pretty = true          # show error messages in a readable format.
 
+[tool.twyn]
+allowlist = [
+    "fasta2a"
+]
 
 [tool.coverage.run]
 source = ["src"]

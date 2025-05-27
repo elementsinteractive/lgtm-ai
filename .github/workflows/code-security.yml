@@ -1,0 +1,16 @@
+name: Code Security
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Semgrep
+        run: |
+          semgrep scan --config auto
