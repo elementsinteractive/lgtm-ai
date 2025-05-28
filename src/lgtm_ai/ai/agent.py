@@ -1,6 +1,7 @@
 import logging
 from typing import Any, TypeGuard, get_args
 
+from lgtm_ai.ai.exceptions import MissingAIAPIKey, MissingModelUrl
 from lgtm_ai.ai.prompts import GUIDE_SYSTEM_PROMPT, REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 from lgtm_ai.ai.schemas import (
     AgentSettings,
@@ -10,9 +11,9 @@ from lgtm_ai.ai.schemas import (
     ReviewResponse,
     SummarizingDeps,
     SupportedAIModels,
+    SupportedAIModelsList,
     SupportedGeminiModel,
 )
-from lgtm_ai.base.exceptions import IncorrectAIModelError
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
@@ -29,7 +30,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 logger = logging.getLogger("lgtm.ai")
 
 
-def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa: C901
+def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: str | None = None) -> Model:  # noqa: C901
     def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[SupportedGeminiModel]:
         return model_name in get_args(SupportedGeminiModel)
 
@@ -45,6 +46,9 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa:
     def _is_deepseek_model(model_name: SupportedAIModels) -> TypeGuard[DeepSeekModel]:
         return model_name in get_args(DeepSeekModel)
 
+    if model_name in SupportedAIModelsList and not api_key:
+        raise MissingAIAPIKey(model_name=model_name)
+
     if _is_gemini_model(model_name):
         return GeminiModel(model_name, provider=GoogleGLAProvider(api_key=api_key))
     elif _is_openai_model(model_name):
@@ -54,14 +58,14 @@ def get_ai_model(model_name: SupportedAIModels, api_key: str) -> Model:  # noqa:
     elif _is_mistral_model(model_name):
         return MistralModel(model_name=model_name, provider=MistralProvider(api_key=api_key))
     elif _is_deepseek_model(model_name):
-        return OpenAIModel(
-            model_name=model_name,
-            provider=DeepSeekProvider(api_key=api_key),
-        )
+        return OpenAIModel(model_name=model_name, provider=DeepSeekProvider(api_key=api_key))
     else:
-        # TypeIs is not available in Python 3.12 so we cannot narrow the type and use `assert_never`
-        # Also, mypy does not really do it well for tuples anyway...
-        raise IncorrectAIModelError(model=model_name)
+        if not model_url:
+            raise MissingModelUrl(model_name=model_name)
+
+        # We only support OpenAI-compatible models with custom URLs for now.
+        logger.info("Using custom AI model: %s, available at: %s", model_name, model_url)
+        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
 
 
 def get_reviewer_agent_with_settings(

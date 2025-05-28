@@ -20,7 +20,11 @@ from lgtm_ai.formatters.terminal import TerminalFormatter
 from lgtm_ai.git_client.utils import get_git_client
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.guide import ReviewGuideGenerator
-from lgtm_ai.validators import parse_pr_url
+from lgtm_ai.validators import (
+    ModelChoice,
+    parse_pr_url,
+    validate_model_url,
+)
 from rich.logging import RichHandler
 
 __version__ = version("lgtm-ai")
@@ -45,8 +49,15 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     @click.option("--pr-url", required=True, help="The URL of the pull request to work on.", callback=parse_pr_url)
     @click.option(
         "--model",
-        type=click.Choice(SupportedAIModelsList),
+        type=ModelChoice(SupportedAIModelsList),
         help="The name of the model to use for the review or guide.",
+    )
+    @click.option(
+        "--model-url",
+        type=click.STRING,
+        help="The URL of the custom model to use for the review or guide. Not all models support this option!",
+        default=None,
+        callback=validate_model_url,
     )
     @click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
     @click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
@@ -87,6 +98,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 def review(
     pr_url: PRUrl,
     model: SupportedAIModels | None,
+    model_url: str | None,
     git_api_key: str | None,
     ai_api_key: str | None,
     config: str | None,
@@ -111,6 +123,7 @@ def review(
             git_api_key=git_api_key,
             ai_api_key=ai_api_key,
             model=model,
+            model_url=model_url,
             publish=publish,
             silent=silent,
             ai_retries=ai_retries,
@@ -122,7 +135,9 @@ def review(
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(agent_extra_settings),
         summarizing_agent=get_summarizing_agent_with_settings(agent_extra_settings),
-        model=get_ai_model(model_name=resolved_config.model, api_key=resolved_config.ai_api_key),
+        model=get_ai_model(
+            model_name=resolved_config.model, api_key=resolved_config.ai_api_key, model_url=resolved_config.model_url
+        ),
         git_client=git_client,
         config=resolved_config,
     )
@@ -147,6 +162,7 @@ def review(
 def guide(
     pr_url: PRUrl,
     model: SupportedAIModels | None,
+    model_url: str | None,
     git_api_key: str | None,
     ai_api_key: str | None,
     config: str | None,
@@ -177,7 +193,9 @@ def guide(
     git_client = get_git_client(pr_url=pr_url, config=resolved_config, formatter=MarkDownFormatter())
     review_guide = ReviewGuideGenerator(
         guide_agent=get_guide_agent_with_settings(agent_extra_settings),
-        model=get_ai_model(model_name=resolved_config.model, api_key=resolved_config.ai_api_key),
+        model=get_ai_model(
+            model_name=resolved_config.model, api_key=resolved_config.ai_api_key, model_url=resolved_config.model_url
+        ),
         git_client=git_client,
         config=resolved_config,
     )

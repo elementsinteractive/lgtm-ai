@@ -183,8 +183,7 @@ def test_incorrect_config_field_raises(toml_with_invalid_config_field: str) -> N
 
     error = exc.value
     assert "Invalid config file" in error.message
-    assert "'model': Input should be 'gpt-4.1'" in error.message
-    assert "'model': Input should be 'gemini-1.5-flash'" in error.message
+    assert "'categories': Input should be 'Correctness', 'Quality', 'Testing' or 'Security'" in error.message
     assert "'technologies': Input should be a valid tuple" in error.message
 
 

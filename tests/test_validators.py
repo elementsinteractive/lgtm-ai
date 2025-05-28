@@ -6,7 +6,7 @@ from unittest import mock
 import click
 import pytest
 from lgtm_ai.base.schemas import PRUrl
-from lgtm_ai.validators import parse_pr_url
+from lgtm_ai.validators import parse_pr_url, validate_model_url
 
 
 @pytest.mark.parametrize(
@@ -43,3 +43,19 @@ def test_parse_url_gitlab_valid() -> None:
         pr_number=1,
         source="gitlab",
     )
+
+
+@pytest.mark.parametrize(
+    ("url", "expectation"),
+    [
+        ("http://localhost:1234", does_not_raise()),
+        ("https://example.com:8080", does_not_raise()),
+        ("ftp://example.com", pytest.raises(click.BadParameter, match="http:// or https://")),
+        ("https://example.com", pytest.raises(click.BadParameter, match="must include a port")),
+        ("https://example.com:80", does_not_raise()),
+        ("https://example.com:288/path/to/model", does_not_raise()),
+    ],
+)
+def test_validate_model_url(url: str, expectation: AbstractContextManager[Any]) -> None:
+    with expectation:
+        validate_model_url(mock.Mock(), mock.Mock(), url)
