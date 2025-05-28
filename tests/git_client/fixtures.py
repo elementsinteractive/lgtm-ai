@@ -9,6 +9,7 @@ from lgtm_ai.ai.schemas import (
     ReviewGuide,
 )
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from tests.review.utils import MOCK_USAGE
 
 PARSED_GIT_DIFF = [
     DiffResult(
@@ -59,5 +60,5 @@ FAKE_GUIDE = ReviewGuide(
         checklist=[GuideChecklistItem(description="item 1")],
         references=[GuideReference(title="title", url="https://example.com")],
     ),
-    PublishMetadata(model_name="whatever"),
+    PublishMetadata(model_name="whatever", usages=[MOCK_USAGE]),
 )

@@ -3,6 +3,7 @@ import textwrap
 from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewGuide, ReviewScore
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
+from pydantic_ai.usage import Usage
 
 
 class MarkDownFormatter(Formatter[str]):
@@ -102,6 +103,29 @@ class MarkDownFormatter(Formatter[str]):
     def _format_snippet(self, comment: ReviewComment) -> str:
         return f"\n\n```{comment.programming_language.lower()}\n{comment.quote_snippet}\n```\n\n"
 
+    def _format_usages_summary(self, usages: list[Usage]) -> str:
+        formatted_usage_calls = []
+        for i, usage in enumerate(usages):
+            formatted_usage_calls += [self._format_usage_call_collapsible(usage, i)]
+
+        return f"""
+        <details><summary>Usage summary</summary>
+        {"\n".join(formatted_usage_calls)}
+        **Total tokens**: `{sum([usage.total_tokens or 0 for usage in usages])}`
+        </details>
+        """
+
+    def _format_usage_call_collapsible(self, usage: Usage, index: int) -> str:
+        return f"""
+        <details><summary>Call {index + 1}</summary>
+
+        - **Request count**: `{usage.requests}`
+        - **Request tokens**: `{usage.request_tokens}`
+        - **Response tokens**: `{usage.response_tokens}`
+        - **Total tokens**: `{usage.total_tokens}`
+        </details>
+        """
+
     def _format_metadata(self, metadata: PublishMetadata) -> str:
         return textwrap.dedent(f"""
 
@@ -110,6 +134,8 @@ class MarkDownFormatter(Formatter[str]):
         - **Id**: `{metadata.uuid}`
         - **Model**: `{metadata.model_name}`
         - **Created at**: `{metadata.created_at}`
+
+        {self._format_usages_summary(metadata.usages)}
 
         > See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.
 

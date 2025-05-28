@@ -19,6 +19,7 @@ from lgtm_ai.git_client.gitlab import GitlabClient
 from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE, PARSED_GIT_DIFF
+from tests.review.utils import MOCK_USAGE
 
 MockGitlabUrl = PRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
@@ -156,7 +157,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)
@@ -244,7 +245,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE]),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)

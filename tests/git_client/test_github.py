@@ -20,6 +20,7 @@ from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE
+from tests.review.utils import MOCK_USAGE
 
 MockGithubUrl = PRUrl(
     full_url="https://github.com/foo/bar/pull/1",
@@ -332,7 +333,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever"),
+        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
     )
 
     client.publish_review(
