@@ -21,7 +21,7 @@ ReviewRawScore = (
         "1", "2", "3", "4", "5"
     ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
 )
-type DeepSeekModel = Literal[
+DeepSeekModel = Literal[
     "deepseek-chat",
     "deepseek-reasoner",
 ]
