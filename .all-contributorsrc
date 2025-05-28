@@ -1,5 +1,5 @@
 {
-  "projectName": "sheriff",
+  "projectName": "lgtm-ai",
   "projectOwner": "elementsinteractive",
   "repoType": "github",
   "repoHost": "https://github.com",
@@ -50,6 +50,15 @@
       "profile": "https://github.com/sdn4z",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "Rooni",
+      "name": "Rooni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/916242?v=4",
+      "profile": "https://github.com/Rooni",
+      "contributions": [
+        "code"
       ]
     }
   ],
