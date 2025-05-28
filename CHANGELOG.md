@@ -1,3 +1,23 @@
+## v0.2.0 (2025-05-28)
+
+### Feat
+
+- **#16**: add token cost summary to ai reviews
+
+### Fix
+
+- update summary format and fix lint issue
+- cli error prevented users from selecting deepseek models
+
+### CI
+
+- add security steps to pipeline
+- remove unnecessary cli opts for lgtm workflow
+
+### Technical
+
+- add dependabot
+
 ## v0.1.4 (2025-05-26)
 
 ### Docs
