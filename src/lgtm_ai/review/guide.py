@@ -45,5 +45,5 @@ class ReviewGuideGenerator:
         return ReviewGuide(
             pr_diff=pr_diff,
             guide_response=raw_res.output,
-            metadata=PublishMetadata(model_name=self.config.model),
+            metadata=PublishMetadata(model_name=self.config.model, usages=[raw_res.usage()]),
         )

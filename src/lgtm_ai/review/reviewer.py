@@ -53,6 +53,10 @@ class CodeReviewer:
         logger.debug(
             "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
         )
+        initial_usage = raw_res.usage()
+        logger.info(
+            f"Initial review usage summary: {initial_usage.requests=} {initial_usage.request_tokens=} {initial_usage.response_tokens=} {initial_usage.total_tokens=}"
+        )
 
         logger.info("Running AI model to summarize the review")
         summary_prompt = prompt_generator.generate_summarizing_prompt(pr_diff=pr_diff, raw_review=raw_res.output)
@@ -66,4 +70,13 @@ class CodeReviewer:
         logger.debug(
             "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)
         )
-        return Review(pr_diff, final_res.output, metadata=PublishMetadata(model_name=self.config.model))
+        final_usage = final_res.usage()
+        logger.info(
+            f"Final review usage summary: {final_usage.requests=} {final_usage.request_tokens=} {final_usage.response_tokens=} {final_usage.total_tokens=}"
+        )
+
+        return Review(
+            pr_diff,
+            final_res.output,
+            metadata=PublishMetadata(model_name=self.config.model, usages=[initial_usage, final_usage]),
+        )

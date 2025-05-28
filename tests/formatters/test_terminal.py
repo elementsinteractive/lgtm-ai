@@ -10,7 +10,7 @@ from lgtm_ai.git_client.schemas import PRDiff
 def test_format_summary_section() -> None:
     review = Review(
         pr_diff=mock.Mock(spec=PRDiff),
-        metadata=mock.Mock(spec=PublishMetadata),
+        metadata=mock.MagicMock(spec=PublishMetadata),
         review_response=ReviewResponse(summary="Test summary", comments=[], raw_score=3),
     )
 

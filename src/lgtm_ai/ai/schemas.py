@@ -10,6 +10,7 @@ from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames
+from pydantic_ai.usage import Usage
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
@@ -132,6 +133,7 @@ class GuideResponse(BaseModel):
 @dataclass(frozen=True)
 class PublishMetadata:
     model_name: str
+    usages: list[Usage]
 
     @cached_property
     def created_at(self) -> str:
