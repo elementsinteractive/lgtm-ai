@@ -28,6 +28,7 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
     - [Anthropic's Claude](#anthropics-claude)
     - [Mistral AI](#mistral-ai)
     - [DeepSeek](#deepseek)
+    - [Local models](#local-models)
   - [CI/CD Integration](#cicd-integration)
   - [Configuration](#configuration)
     - [Configuration file](#configuration-file)
@@ -248,7 +249,7 @@ To get an API key for DeepSeek, create one at [DeepSeek Platform](https://platfo
 
 #### Local models
 
-You can run lgtm against a model available at a custom url (say, models running with [ollama](https://ollama.com) at http://localhost:11434/v1). These models need to be compatible with OpenAI. In that case, you can pass the option `--model-url` (and you can choose to skip the option `--ai-api-token`). Check out the [pydantic-ai documentation](https://ai.pydantic.dev/models/openai/#openai-responses-api) to see more information about how lgtm interacts with these models.
+You can run lgtm against a model available at a custom url (say, models running with [ollama](https://ollama.com) at http://localhost:11434/v1). These models need to be compatible with OpenAI. In that case, you need to pass the option `--model-url` (and you can choose to skip the option `--ai-api-token`). Check out the [pydantic-ai documentation](https://ai.pydantic.dev/models/openai/#openai-responses-api) to see more information about how lgtm interacts with these models.
 
 ```sh
 lgtm review \
