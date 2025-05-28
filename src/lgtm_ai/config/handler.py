@@ -26,6 +26,7 @@ class PartialConfig(BaseModel):
     """
 
     model: SupportedAIModels | None = None
+    model_url: str | None = None
     technologies: tuple[str, ...] | None = None
     categories: tuple[CommentCategory, ...] | None = None
     exclude: tuple[str, ...] | None = None
@@ -46,6 +47,9 @@ class ResolvedConfig(BaseModel):
 
     model: SupportedAIModels = DEFAULT_AI_MODEL
     """AI model to use for the review."""
+
+    model_url: str | None = None
+    """URL of the AI model to use for the review, if applicable."""
 
     technologies: tuple[str, ...] = ()
     """Technologies the reviewer is an expert in."""
@@ -116,6 +120,7 @@ class ConfigHandler:
         try:
             return PartialConfig(
                 model=config_data.get("model", None),
+                model_url=config_data.get("model_url", None),
                 technologies=config_data.get("technologies", None),
                 categories=config_data.get("categories", None),
                 exclude=config_data.get("exclude", None),
@@ -172,6 +177,7 @@ class ConfigHandler:
             technologies=self.cli_args.technologies or None,
             categories=self.cli_args.categories or None,
             model=self.cli_args.model or None,
+            model_url=self.cli_args.model_url or None,
             exclude=self.cli_args.exclude or None,
             ai_api_key=self.cli_args.ai_api_key or None,
             git_api_key=self.cli_args.git_api_key or None,
@@ -213,11 +219,14 @@ class ConfigHandler:
                     default=DEFAULT_AI_MODEL,
                 ),
             ),
+            model_url=from_cli.model_url or from_file.model_url,
             publish=from_cli.publish or from_file.publish,
             silent=from_cli.silent or from_file.silent,
             ai_retries=from_cli.ai_retries or from_file.ai_retries,
             git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
-            ai_api_key=self.resolver.resolve_string_field("ai_api_key", from_cli=from_cli, from_env=from_env),
+            ai_api_key=self.resolver.resolve_string_field(
+                "ai_api_key", from_cli=from_cli, from_env=from_env, required=False, default=""
+            ),
         )
         logger.debug("Resolved config: %s", resolved)
         return resolved

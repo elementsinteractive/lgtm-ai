@@ -53,7 +53,7 @@ def toml_with_invalid_config_field(tmp_path: Path) -> Iterator[str]:
     invalid_toml = tmp_path / "invalid.toml"
     data = """
     technologies = "foo"
-    model = "non-existing"
+    categories = ["bar"]
     """
     with create_tmp_file(invalid_toml, data) as tmp_file:
         yield tmp_file

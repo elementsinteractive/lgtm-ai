@@ -12,7 +12,7 @@
 
 ---
 
-lgtm-ai is your AI-powered code review companion. It automates code reviews using your favorite LLMs and helps human reviewers with detailed, context-aware reviewer guides. Supports GitHub, GitLab, and major models including GPT-4, Claude, Gemini, and more.
+lgtm-ai is your AI-powered code review companion. It generates code reviews using your favorite LLMs and helps human reviewers with detailed, context-aware reviewer guides. Supports GitHub, GitLab, and major AI models including GPT-4, Claude, Gemini, and more.
 
 **Table of Contents**
 - [Quick Usage](#quick-usage)
@@ -246,9 +246,21 @@ To get an API key for DeepSeek, create one at [DeepSeek Platform](https://platfo
 
 </details>
 
+#### Local models
+
+You can run lgtm against a model available at a custom url (say, models running with [ollama](https://ollama.com) at http://localhost:11434/v1). These models need to be compatible with OpenAI. In that case, you can pass the option `--model-url` (and you can choose to skip the option `--ai-api-token`). Check out the [pydantic-ai documentation](https://ai.pydantic.dev/models/openai/#openai-responses-api) to see more information about how lgtm interacts with these models.
+
+```sh
+lgtm review \
+  --pr-url https://github.com/group/repo/pull/1 \
+  --model llama3.2 \
+  --model-url http://localhost:11434/v1 \
+  ...
+```
+
 ### CI/CD Integration
 
-lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step. 
+lgtm is meant to be integrated into your CI/CD pipeline, so that PR authors can choose to request reviews by running the necessary pipeline step.
 
 For GitLab, you can use this .gitlab-ci.yml step as inspiration:
 
@@ -279,13 +291,14 @@ You can customize how lgtm works by passing cli arguments to it on invocation, o
 lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.toml` file in the current directory, or you can pass a specific file path with the CLI option `--config <path>`. These are the available options at the moment:
 
 - **technologies**: You can specify, as a list of free strings, which technologies lgtm specializes in. This can be helpful for directing the reviewer towards specific technologies. By default, lgtm won't assume any technology and will just review the PR considering itself an "expert" in it.
-- **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g.: if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas). 
+- **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g.: if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas).
 - **model**: Choose which AI model you want lgtm to use.
+- **model_url**: When not using one of the specific supported models from the providers mentioned above, you can pass a custom url where the model is deployed.
 - **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (`exclude = ["*.md", "package-lock.json"]`)
 - **silent**: Do not print the review in the terminal.
 - **publish**: If `true`, it will post the review as comments on the PR page.
 - **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
-- **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`).
+- **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`). This is required to not be empty if using a non-local model.
 - **ai_retries**: How many times to retry calls to the LLM when they do not succeed. By default, this is set to 1 (no retries at all).
 
 **Example `lgtm.toml`:**

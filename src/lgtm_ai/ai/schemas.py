@@ -21,7 +21,7 @@ ReviewRawScore = (
         "1", "2", "3", "4", "5"
     ]  # TODO(https://github.com/pydantic/pydantic-ai/issues/1691): Gemini returns strings and pydantic-ai errors out when using integers in response models
 )
-type DeepSeekModel = Literal[
+DeepSeekModel = Literal[
     "deepseek-chat",
     "deepseek-reasoner",
 ]
@@ -43,8 +43,16 @@ SupportedGeminiModel = Literal[
     "gemini-2.5-pro-preview-05-06",
 ]
 
+LocalAIModel = str
+"""Users may use any model name in their local AI server, so we just allow any string."""
+
 SupportedAIModels = (
-    ChatModel | SupportedGeminiModel | LatestAnthropicModelNames | LatestMistralModelNames | DeepSeekModel
+    ChatModel
+    | SupportedGeminiModel
+    | LatestAnthropicModelNames
+    | LatestMistralModelNames
+    | DeepSeekModel
+    | LocalAIModel
 )
 """Type of all supported AI models in lgtm."""
 
@@ -54,8 +62,8 @@ SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     + get_args(LatestAnthropicModelNames)
     + get_args(LatestMistralModelNames)
     + get_args(DeepSeekModel)
-)  # Keep in sync with SupportedAIModels
-"""Tuple of all supported AI models in lgtm."""
+)  # Keep in sync with SupportedAIModels except for LocalAIModel
+"""Tuple of all known supported AI models in lgtm."""
 
 
 SCORE_MAP: Final[dict[ReviewRawScore, ReviewScore]] = {

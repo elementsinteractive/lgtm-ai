@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from http import HTTPStatus
 from typing import Final, NoReturn
 
+import openai
 from lgtm_ai.base.exceptions import LGTMException
 from pydantic import ValidationError
 from pydantic_ai import AgentRunError, UnexpectedModelBehavior
@@ -65,7 +66,22 @@ class InvalidAIResponseError(BaseAIError[UnexpectedModelBehavior]):
         return _is_error_caused_by_validation_error(error.__context__)
 
 
-MAPPED_HTTP_ERRORS: Final[tuple[type[BaseAIError[ModelHTTPError]], ...]] = (UsageLimitsExceededError, ServerError)
+class ModelNotFoundError(BaseAIError[ModelHTTPError]):
+    def __init__(
+        self, message: str = "Cannot find provided AI model, are you sure the name is correct and that it is running?"
+    ) -> None:
+        super().__init__(message)
+
+    @classmethod
+    def match(cls, error: ModelHTTPError) -> bool:
+        return error.status_code == HTTPStatus.NOT_FOUND
+
+
+MAPPED_HTTP_ERRORS: Final[tuple[type[BaseAIError[ModelHTTPError]], ...]] = (
+    UsageLimitsExceededError,
+    ServerError,
+    ModelNotFoundError,
+)
 """HTTP model errors that we know how they look like and can be mapped to a specific error, useful for the user."""
 
 MAPPED_BEHAVIOR_ERRORS: Final[tuple[type[BaseAIError[UnexpectedModelBehavior]], ...]] = (InvalidAIResponseError,)
@@ -95,3 +111,5 @@ def handle_ai_exceptions() -> Iterator[None]:
         _raise_mapped_error(MAPPED_BEHAVIOR_ERRORS, err)
     except AgentRunError as err:
         raise UnknownAIError from err
+    except openai.APIConnectionError as err:
+        raise ServerError from err
