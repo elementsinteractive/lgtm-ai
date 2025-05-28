@@ -46,6 +46,10 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
     def _is_deepseek_model(model_name: SupportedAIModels) -> TypeGuard[DeepSeekModel]:
         return model_name in get_args(DeepSeekModel)
 
+    if model_url:
+        logger.info("Using model '%s' via custom OpenAI-compatible endpoint: %s", model_name, model_url)
+        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
+
     if model_name in SupportedAIModelsList and not api_key:
         raise MissingAIAPIKey(model_name=model_name)
 
@@ -60,12 +64,8 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
     elif _is_deepseek_model(model_name):
         return OpenAIModel(model_name=model_name, provider=DeepSeekProvider(api_key=api_key))
     else:
-        if not model_url:
-            raise MissingModelUrl(model_name=model_name)
-
-        # We only support OpenAI-compatible models with custom URLs for now.
-        logger.info("Using custom AI model: %s, available at: %s", model_name, model_url)
-        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
+        # Not known models but no custom URL was provided, so we raise an error
+        raise MissingModelUrl(model_name=model_name)
 
 
 def get_reviewer_agent_with_settings(

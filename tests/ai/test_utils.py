@@ -18,7 +18,9 @@ from pydantic_ai.models.openai import OpenAIModel
         # We allow custom models with a URL but no API key
         ("does-not-exist", "http://localhost:1234", "", OpenAIModel, does_not_raise()),
         # We don't allow known models without an API key
-        ("gpt-4.1", "http://localhost:1234", "", OpenAIModel, pytest.raises(MissingAIAPIKey)),
+        ("gpt-4.1", None, "", OpenAIModel, pytest.raises(MissingAIAPIKey)),
+        # If one provides a known model, but with a custom URL, we create an OpenAIModel no matter the model name
+        ("gemini-2.5-pro-preview-05-06", "http://i-cloned-gemini.com:123", "", OpenAIModel, does_not_raise()),
     ],
 )
 def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expected_type: Any, expectation: Any) -> None:
