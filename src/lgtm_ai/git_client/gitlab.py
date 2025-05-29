@@ -50,7 +50,7 @@ class GitlabClient(GitClient):
             raise PullRequestDiffError from err
 
         return PRDiff(
-            diff.id,
+            id=diff.id,
             diff=self._parse_gitlab_git_diff(diff.diffs),
             changed_files=[change["new_path"] for change in diff.diffs],
             target_branch=pr.target_branch,

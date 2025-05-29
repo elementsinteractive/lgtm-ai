@@ -296,6 +296,7 @@ lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.t
 - **model**: Choose which AI model you want lgtm to use.
 - **model_url**: When not using one of the specific supported models from the providers mentioned above, you can pass a custom url where the model is deployed.
 - **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (`exclude = ["*.md", "package-lock.json"]`)
+- **output_format**: Format of the terminal output of lgtm. Can be `pretty` (default), `json`, and `markdown`.
 - **silent**: Do not print the review in the terminal.
 - **publish**: If `true`, it will post the review as comments on the PR page.
 - **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).

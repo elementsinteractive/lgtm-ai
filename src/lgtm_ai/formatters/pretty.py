@@ -12,7 +12,7 @@ from rich.text import Text
 logger = logging.getLogger("lgtm")
 
 
-class TerminalFormatter(Formatter[Panel | Layout]):
+class PrettyFormatter(Formatter[Panel | Layout]):
     def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> Panel:
         if comments:
             logger.warning("Comments are not supported in the terminal formatter summary section")

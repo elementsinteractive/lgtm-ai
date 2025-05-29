@@ -113,8 +113,8 @@ def test_get_diff_from_url_successful(diffs_response: dict[str, object]) -> None
     client = mock_gitlab_client(m_project)
 
     assert client.get_diff_from_url(MockGitlabUrl) == PRDiff(
-        1,
-        PARSED_GIT_DIFF,
+        id=1,
+        diff=PARSED_GIT_DIFF,
         changed_files=["justfile", "pyproject.toml"],
         target_branch="main",
         source_branch="feature",
@@ -128,8 +128,8 @@ def test_post_review_successful() -> None:
     client = mock_gitlab_client(m_project)
 
     fake_review = Review(
-        PRDiff(1, [], changed_files=[], target_branch="main", source_branch="feature"),
-        ReviewResponse(
+        pr_diff=PRDiff(id=1, diff=[], changed_files=[], target_branch="main", source_branch="feature"),
+        review_response=ReviewResponse(
             summary="a",
             raw_score=5,
             comments=[
@@ -210,14 +210,14 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     client = mock_gitlab_client(m_project)
 
     fake_review = Review(
-        PRDiff(
-            1,
-            [],
+        pr_diff=PRDiff(
+            id=1,
+            diff=[],
             changed_files=[],
             target_branch="main",
             source_branch="feature",
         ),
-        ReviewResponse(
+        review_response=ReviewResponse(
             summary="a",
             raw_score=5,
             comments=[

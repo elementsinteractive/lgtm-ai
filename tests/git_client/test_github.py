@@ -304,8 +304,8 @@ def test_post_review_successful() -> None:
     client = mock_github_client(m_repo)
 
     fake_review = Review(
-        PRDiff(1, [], changed_files=[], target_branch="main", source_branch="feature"),
-        ReviewResponse(
+        pr_diff=PRDiff(id=1, diff=[], changed_files=[], target_branch="main", source_branch="feature"),
+        review_response=ReviewResponse(
             summary="a",
             raw_score=5,
             comments=[

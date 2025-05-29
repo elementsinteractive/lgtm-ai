@@ -5,8 +5,9 @@ from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from pydantic_ai.usage import Usage
 
-MOCK_USAGE = mock.MagicMock(requests=1, request_tokens=200, response_tokens=100, total_tokens=300)
+MOCK_USAGE = mock.MagicMock(requests=1, request_tokens=200, response_tokens=100, total_tokens=300, spec=Usage)
 
 MOCK_DIFF = [
     DiffResult(
@@ -38,7 +39,9 @@ MOCK_DIFF = [
 
 class MockGitClient(GitClient):
     def get_diff_from_url(self, pr_url: PRUrl) -> PRDiff:
-        return PRDiff(1, MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature")
+        return PRDiff(
+            id=1, diff=MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"
+        )
 
     def publish_review(self, pr_url: PRUrl, review: Review) -> None:
         return None

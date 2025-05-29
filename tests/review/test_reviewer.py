@@ -60,8 +60,10 @@ def test_get_review_from_url_valid() -> None:
 
     # We get an actual review object
     assert review == Review(
-        PRDiff(1, MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"),
-        ReviewResponse(summary="a", raw_score=1),
+        pr_diff=PRDiff(
+            id=1, diff=MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"
+        ),
+        review_response=ReviewResponse(summary="a", raw_score=1),
         metadata=PublishMetadata(model_name=DEFAULT_AI_MODEL, usages=review.metadata.usages),
     )
 

@@ -76,7 +76,7 @@ class CodeReviewer:
         )
 
         return Review(
-            pr_diff,
-            final_res.output,
+            pr_diff=pr_diff,
+            review_response=final_res.output,
             metadata=PublishMetadata(model_name=self.config.model, usages=[initial_usage, final_usage]),
         )
