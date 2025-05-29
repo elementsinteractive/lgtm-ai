@@ -1,3 +1,24 @@
+## v0.3.0 (2025-05-29)
+
+### Feat
+
+- **#18**: add json formatter and new `--output-format` option and config
+- **#19**: add initial support for local LLMs
+
+### Fix
+
+- **#32**: relative line number for GitHub was incorrect
+- pass model_url to guidegenerator
+- allow any name given a --model-url
+
+### Docs
+
+- add @Rooni as a contributor
+
+### Technical
+
+- add issue template
+
 ## v0.2.0 (2025-05-28)
 
 ### Feat
