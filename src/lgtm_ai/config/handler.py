@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
 from lgtm_ai.ai.schemas import CommentCategory, SupportedAIModels
+from lgtm_ai.base.schemas import OutputFormat
 from lgtm_ai.config.constants import DEFAULT_AI_MODEL
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
@@ -31,6 +32,7 @@ class PartialConfig(BaseModel):
     categories: tuple[CommentCategory, ...] | None = None
     exclude: tuple[str, ...] | None = None
     publish: bool = False
+    output_format: OutputFormat | None = None
     silent: bool = False
     ai_retries: int | None = None
 
@@ -62,6 +64,9 @@ class ResolvedConfig(BaseModel):
 
     publish: bool = False
     """Publish the review to the git service as comments."""
+
+    output_format: OutputFormat = OutputFormat.pretty
+    """Output format for the review, defaults to pretty."""
 
     silent: bool = False
     """Suppress terminal output."""
@@ -125,6 +130,7 @@ class ConfigHandler:
                 categories=config_data.get("categories", None),
                 exclude=config_data.get("exclude", None),
                 publish=config_data.get("publish", False),
+                output_format=config_data.get("output_format", None),
                 silent=config_data.get("silent", False),
                 ai_retries=config_data.get("ai_retries", None),
             )
@@ -181,6 +187,7 @@ class ConfigHandler:
             exclude=self.cli_args.exclude or None,
             ai_api_key=self.cli_args.ai_api_key or None,
             git_api_key=self.cli_args.git_api_key or None,
+            output_format=self.cli_args.output_format or None,
             silent=self.cli_args.silent,
             publish=self.cli_args.publish,
             ai_retries=self.cli_args.ai_retries or None,
@@ -221,6 +228,7 @@ class ConfigHandler:
             ),
             model_url=from_cli.model_url or from_file.model_url,
             publish=from_cli.publish or from_file.publish,
+            output_format=from_cli.output_format or from_file.output_format or OutputFormat.pretty,
             silent=from_cli.silent or from_file.silent,
             ai_retries=from_cli.ai_retries or from_file.ai_retries,
             git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),

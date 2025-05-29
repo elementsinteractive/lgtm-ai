@@ -12,6 +12,7 @@ from lgtm_ai.ai.schemas import (
     ReviewResponse,
 )
 from lgtm_ai.formatters.markdown import MarkDownFormatter
+from lgtm_ai.git_client.schemas import PRDiff
 from tests.review.utils import MOCK_USAGE
 
 
@@ -31,7 +32,7 @@ class TestMarkdownFormatter:
                 raw_score=5,
                 summary="summary",
             ),
-            pr_diff=mock.Mock(),
+            pr_diff=mock.Mock(spec=PRDiff),
         )
         assert self.formatter.format_review_summary_section(review).split("\n") == [
             "",
@@ -94,7 +95,7 @@ class TestMarkdownFormatter:
                 raw_score=5,
                 summary="summary",
             ),
-            pr_diff=mock.Mock(),
+            pr_diff=mock.Mock(spec=PRDiff),
             metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
         )
 
@@ -142,7 +143,7 @@ class TestMarkdownFormatter:
                     ),
                 ],
             ),
-            pr_diff=mock.Mock(),
+            pr_diff=mock.Mock(spec=PRDiff),
         )
 
         expected = [
@@ -183,7 +184,7 @@ class TestMarkdownFormatter:
                     )
                 ],
             ),
-            pr_diff=mock.Mock(),
+            pr_diff=mock.Mock(spec=PRDiff),
         )
 
         expected = [
@@ -201,7 +202,7 @@ class TestMarkdownFormatter:
 
     def test_format_guide(self) -> None:
         guide = ReviewGuide(
-            pr_diff=mock.Mock(),
+            pr_diff=mock.Mock(spec=PRDiff),
             guide_response=GuideResponse(
                 summary="summary",
                 key_changes=[

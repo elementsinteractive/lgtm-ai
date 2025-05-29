@@ -2,7 +2,7 @@ import functools
 import logging
 from collections.abc import Callable
 from importlib.metadata import version
-from typing import get_args
+from typing import Any, assert_never, get_args
 
 import click
 import rich
@@ -13,10 +13,12 @@ from lgtm_ai.ai.agent import (
     get_summarizing_agent_with_settings,
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import OutputFormat, PRUrl
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig
+from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.formatters.json import JsonFormatter
 from lgtm_ai.formatters.markdown import MarkDownFormatter
-from lgtm_ai.formatters.terminal import TerminalFormatter
+from lgtm_ai.formatters.pretty import PrettyFormatter
 from lgtm_ai.git_client.utils import get_git_client
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.guide import ReviewGuideGenerator
@@ -25,6 +27,7 @@ from lgtm_ai.validators import (
     parse_pr_url,
     validate_model_url,
 )
+from rich.console import Console
 from rich.logging import RichHandler
 
 __version__ = version("lgtm-ai")
@@ -32,7 +35,7 @@ __version__ = version("lgtm-ai")
 logging.basicConfig(
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
+    handlers=[RichHandler(rich_tracebacks=True, show_path=False, console=Console(stderr=True))],
 )
 logger = logging.getLogger("lgtm")
 
@@ -68,6 +71,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
     )
     @click.option("--publish", is_flag=True, help="Publish the review or guide to the git service.")
+    @click.option("--output-format", type=click.Choice([format.value for format in OutputFormat]))
     @click.option("--silent", is_flag=True, help="Do not print the review or guide to the console.")
     @click.option(
         "--ai-retries",
@@ -104,6 +108,7 @@ def review(
     config: str | None,
     exclude: tuple[str, ...],
     publish: bool,
+    output_format: OutputFormat | None,
     silent: bool,
     ai_retries: int | None,
     verbose: int,
@@ -125,6 +130,7 @@ def review(
             model=model,
             model_url=model_url,
             publish=publish,
+            output_format=output_format,
             silent=silent,
             ai_retries=ai_retries,
         ),
@@ -146,10 +152,10 @@ def review(
 
     if not resolved_config.silent:
         logger.info("Printing review to console")
-        terminal_formatter = TerminalFormatter()
-        rich.print(terminal_formatter.format_review_summary_section(review))
+        formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
+        printer(formatter.format_review_summary_section(review))
         if review.review_response.comments:
-            rich.print(terminal_formatter.format_review_comments_section(review.review_response.comments))
+            printer(formatter.format_review_comments_section(review.review_response.comments))
 
     if resolved_config.publish:
         logger.info("Publishing review to git service")
@@ -168,6 +174,7 @@ def guide(
     config: str | None,
     exclude: tuple[str, ...],
     publish: bool,
+    output_format: OutputFormat | None,
     silent: bool,
     ai_retries: int | None,
     verbose: int,
@@ -185,6 +192,7 @@ def guide(
             model=model,
             model_url=model_url,
             publish=publish,
+            output_format=output_format,
             silent=silent,
             ai_retries=ai_retries,
         ),
@@ -204,8 +212,8 @@ def guide(
 
     if not resolved_config.silent:
         logger.info("Printing review to console")
-        terminal_formatter = TerminalFormatter()
-        rich.print(terminal_formatter.format_guide(guide))
+        formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
+        printer(formatter.format_guide(guide))
 
     if resolved_config.publish:
         logger.info("Publishing review guide to git service")
@@ -221,3 +229,15 @@ def _set_logging_level(logger: logging.Logger, verbose: int) -> None:
     else:
         logger.setLevel(logging.DEBUG)
     logger.info("Logging level set to %s", logging.getLevelName(logger.level))
+
+
+def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[Any], Callable[[Any], None]]:
+    """Get the formatter and the print method based on the output format."""
+    if output_format == OutputFormat.pretty:
+        return PrettyFormatter(), rich.print
+    elif output_format == OutputFormat.markdown:
+        return MarkDownFormatter(), print
+    elif output_format == OutputFormat.json:
+        return JsonFormatter(), print
+    else:
+        assert_never(output_format)
