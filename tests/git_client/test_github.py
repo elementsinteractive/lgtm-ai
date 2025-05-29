@@ -131,13 +131,13 @@ def test_get_diff_from_url_successful() -> None:
                     ModifiedLine(
                         line='    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--format gitlab > tests/gl-code-quality-report.json" } else { "" } }}',
                         line_number=48,
-                        relative_line_number=1,
+                        relative_line_number=5,
                         modification_type="removed",
                     ),
                     ModifiedLine(
                         line='    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--output-format gitlab > tests/gl-code-quality-report.json" } else { "" } }}',
                         line_number=48,
-                        relative_line_number=2,
+                        relative_line_number=6,
                         modification_type="added",
                     ),
                 ],
@@ -154,13 +154,13 @@ def test_get_diff_from_url_successful() -> None:
                     ModifiedLine(
                         line="[tool.ruff.per-file-ignores]",
                         line_number=78,
-                        relative_line_number=1,
+                        relative_line_number=5,
                         modification_type="removed",
                     ),
                     ModifiedLine(
                         line="[tool.ruff.lint.per-file-ignores]",
                         line_number=78,
-                        relative_line_number=2,
+                        relative_line_number=6,
                         modification_type="added",
                     ),
                 ],

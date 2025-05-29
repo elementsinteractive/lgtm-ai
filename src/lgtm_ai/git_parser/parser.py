@@ -33,15 +33,15 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: str) -> DiffResult:
 
     old_line_num = 0
     new_line_num = 0
-    rel_position = 1
+    rel_position = -1  # We just don't count the first hunk, but we do count the rest
 
     try:
         for line in lines:
             hunk_match = re.match(r"^@@ -(\d+),?\d* \+(\d+),?\d* @@", line)
+            rel_position += 1
             if hunk_match:
                 old_line_num = int(hunk_match.group(1))
                 new_line_num = int(hunk_match.group(2))
-                rel_position = 1  # Reset position for each hunk
                 continue
 
             if line.startswith("+") and not line.startswith("+++"):
@@ -69,7 +69,6 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: str) -> DiffResult:
             else:
                 old_line_num += 1
                 new_line_num += 1
-            rel_position += 1
     except (ValueError, TypeError, KeyError) as err:
         raise GitDiffParseError("Failed to parse diff patch") from err
 
