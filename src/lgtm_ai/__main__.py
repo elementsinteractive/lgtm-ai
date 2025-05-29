@@ -183,6 +183,7 @@ def guide(
             git_api_key=git_api_key,
             ai_api_key=ai_api_key,
             model=model,
+            model_url=model_url,
             publish=publish,
             silent=silent,
             ai_retries=ai_retries,
