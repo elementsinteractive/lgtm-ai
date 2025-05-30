@@ -22,7 +22,6 @@ jobs:
             https://api.github.com/repos/$REPO/collaborators/$USER/permission \
             | jq -r '.permission')
 
-          echo "User $USER has permission: $PERMISSION"
 
           if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" || "$PERMISSION" == "write" ]]; then
             echo "HAS_PERMISSION=true" >> $GITHUB_ENV
