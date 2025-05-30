@@ -19,7 +19,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestMetadataError,
 )
-from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
 logger = logging.getLogger("lgtm.git")
@@ -101,11 +101,25 @@ class GitHubClient(GitClient):
 
         context_files: list[PRContextFileContents] = []
         for file in files:
+            # Attempt to download the file context from the PR branch
             try:
-                context_files.append(self._get_file_contents(repo, file, pr_diff.target_branch))
+                context_files.append(self._get_file_contents(repo, file, pr_diff.source_branch, "source"))
             except (github.GithubException, DecodingFileError):
-                logger.error("Failed to retrieve the contents of the file %s from GitHub", file.filename)
-                continue
+                logger.error(
+                    "Failed to retrieve the contents of the file %s from GitHub and branch %s",
+                    file.filename,
+                    pr_diff.source_branch,
+                )
+                # If it fails, try to download the file context from the target branch
+                try:
+                    context_files.append(self._get_file_contents(repo, file, pr_diff.target_branch, "target"))
+                except (github.GithubException, DecodingFileError):
+                    logger.error(
+                        "Failed to retrieve the contents of the file %s from GitHub and branch %s",
+                        file.filename,
+                        pr_diff.target_branch,
+                    )
+                    continue
         return PRContext(file_contents=context_files)
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
@@ -132,10 +146,14 @@ class GitHubClient(GitClient):
             raise PublishGuideError from err
 
     def _get_file_contents(
-        self, repo: github.Repository.Repository, file: github.File.File, target_branch: str
+        self,
+        repo: github.Repository.Repository,
+        file: github.File.File,
+        ref_to_fetch_from: str,
+        branch_name: ContextBranch,
     ) -> PRContextFileContents:
         """Return the contents of the given file from the given repository and branch."""
-        file_contents = repo.get_contents(file.filename, ref=target_branch)
+        file_contents = repo.get_contents(file.filename, ref=ref_to_fetch_from)
         if not isinstance(file_contents, list):
             file_contents = [file_contents]
         decoded_content = []
@@ -146,7 +164,7 @@ class GitHubClient(GitClient):
                     logger.warning(
                         "Content for file %s on branch %s is not available directly (e.g., too large, or a directory/submodule), skipping for context.",
                         file.filename,
-                        target_branch,
+                        ref_to_fetch_from,
                     )
                     continue
                 decoded_chunk_content = decoded_bytes.decode("utf-8")
@@ -154,7 +172,7 @@ class GitHubClient(GitClient):
                 logger.error(
                     "Failed to decode file %s from GitHub sha: %s, ignoring...",
                     file.filename,
-                    target_branch,
+                    ref_to_fetch_from,
                 )
                 raise DecodingFileError from err
             decoded_content.append(decoded_chunk_content)
@@ -162,6 +180,7 @@ class GitHubClient(GitClient):
         return PRContextFileContents(
             file_path=file.filename,
             content="".join(decoded_content),
+            branch=branch_name,
         )
 
 

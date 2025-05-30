@@ -65,7 +65,7 @@ class PromptGenerator:
             return ""
 
         content = self._indent(file_context.content)
-        return f"    ```{file_context.file_path}\n{content}\n    ```"
+        return f"    ```{file_context.file_path}, branch={file_context.branch}\n{content}\n    ```"
 
     def _pr_diff_prompt(self, pr_diff: PRDiff) -> str:
         return f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"

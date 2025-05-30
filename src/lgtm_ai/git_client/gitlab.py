@@ -19,7 +19,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm_ai.git_client.schemas import PRContext, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
@@ -67,6 +67,7 @@ class GitlabClient(GitClient):
         project = _get_project_from_url(self.client, pr_url)
         pr = _get_pr_from_url(self.client, pr_url)
         context = PRContext(file_contents=[])
+        branch: ContextBranch = "source"
         for file_path in pr_diff.changed_files:
             try:
                 file = project.files.get(
@@ -84,6 +85,7 @@ class GitlabClient(GitClient):
                         file_path=file_path,
                         ref=pr.target_branch,
                     )
+                    branch = "target"
                 except gitlab.exceptions.GitlabGetError:
                     logger.warning("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
                     continue
@@ -92,7 +94,7 @@ class GitlabClient(GitClient):
             except (binascii.Error, UnicodeDecodeError):
                 logger.warning("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
                 continue
-            context.add_file(file_path, content)
+            context.add_file(file_path, content, branch)
         return context
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
