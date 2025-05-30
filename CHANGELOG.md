@@ -1,3 +1,9 @@
+## v0.4.0 (2025-05-30)
+
+### Feat
+
+- add support for new gemini 2.5 flash
+
 ## v0.3.0 (2025-05-29)
 
 ### Feat
