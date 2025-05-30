@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Literal
 from urllib.parse import ParseResult, urlparse
 
 import click
@@ -31,9 +32,23 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
 
     match parsed.netloc:
         case AllowedLocations.Gitlab:
-            return _parse_gitlab_url(parsed)
+            return _parse_pr_url(
+                parsed,
+                split_str="/-/merge_requests/",
+                source="gitlab",
+                error_url_msg="The PR URL must be a merge request URL.",
+                error_num_msg="The PR URL must contain a valid MR number.",
+            )
+
         case AllowedLocations.Github:
-            return _parse_github_url(parsed)
+            return _parse_pr_url(
+                parsed,
+                split_str="/pull/",
+                source="github",
+                error_url_msg="The PR URL must be a pull request URL.",
+                error_num_msg="The PR URL must contain a valid PR number.",
+            )
+
         case _:
             raise click.BadParameter(
                 f"The PR URL host must be one of: {', '.join([s.value for s in AllowedLocations.__members__.values()])}"
@@ -78,41 +93,23 @@ def validate_model_url(ctx: click.Context, param: click.Parameter, value: str | 
     return value
 
 
-def _parse_gitlab_url(parsed: ParseResult) -> PRUrl:
+def _parse_pr_url(
+    parsed: ParseResult, *, split_str: str, source: Literal["github", "gitlab"], error_url_msg: str, error_num_msg: str
+) -> PRUrl:
     full_project_path = parsed.path
     try:
-        project_path, mr = full_project_path.split("/-/merge_requests/")
+        project_path, pr_part = full_project_path.split(split_str)
     except ValueError:
-        raise click.BadParameter("The PR URL must be a merge request URL.") from None
+        raise click.BadParameter(error_url_msg) from None
 
     try:
-        mr_num = int(mr.split("/")[-1])
+        pr_num = int(pr_part.split("/")[-1])
     except (ValueError, IndexError):
-        raise click.BadParameter("The PR URL must contain a valid MR number.") from None
-
-    return PRUrl(
-        full_url=parsed.geturl(),
-        repo_path=project_path.strip("/"),
-        pr_number=mr_num,
-        source="gitlab",
-    )
-
-
-def _parse_github_url(parsed: ParseResult) -> PRUrl:
-    full_project_path = parsed.path
-    try:
-        project_path, pr = full_project_path.split("/pull/")
-    except ValueError:
-        raise click.BadParameter("The PR URL must be a pull request URL.") from None
-
-    try:
-        pr_num = int(pr.split("/")[-1])
-    except (ValueError, IndexError):
-        raise click.BadParameter("The PR URL must contain a valid PR number.") from None
+        raise click.BadParameter(error_num_msg) from None
 
     return PRUrl(
         full_url=parsed.geturl(),
         repo_path=project_path.strip("/"),
         pr_number=pr_num,
-        source="github",
+        source=source,
     )
