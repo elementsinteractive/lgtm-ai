@@ -407,7 +407,7 @@ def test_get_context_deleted_file() -> None:
 
     assert context == PRContext(
         file_contents=[
-            PRContextFileContents(file_path="missing.py", content="surprise"),
+            PRContextFileContents(file_path="missing.py", content="surprise", branch="target"),
         ]
     )
     calls = m_project.files.get.call_args_list

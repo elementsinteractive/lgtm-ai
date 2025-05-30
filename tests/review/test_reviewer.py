@@ -82,11 +82,11 @@ def test_get_review_from_url_valid() -> None:
             {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
             ```
         Context:
-            ```file1.txt
+            ```file1.txt, branch=source
             contents-of-file-1-context
             ```
 
-            ```file2.txt
+            ```file2.txt, branch=source
             contents-of-file-2-context
             ```
         """

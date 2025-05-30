@@ -1,5 +1,9 @@
+from typing import Literal
+
 from groq import BaseModel
 from lgtm_ai.git_parser.parser import DiffResult
+
+type ContextBranch = Literal["source", "target"]
 
 
 class PRDiff(BaseModel):
@@ -13,6 +17,7 @@ class PRDiff(BaseModel):
 class PRContextFileContents(BaseModel):
     file_path: str
     content: str
+    branch: ContextBranch = "source"
 
 
 class PRContext(BaseModel):
@@ -26,8 +31,8 @@ class PRContext(BaseModel):
     def __bool__(self) -> bool:
         return bool(self.file_contents)
 
-    def add_file(self, file_path: str, content: str) -> None:
-        self.file_contents.append(PRContextFileContents(file_path=file_path, content=content))
+    def add_file(self, file_path: str, content: str, branch: ContextBranch = "source") -> None:
+        self.file_contents.append(PRContextFileContents(file_path=file_path, content=content, branch=branch))
 
 
 class PRMetadata(BaseModel):

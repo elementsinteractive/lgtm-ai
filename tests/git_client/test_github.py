@@ -284,7 +284,8 @@ def test_get_context_one_file_missing() -> None:
 
     m_repo.get_contents.side_effect = [
         mock.Mock(decoded_content=b"lorem ipsum dolor sit amet"),
-        github.GithubException(status=404, message="Not Found"),
+        github.GithubException(status=404, message="Not Found"),  # source branch
+        github.GithubException(status=404, message="Not Found"),  # target branch
     ]
     context = client.get_context(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"),
