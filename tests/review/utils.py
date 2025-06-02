@@ -3,7 +3,7 @@ from unittest import mock
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git_client.base import GitClient
-from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from pydantic_ai.usage import Usage
 
@@ -59,3 +59,6 @@ class MockGitClient(GitClient):
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         return None
+
+    def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
+        return f"File contents for {file_path}"

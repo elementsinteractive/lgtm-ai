@@ -195,3 +195,29 @@ class AgentSettings(BaseModel):
             description="Number of retries the agent will perform when querying the AI API. Defaults to None, in which case pydantic-ai defaults will be used."
         ),
     ]
+
+
+class AdditionalContext(BaseModel):
+    """Additional context for the LLM.
+
+    It is optional and can contain things like project development or stylistic guidelines, common conventions or even LLM-specific instructions. It can come from a file in the project repository, any file on the internet or provided directly.
+    """
+
+    file_url: Annotated[
+        str | None,
+        Field(
+            description="Path to a file in the repository or an arbitrary URL to a text file. The context will be read from this resource."
+        ),
+    ] = None
+    prompt: Annotated[
+        str,
+        Field(
+            description="LLM prompt to introduce the context. Can be left empty if the context is descriptive enough."
+        ),
+    ]
+    context: Annotated[
+        str | None,
+        Field(
+            description="Contents of the context itself. Can be provided directly or left empty, to be filled-in from the source pointed to by `file_url`."
+        ),
+    ] = None

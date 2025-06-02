@@ -54,7 +54,8 @@ You will receive:
             ],
         }}
         ```
-- The contents of each of the changed files in the source (PR) branch or the target branch. This should help you to understand the context of the PR.
+- `Context`, which consists on the contents of each of the changed files in the source (PR) branch or the target branch. This should help you to understand the context of the PR.
+- Optionally, `Additional context` that the author of the PR has provided, which may contain a prompt (to give you a hint on what to use it for), and some content.
 
 You should make two types of comments:
 - A summary comment, explaining what the overall quality of the code is, if there are any major issues, and a summary of the changes you require the author to make.

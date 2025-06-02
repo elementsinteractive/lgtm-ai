@@ -193,3 +193,19 @@ def test_no_categories_uses_default(lgtm_toml_file: str) -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=lgtm_toml_file)
     config = handler.resolve_config()
     assert config.categories == ("Correctness", "Quality", "Testing", "Security")
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_additional_context_from_file(additional_context_lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=additional_context_lgtm_toml_file)
+    config = handler.resolve_config()
+    assert config.technologies == ("turbomachinery", "turbopumps")
+    assert len(config.additional_context) == 2
+
+    assert config.additional_context[0].file_url == "relative_file.txt"
+    assert config.additional_context[0].prompt == "intro prompt"
+    assert config.additional_context[0].context is None
+
+    assert config.additional_context[1].file_url is None
+    assert config.additional_context[1].prompt == "inline intro prompt"
+    assert config.additional_context[1].context == "inline additional context"

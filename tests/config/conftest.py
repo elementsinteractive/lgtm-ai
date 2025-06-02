@@ -28,6 +28,24 @@ def lgtm_toml_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
+def additional_context_lgtm_toml_file(tmp_path: Path) -> Iterator[str]:
+    pyproject_toml = tmp_path / "lgtm_add_ctx.toml"
+    data = """
+    technologies = ["turbomachinery", "turbopumps"]
+
+    [[additional_context]]
+    file_url = "relative_file.txt"
+    prompt = "intro prompt"
+
+    [[additional_context]]
+    prompt = "inline intro prompt"
+    context = "inline additional context"
+    """
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
     pyproject_toml = tmp_path / "pyproject.toml"
     data = """

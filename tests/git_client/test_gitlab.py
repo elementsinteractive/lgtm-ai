@@ -376,7 +376,7 @@ def test_get_context_one_file_missing() -> None:
     assert context == PRContext(
         file_contents=[
             # Notice there is no content for important.py, but the other file is still there
-            PRContextFileContents(file_path="logic.py", content="surprise"),
+            PRContextFileContents(file_path="logic.py", content="surprise", branch="source"),
         ]
     )
 

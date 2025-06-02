@@ -64,36 +64,21 @@ class GitlabClient(GitClient):
         only looking at the PR in question.
         """
         logger.info("Fetching context from GitLab")
-        project = _get_project_from_url(self.client, pr_url)
-        pr = _get_pr_from_url(self.client, pr_url)
         context = PRContext(file_contents=[])
         branch: ContextBranch = "source"
         for file_path in pr_diff.changed_files:
-            try:
-                file = project.files.get(
-                    file_path=file_path,
-                    ref=pr.sha,
+            branch = "source"
+            content = self.get_file_contents(file_path=file_path, pr_url=pr_url, branch_name=branch)
+            if content is None:
+                logger.warning(
+                    "Failed to retrieve file %s from source branch, attempting to retrieve from target branch...",
+                    file_path,
                 )
-            except gitlab.exceptions.GitlabGetError:
-                # If the download fails, attempt to download it from the target branch
-                # This can happen when a file is deleted in the PR: you cannot download it from the PR sha
-                logger.debug(
-                    "Failed to retrieve file %s from GitLab sha: %s, trying target branch...", file_path, pr.sha
-                )
-                try:
-                    file = project.files.get(
-                        file_path=file_path,
-                        ref=pr.target_branch,
-                    )
-                    branch = "target"
-                except gitlab.exceptions.GitlabGetError:
-                    logger.warning("Failed to retrieve file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+                branch = "target"
+                content = self.get_file_contents(file_path=file_path, pr_url=pr_url, branch_name="target")
+                if content is None:
+                    logger.warning("Failed to retrieve file %s from target branch, skipping...", file_path)
                     continue
-            try:
-                content = base64.b64decode(file.content).decode()
-            except (binascii.Error, UnicodeDecodeError):
-                logger.warning("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
-                continue
             context.add_file(file_path, content, branch)
         return context
 
@@ -119,6 +104,25 @@ class GitlabClient(GitClient):
             pr.notes.create({"body": self.formatter.format_guide(guide)})
         except gitlab.exceptions.GitlabError as err:
             raise PublishGuideError from err
+
+    def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
+        project = _get_project_from_url(self.client, pr_url)
+        pr = _get_pr_from_url(self.client, pr_url)
+        try:
+            file = project.files.get(
+                file_path=file_path,
+                ref=pr.sha if branch_name == "source" else pr.target_branch,
+            )
+        except gitlab.exceptions.GitlabError:
+            logger.warning("Failed to retrieve file %s from GitLab sha: %s.", file_path, pr.sha)
+            return None
+
+        try:
+            content = base64.b64decode(file.content).decode()
+        except (binascii.Error, UnicodeDecodeError):
+            logger.warning("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
+            return None
+        return content
 
     def _parse_gitlab_git_diff(self, diffs: list[dict[str, object]]) -> list[DiffResult]:
         parsed_diffs: list[DiffResult] = []

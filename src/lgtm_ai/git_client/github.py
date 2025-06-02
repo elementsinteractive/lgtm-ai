@@ -3,6 +3,7 @@ import logging
 from functools import lru_cache
 
 import github
+import github.ContentFile
 import github.File
 import github.GithubException
 import github.PullRequest
@@ -13,7 +14,6 @@ from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.exceptions import (
-    DecodingFileError,
     PublishGuideError,
     PublishReviewError,
     PullRequestDiffError,
@@ -92,7 +92,6 @@ class GitHubClient(GitClient):
     def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
         """Return a PRContext object containing the context of the given pull request URL."""
         try:
-            repo = _get_repo(self.client, pr_url)
             pr = _get_pr(self.client, pr_url)
             files = pr.get_files()
         except github.GithubException:
@@ -102,24 +101,24 @@ class GitHubClient(GitClient):
         context_files: list[PRContextFileContents] = []
         for file in files:
             # Attempt to download the file context from the PR branch
-            try:
-                context_files.append(self._get_file_contents(repo, file, pr_diff.source_branch, "source"))
-            except (github.GithubException, DecodingFileError):
-                logger.error(
-                    "Failed to retrieve the contents of the file %s from GitHub and branch %s",
+            context_content = self._get_context_file_contents(pr_url=pr_url, file=file, branch_name="source")
+            if context_content is None:
+                logger.warning(
+                    "File %s is not available in the source branch %s, trying target branch...",
                     file.filename,
                     pr_diff.source_branch,
                 )
-                # If it fails, try to download the file context from the target branch
-                try:
-                    context_files.append(self._get_file_contents(repo, file, pr_diff.target_branch, "target"))
-                except (github.GithubException, DecodingFileError):
-                    logger.error(
-                        "Failed to retrieve the contents of the file %s from GitHub and branch %s",
+                # If the file is not available in the source branch, try the target branch
+                context_content = self._get_context_file_contents(pr_url=pr_url, file=file, branch_name="target")
+
+                if context_content is None:
+                    logger.warning(
+                        "File %s is not available in the target branch %s, skipping...",
                         file.filename,
                         pr_diff.target_branch,
                     )
                     continue
+            context_files.append(context_content)
         return PRContext(file_contents=context_files)
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
@@ -145,41 +144,62 @@ class GitHubClient(GitClient):
         except github.GithubException as err:
             raise PublishGuideError from err
 
-    def _get_file_contents(
-        self,
-        repo: github.Repository.Repository,
-        file: github.File.File,
-        ref_to_fetch_from: str,
-        branch_name: ContextBranch,
-    ) -> PRContextFileContents:
-        """Return the contents of the given file from the given repository and branch."""
-        file_contents = repo.get_contents(file.filename, ref=ref_to_fetch_from)
+    def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
+        repo = _get_repo(self.client, pr_url)
+        pr = _get_pr(self.client, pr_url)
+        try:
+            file_contents = repo.get_contents(file_path, ref=pr.head.ref if branch_name == "source" else pr.base.ref)
+        except github.GithubException as err:
+            logger.error(
+                "Failed to retrieve file %s from GitHub branch %s, error: %s",
+                file_path,
+                branch_name,
+                err,
+            )
+            return None
+
+        decoded_content = []
         if not isinstance(file_contents, list):
             file_contents = [file_contents]
-        decoded_content = []
         for file_content in file_contents:
             try:
                 decoded_bytes = file_content.decoded_content
                 if decoded_bytes is None:
                     logger.warning(
                         "Content for file %s on branch %s is not available directly (e.g., too large, or a directory/submodule), skipping for context.",
-                        file.filename,
-                        ref_to_fetch_from,
+                        file_path,
+                        branch_name,
                     )
-                    continue
+                    return None
                 decoded_chunk_content = decoded_bytes.decode("utf-8")
-            except (binascii.Error, UnicodeDecodeError) as err:
+            except (binascii.Error, UnicodeDecodeError):
                 logger.error(
                     "Failed to decode file %s from GitHub sha: %s, ignoring...",
-                    file.filename,
-                    ref_to_fetch_from,
+                    file_path,
+                    branch_name,
                 )
-                raise DecodingFileError from err
+                return None
             decoded_content.append(decoded_chunk_content)
+        return "".join(decoded_content)
+
+    def _get_context_file_contents(
+        self,
+        pr_url: PRUrl,
+        file: github.File.File,
+        branch_name: ContextBranch,
+    ) -> PRContextFileContents | None:
+        """Return the contents of the given file from the given repository and branch."""
+        file_contents = self.get_file_contents(
+            file_path=file.filename,
+            pr_url=pr_url,
+            branch_name=branch_name,
+        )
+        if file_contents is None:
+            return None
 
         return PRContextFileContents(
             file_path=file.filename,
-            content="".join(decoded_content),
+            content=file_contents,
             branch=branch_name,
         )
 
