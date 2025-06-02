@@ -2,7 +2,7 @@ from typing import Protocol
 
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
-from lgtm_ai.git_client.schemas import PRContext, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRDiff, PRMetadata
 
 
 class GitClient(Protocol):
@@ -23,5 +23,8 @@ class GitClient(Protocol):
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         """Publish a review guide to the PR."""
 
-    def get_file_contents(self, file_url: str, pr_url: PRUrl) -> str | None:
-        """Get contents of the file from `file_url`. If the URL is relative (just a path) try to read it from the repository. Otherwise, if it's an absolute URL, download the contents from the Internet."""
+    def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
+        """Get contents of the file from `file_path` from the given branch.
+
+        It should never raise, and instead return None if the file cannot be downloaded.
+        """

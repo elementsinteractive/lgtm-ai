@@ -1,9 +1,16 @@
 import logging
 
-from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewerDeps, ReviewResponse, SummarizingDeps
+from lgtm_ai.ai.schemas import (
+    PublishMetadata,
+    Review,
+    ReviewerDeps,
+    ReviewResponse,
+    SummarizingDeps,
+)
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.review.additional_context import AdditionalContextGenerator
 from lgtm_ai.review.exceptions import (
     handle_ai_exceptions,
 )
@@ -31,15 +38,22 @@ class CodeReviewer:
         self.model = model
         self.git_client = git_client
         self.config = config
+        self.additional_context_generator = AdditionalContextGenerator(git_client=git_client)
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
         metadata = self.git_client.get_pr_metadata(pr_url)
+        additional_context = self.additional_context_generator.get_additional_context_content(
+            pr_url=pr_url,
+            additional_context=self.config.additional_context,
+        )
 
         prompt_generator = PromptGenerator(self.config, metadata)
 
-        review_prompt = prompt_generator.generate_review_prompt(pr_diff=pr_diff, context=context)
+        review_prompt = prompt_generator.generate_review_prompt(
+            pr_diff=pr_diff, context=context, additional_context=additional_context
+        )
         logger.info("Running AI model on the PR diff")
         with handle_ai_exceptions():
             raw_res = self.reviewer_agent.run_sync(

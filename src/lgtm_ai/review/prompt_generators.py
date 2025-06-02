@@ -18,7 +18,7 @@ class PromptGenerator:
         self.pr_metadata = pr_metadata
 
     def generate_review_prompt(
-        self, *, pr_diff: PRDiff, context: PRContext, additional_context: tuple[AdditionalContext] | None = None
+        self, *, pr_diff: PRDiff, context: PRContext, additional_context: list[AdditionalContext] | None = None
     ) -> str:
         """Generate the initial prompt for the AI model to review the PR.
 
@@ -66,7 +66,7 @@ class PromptGenerator:
         return f"{pr_metadata_prompt}\n{diff_prompt}\n{review_prompt}"
 
     def generate_guide_prompt(
-        self, *, pr_diff: PRDiff, context: PRContext, additional_context: tuple[AdditionalContext] | None = None
+        self, *, pr_diff: PRDiff, context: PRContext, additional_context: list[AdditionalContext] | None = None
     ) -> str:
         return self.generate_review_prompt(
             pr_diff=pr_diff, context=context, additional_context=additional_context
@@ -85,8 +85,10 @@ class PromptGenerator:
         return f"    ```{file_context.file_path}, branch={file_context.branch}\n{content}\n    ```"
 
     def _generate_additional_context_prompt(self, additional_context: AdditionalContext) -> str:
-        # FIXME TODO indentation?
-        return f"{additional_context.prompt}:\n{additional_context.context}"
+        if not additional_context.context:
+            return ""
+        context = self._indent(additional_context.context)
+        return f"    ```file={additional_context.file_url}; prompt={additional_context.prompt}\n{context}\n   ```"
 
     def _pr_diff_prompt(self, pr_diff: PRDiff) -> str:
         return f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"
