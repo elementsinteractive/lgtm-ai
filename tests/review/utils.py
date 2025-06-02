@@ -59,3 +59,6 @@ class MockGitClient(GitClient):
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         return None
+
+    def get_file_contents(self, file_url: str, pr_url: PRUrl) -> str | None:
+        return None

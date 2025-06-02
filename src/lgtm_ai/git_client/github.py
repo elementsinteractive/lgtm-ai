@@ -1,13 +1,16 @@
 import binascii
 import logging
 from functools import lru_cache
+from urllib.parse import urlparse
 
 import github
+import github.ContentFile
 import github.File
 import github.GithubException
 import github.PullRequest
 import github.PullRequestReview
 import github.Repository
+import requests
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
@@ -144,6 +147,30 @@ class GitHubClient(GitClient):
             )
         except github.GithubException as err:
             raise PublishGuideError from err
+
+    def get_file_contents(self, file_url: str, pr_url: PRUrl) -> str | None:
+        # FIXME I wrote the Gitlab version of this before realizing that the github.py file has an identically named private method below... I don't like the overlap but ran out of time to reconcile the two (they also do sort of different things in the broader scope). I hope someone fixes this one way or another.
+        file_url_parsed = urlparse(file_url)
+        if not file_url_parsed.netloc and not file_url_parsed.scheme:
+            try:
+                repo = _get_repo(self.client, pr_url)
+                contents = repo.get_contents(path=file_url_parsed.path, ref=repo.default_branch)
+            except github.GithubException:
+                logger.warning("failed to retrieve context file %s from the repo, ignoring...", file_url_parsed.path)
+                return None
+            else:
+                file: github.ContentFile.ContentFile
+                file = contents[0] if contents is list else contents  # type: ignore
+                return file.decoded_content.decode()
+
+        # FIXME this probably should be a method in a mixin.
+        try:
+            response = requests.get(file_url, timeout=3)
+        except requests.exceptions.RequestException:
+            logger.warning("failed to retrieve additional context file %s from the internet, ignoring...", file_url)
+            return None
+        else:
+            return response.text
 
     def _get_file_contents(
         self,

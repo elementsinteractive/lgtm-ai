@@ -22,3 +22,6 @@ class GitClient(Protocol):
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         """Publish a review guide to the PR."""
+
+    def get_file_contents(self, file_url: str, pr_url: PRUrl) -> str | None:
+        """Get contents of the file from `file_url`. If the URL is relative (just a path) try to read it from the repository. Otherwise, if it's an absolute URL, download the contents from the Internet."""

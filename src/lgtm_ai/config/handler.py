@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
-from lgtm_ai.ai.schemas import CommentCategory, SupportedAIModels
+from lgtm_ai.ai.schemas import AdditionalContext, CommentCategory, SupportedAIModels
 from lgtm_ai.base.schemas import OutputFormat
 from lgtm_ai.config.constants import DEFAULT_AI_MODEL
 from lgtm_ai.config.exceptions import (
@@ -31,6 +31,7 @@ class PartialConfig(BaseModel):
     technologies: tuple[str, ...] | None = None
     categories: tuple[CommentCategory, ...] | None = None
     exclude: tuple[str, ...] | None = None
+    additional_context: tuple[AdditionalContext, ...] | None = None
     publish: bool = False
     output_format: OutputFormat | None = None
     silent: bool = False
@@ -61,6 +62,9 @@ class ResolvedConfig(BaseModel):
 
     exclude: tuple[str, ...] = ()
     """Pattern to exclude files from the review."""
+
+    additional_context: tuple[AdditionalContext, ...] = ()
+    """Additional context to send to the LLM."""
 
     publish: bool = False
     """Publish the review to the git service as comments."""
@@ -129,6 +133,7 @@ class ConfigHandler:
                 technologies=config_data.get("technologies", None),
                 categories=config_data.get("categories", None),
                 exclude=config_data.get("exclude", None),
+                additional_context=config_data.get("additional_context", None),
                 publish=config_data.get("publish", False),
                 output_format=config_data.get("output_format", None),
                 silent=config_data.get("silent", False),
@@ -185,6 +190,7 @@ class ConfigHandler:
             model=self.cli_args.model or None,
             model_url=self.cli_args.model_url or None,
             exclude=self.cli_args.exclude or None,
+            # NOTE: due to complex format of the additional_context fields, we do not support passing it on the command line.
             ai_api_key=self.cli_args.ai_api_key or None,
             git_api_key=self.cli_args.git_api_key or None,
             output_format=self.cli_args.output_format or None,
@@ -227,6 +233,7 @@ class ConfigHandler:
                 ),
             ),
             model_url=from_cli.model_url or from_file.model_url,
+            additional_context=from_file.additional_context or (),
             publish=from_cli.publish or from_file.publish,
             output_format=from_cli.output_format or from_file.output_format or OutputFormat.pretty,
             silent=from_cli.silent or from_file.silent,

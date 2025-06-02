@@ -3,11 +3,13 @@ import binascii
 import functools
 import logging
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import gitlab
 import gitlab.exceptions
 import gitlab.v4
 import gitlab.v4.objects
+import requests
 from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
@@ -119,6 +121,31 @@ class GitlabClient(GitClient):
             pr.notes.create({"body": self.formatter.format_guide(guide)})
         except gitlab.exceptions.GitlabError as err:
             raise PublishGuideError from err
+
+    def get_file_contents(self, file_url: str, pr_url: PRUrl) -> str | None:
+        file_url_parsed = urlparse(file_url)
+        if not file_url_parsed.netloc and not file_url_parsed.scheme:
+            try:
+                project = _get_project_from_url(self.client, pr_url)
+                file = project.files.get(
+                    file_path=file_url_parsed.path, ref=project.attributes.get("default_branch", "main")
+                )
+            except gitlab.exceptions.GitlabError:
+                logger.warning("failed to retrieve context file %s from the repo, ignoring...", file_url_parsed.path)
+                return None
+            else:
+                # First decode is for base64, second is bytes to str.
+                return file.decode().decode()
+
+        # FIXME this probably should be a method in a mixin.
+        try:
+            response = requests.get(file_url, timeout=3)
+        except requests.exceptions.RequestException:
+            logger.warning("failed to retrieve additional context file %s from the internet, ignoring...", file_url)
+        else:
+            return response.text
+
+        return None
 
     def _parse_gitlab_git_diff(self, diffs: list[dict[str, object]]) -> list[DiffResult]:
         parsed_diffs: list[DiffResult] = []
