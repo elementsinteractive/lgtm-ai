@@ -61,4 +61,4 @@ class MockGitClient(GitClient):
         return None
 
     def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
-        return None
+        return f"File contents for {file_path}"

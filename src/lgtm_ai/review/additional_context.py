@@ -14,7 +14,8 @@ logger = logging.getLogger("lgtm.ai")
 class AdditionalContextGenerator:
     """Generates additional context for the AI model to review the PR based on the provided configured values."""
 
-    def __init__(self, git_client: GitClient) -> None:
+    def __init__(self, httpx_client: httpx.Client, git_client: GitClient) -> None:
+        self.httpx_client = httpx_client
         self.git_client = git_client
 
     def get_additional_context_content(
@@ -76,7 +77,7 @@ class AdditionalContextGenerator:
     def _download_content_from_url(self, url: str) -> str | None:
         """Download content from a given URL."""
         try:
-            response = httpx.get(url, timeout=3)
+            response = self.httpx_client.get(url)
             response.raise_for_status()
         except httpx.RequestError:
             logger.error(f"Failed to download content from URL {url}, skipping.")

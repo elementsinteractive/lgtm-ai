@@ -1,5 +1,6 @@
 import logging
 
+import httpx
 from lgtm_ai.ai.schemas import (
     PublishMetadata,
     Review,
@@ -38,7 +39,9 @@ class CodeReviewer:
         self.model = model
         self.git_client = git_client
         self.config = config
-        self.additional_context_generator = AdditionalContextGenerator(git_client=git_client)
+        self.additional_context_generator = AdditionalContextGenerator(
+            httpx_client=httpx.Client(timeout=3), git_client=git_client
+        )
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         pr_diff = self.git_client.get_diff_from_url(pr_url)

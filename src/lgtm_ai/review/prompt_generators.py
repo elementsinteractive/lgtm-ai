@@ -88,7 +88,7 @@ class PromptGenerator:
         if not additional_context.context:
             return ""
         context = self._indent(additional_context.context)
-        return f"    ```file={additional_context.file_url}; prompt={additional_context.prompt}\n{context}\n   ```"
+        return f"    ```file={additional_context.file_url}; prompt={additional_context.prompt}\n{context}\n    ```"
 
     def _pr_diff_prompt(self, pr_diff: PRDiff) -> str:
         return f"PR Diff:\n    ```\n{self._indent(self._serialize_pr_diff(pr_diff))}\n    ```"

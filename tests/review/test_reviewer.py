@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 from lgtm_ai.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
-from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewResponse
+from lgtm_ai.ai.schemas import AdditionalContext, PublishMetadata, Review, ReviewResponse
 from lgtm_ai.base.exceptions import NothingToReviewError
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.constants import DEFAULT_AI_MODEL
@@ -52,7 +52,15 @@ def test_get_review_from_url_valid() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIModel),
             git_client=MockGitClient(),
-            config=ResolvedConfig(),
+            config=ResolvedConfig(
+                additional_context=(
+                    AdditionalContext(
+                        file_url=None,
+                        prompt="These are the development guidelines for the project. Please follow them.",
+                        context="contents-of-dev-guidelines",
+                    ),
+                )
+            ),
         )
         review = code_reviewer.review_pull_request(
             pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
@@ -88,6 +96,10 @@ def test_get_review_from_url_valid() -> None:
 
             ```file2.txt, branch=source
             contents-of-file-2-context
+            ```
+        Additional context:
+            ```file=None; prompt=These are the development guidelines for the project. Please follow them.
+            contents-of-dev-guidelines
             ```
         """
     ).strip()
