@@ -1,3 +1,21 @@
+## v0.5.0 (2025-06-02)
+
+### Feat
+
+- Add additional context for the LLM
+
+### Refactor
+
+- additional context class and reuse `get_file_contents` everywhere in git clients
+
+### Docs
+
+- add additional context docs
+
+### Tests
+
+- add tests for additional context functionality
+
 ## v0.4.1 (2025-06-02)
 
 ### Fix
