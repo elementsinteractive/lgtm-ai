@@ -216,15 +216,12 @@ class ConfigHandler:
                 ),
             ),
             exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
-            model=cast(
-                SupportedAIModels,
-                self.resolver.resolve_string_field(
-                    "model",
-                    from_cli=from_cli,
-                    from_file=from_file,
-                    required=False,
-                    default=DEFAULT_AI_MODEL,
-                ),
+            model=self.resolver.resolve_string_field(
+                "model",
+                from_cli=from_cli,
+                from_file=from_file,
+                required=False,
+                default=DEFAULT_AI_MODEL,
             ),
             model_url=from_cli.model_url or from_file.model_url,
             publish=from_cli.publish or from_file.publish,
