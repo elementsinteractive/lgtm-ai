@@ -130,7 +130,7 @@ class GitHubClient(GitClient):
             logger.error("Failed to retrieve the metadata of the pull request")
             raise PullRequestMetadataError from err
 
-        return PRMetadata(title=pr.title, description=pr.body)
+        return PRMetadata(title=pr.title or "", description=pr.body or "")
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         pr = _get_pr(self.client, pr_url)
