@@ -302,6 +302,7 @@ lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.t
 - **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
 - **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`). This is required to not be empty if using a non-local model.
 - **ai_retries**: How many times to retry calls to the LLM when they do not succeed. By default, this is set to 1 (no retries at all).
+- **additional_context**: TOML array of extra context to send to the LLM. It supports setting the context directly in the `context` field, passing a relative file path so that lgtm downloads it from the repository, or passing any URL from which to download the context. Each element of the array must contain `prompt`, and either `context` (directly injecting context) or `file_url` (for directing lgtm to download it from there).
 
 **Example `lgtm.toml`:**
 
@@ -313,6 +314,21 @@ model = "gpt-4.1"
 silent = false
 publish = true
 ai_retries = 1
+
+[[additional_context]]
+prompt = "These are the development guidelines for the team, ensure the PR follows them"
+file_url = "https://my.domain.com/dev-guidelines.md"
+
+[[additional_context]]
+prompt = "CI pipeline for the repo. Do not report issues that this pipeline would otherwise catch"
+file_url = ".github/workflows/pr.yml"
+
+[[additional_context]]
+prompt = "Consider these points when making your review"
+context = '''
+- We avoid using libraries and rely mostly on the stdlib.
+- We follow the newest syntax available for Python (3.13).
+'''
 ```
 
 Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) files, you just need to nest the options inside `[tool.lgtm]`.
