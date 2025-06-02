@@ -1,3 +1,23 @@
+## v0.4.1 (2025-06-02)
+
+### Fix
+
+- **#41**: handle empty PR titles and descriptions for GitHub
+- **#28**: harmonize github and gitlab implementations for getting context
+
+### Refactor
+
+- small refactor of parse url validator
+
+### CI
+
+- simplify lgtm workflow
+
+### Technical
+
+- bump the minor-updates group with 2 updates
+- bump the patch-updates group with 2 updates
+
 ## v0.4.0 (2025-05-30)
 
 ### Feat
