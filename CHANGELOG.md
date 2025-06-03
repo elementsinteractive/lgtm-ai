@@ -1,3 +1,13 @@
+## v0.5.1 (2025-06-03)
+
+### Fix
+
+- Gemini broke pydantic-ai integration, this is a workaround (#47)
+
+### Technical
+
+- add diagrams for lgtm (#46)
+
 ## v0.5.0 (2025-06-02)
 
 ### Feat
