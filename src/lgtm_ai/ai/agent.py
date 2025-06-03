@@ -18,12 +18,12 @@ from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel, LatestAnthropicModelNames
-from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.mistral import LatestMistralModelNames, MistralModel
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.deepseek import DeepSeekProvider
-from pydantic_ai.providers.google_gla import GoogleGLAProvider
+from pydantic_ai.providers.google import GoogleProvider
 from pydantic_ai.providers.mistral import MistralProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
@@ -54,7 +54,7 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
         raise MissingAIAPIKey(model_name=model_name)
 
     if _is_gemini_model(model_name):
-        return GeminiModel(model_name, provider=GoogleGLAProvider(api_key=api_key))
+        return GoogleModel(model_name, provider=GoogleProvider(api_key=api_key))
     elif _is_openai_model(model_name):
         return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
     elif _is_anthropic_model(model_name):
