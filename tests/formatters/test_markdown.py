@@ -156,7 +156,7 @@ class TestMarkdownFormatter:
             "> **Severity:** MEDIUM 🟡",
             "comment 3",
             "",
-            "- #### 🦉 ✅ Correctness",
+            "- #### 🦉 🎯 Correctness",
             "> **Severity:** LOW 🔵",
             "comment 1",
             "",
@@ -188,7 +188,7 @@ class TestMarkdownFormatter:
         )
 
         expected = [
-            "#### 🦉 ✅ Correctness",
+            "#### 🦉 🎯 Correctness",
             "> **Severity:** LOW 🔵",
             "",
             "\n```python\nprint('Hello World')\n```",

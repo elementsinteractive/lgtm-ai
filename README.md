@@ -106,7 +106,7 @@ For each review, lgtm may create several inline comments, pointing out specific 
 
 | Category | Description |
 | -------  | ----------- | 
-| Correctness ✅ | Does the code behave as intended? Identifies logical errors, bugs, incorrect algorithms, broken functionality, or deviations from requirements. |
+| Correctness 🎯 | Does the code behave as intended? Identifies logical errors, bugs, incorrect algorithms, broken functionality, or deviations from requirements. |
 | Quality ✨ | Is the code clean, readable, and maintainable? Evaluates naming, structure, modularity, and adherence to clean code principles (e.g., SOLID, DRY, KISS). |
 | Testing 🧪 | Are there sufficient and appropriate tests? Includes checking for meaningful test coverage, especially for edge cases and critical paths. Are tests isolated, reliable, and aligned with the behavior being verified? |
 | Security 🔒 | Does the code follow secure programming practices? Looks for common vulnerabilities such as injection attacks, insecure data handling, improper access control, hardcoded credentials, or lack of input validation. |
