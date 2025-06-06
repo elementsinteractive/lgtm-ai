@@ -1,3 +1,9 @@
+## v0.5.2 (2025-06-06)
+
+### Fix
+
+- change correctness emoji (#49)
+
 ## v0.5.1 (2025-06-03)
 
 ### Fix
