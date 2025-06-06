@@ -17,7 +17,7 @@ SCORE_MAP: Final[dict[ReviewScore, str]] = {
 }
 
 CATEGORY_MAP: Final[dict[CommentCategory, str]] = {
-    "Correctness": "✅",
+    "Correctness": "🎯",
     "Quality": "✨",
     "Testing": "🧪",
     "Security": "🔒",
