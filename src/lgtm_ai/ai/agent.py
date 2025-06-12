@@ -1,7 +1,7 @@
 import logging
-from typing import Any, TypeGuard, get_args
+from typing import Any, TypeGuard, cast, get_args
 
-from lgtm_ai.ai.exceptions import MissingAIAPIKey, MissingModelUrl
+from lgtm_ai.ai.exceptions import InvalidModelName, MissingAIAPIKey, MissingModelUrl
 from lgtm_ai.ai.prompts import GUIDE_SYSTEM_PROMPT, REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 from lgtm_ai.ai.schemas import (
     AgentSettings,
@@ -14,6 +14,7 @@ from lgtm_ai.ai.schemas import (
     SupportedAIModelsList,
     SupportedGeminiModel,
 )
+from lgtm_ai.ai.utils import match_model_by_wildcard, select_latest_gemini_model
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
@@ -32,7 +33,8 @@ logger = logging.getLogger("lgtm.ai")
 
 def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: str | None = None) -> Model:  # noqa: C901
     def _is_gemini_model(model_name: SupportedAIModels) -> TypeGuard[SupportedGeminiModel]:
-        return model_name in get_args(SupportedGeminiModel)
+        matched_model = match_model_by_wildcard(model_name, get_args(SupportedGeminiModel))
+        return bool(matched_model)
 
     def _is_openai_model(model_name: SupportedAIModels) -> TypeGuard[ChatModel]:
         return model_name in get_args(ChatModel)
@@ -54,7 +56,13 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
         raise MissingAIAPIKey(model_name=model_name)
 
     if _is_gemini_model(model_name):
-        return GoogleModel(model_name, provider=GoogleProvider(api_key=api_key))
+        matches = match_model_by_wildcard(
+            model_name,
+            cast(tuple[SupportedGeminiModel, ...], get_args(SupportedGeminiModel)),
+        )
+        if not matches:
+            raise InvalidModelName(model_name=model_name)
+        return GoogleModel(select_latest_gemini_model(matches), provider=GoogleProvider(api_key=api_key))
     elif _is_openai_model(model_name):
         return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
     elif _is_anthropic_model(model_name):
