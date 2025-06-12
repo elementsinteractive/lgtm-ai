@@ -3,7 +3,12 @@ from typing import Any
 
 import pytest
 from lgtm_ai.ai.agent import get_ai_model
-from lgtm_ai.ai.exceptions import MissingAIAPIKey, MissingModelUrl
+from lgtm_ai.ai.exceptions import (
+    InvalidGeminiWildcard,
+    InvalidModelWildCard,
+    MissingAIAPIKey,
+    MissingModelUrl,
+)
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIModel
 
@@ -28,3 +33,27 @@ def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expect
         ai_model = get_ai_model(model, ai_api_key, model_url=model_url)
         assert isinstance(ai_model, expected_type)
         assert ai_model.model_name == model
+
+
+@pytest.mark.parametrize(
+    ("model", "expected_model_name", "expectation"),
+    [
+        # Normal matches
+        ("gemini-2.5-flash-*", "gemini-2.5-flash-preview-05-20", does_not_raise()),
+        ("gemini-2.5-pro-preview-*", "gemini-2.5-pro-preview-06-05", does_not_raise()),
+        # Exact match
+        ("gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-preview-06-05", does_not_raise()),
+        # No wildcard results in no attempt to actually match
+        ("gemini-2.5-pro-preview-", "gemini-2.5-pro-preview-06-05", pytest.raises(MissingModelUrl)),
+        # Multiple matches that we cannot narrow down by date
+        ("gemini-2*", None, pytest.raises(InvalidGeminiWildcard)),
+        # Multiple wildcards are not allowed
+        ("gemini-2.5-flash-*-*", None, pytest.raises(InvalidModelWildCard)),
+        # Wildcards in the middle of the model name are not allowed
+        ("gemini-*-pro-preview-06-05", None, pytest.raises(InvalidModelWildCard)),
+    ],
+)
+def test_get_ai_model_with_wildcard(model: str, expected_model_name: str, expectation: Any) -> None:
+    with expectation:
+        ai_model = get_ai_model(model, "fake", model_url=None)
+        assert ai_model.model_name == expected_model_name

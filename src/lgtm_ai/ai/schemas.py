@@ -46,16 +46,11 @@ SupportedGeminiModel = Literal[
     "gemini-2.5-pro-preview-06-05",
 ]
 
-LocalAIModel = str
+AnyModel = str
 """Users may use any model name in their local AI server, so we just allow any string."""
 
 SupportedAIModels = (
-    ChatModel
-    | SupportedGeminiModel
-    | LatestAnthropicModelNames
-    | LatestMistralModelNames
-    | DeepSeekModel
-    | LocalAIModel
+    ChatModel | SupportedGeminiModel | LatestAnthropicModelNames | LatestMistralModelNames | DeepSeekModel | AnyModel
 )
 """Type of all supported AI models in lgtm."""
 
@@ -65,7 +60,7 @@ SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     + get_args(LatestAnthropicModelNames)
     + get_args(LatestMistralModelNames)
     + get_args(DeepSeekModel)
-)  # Keep in sync with SupportedAIModels except for LocalAIModel
+)  # Keep in sync with SupportedAIModels except for AnyModel
 """Tuple of all known supported AI models in lgtm."""
 
 
