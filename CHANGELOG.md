@@ -1,3 +1,14 @@
+## v0.6.0 (2025-06-12)
+
+### Feat
+
+- **#52**: add support for new gemini-pro-06-05 (#53)
+
+### Technical
+
+- bump ruff from 0.11.12 to 0.11.13 in the patch-updates group (#50)
+- bump pytest from 8.3.5 to 8.4.0 in the minor-updates group (#51)
+
 ## v0.5.2 (2025-06-06)
 
 ### Fix
