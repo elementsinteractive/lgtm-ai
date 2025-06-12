@@ -1,3 +1,9 @@
+## v0.7.0 (2025-06-12)
+
+### Feat
+
+- **#54**: add support for gemini model wildcards (#55)
+
 ## v0.6.0 (2025-06-12)
 
 ### Feat
