@@ -71,7 +71,7 @@ class ModelChoice(click.ParamType):
     def convert(self, value: str, param: click.Parameter | None, ctx: click.Context | None) -> str:
         return value
 
-    def get_metavar(self, param: click.Parameter | None) -> str:
+    def get_metavar(self, param: click.Parameter, ctx: click.Context) -> str | None:
         return "[{}|<custom>]".format("|".join(self.choices))
 
     def get_choices(self, param: click.Parameter | None) -> tuple[str, ...]:
