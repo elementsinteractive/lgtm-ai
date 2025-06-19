@@ -1,8 +1,8 @@
 import logging
 from unittest import mock
 
+import click
 import pytest
-from click import BaseCommand
 from click.testing import CliRunner
 from lgtm_ai.__main__ import _set_logging_level, guide, review
 
@@ -113,7 +113,7 @@ def test_guide_cli_gitlab(*args: mock.MagicMock) -> None:
         guide,
     ],
 )
-def test_enforce_model_url_for_unknown_model(cli_command: BaseCommand) -> None:
+def test_enforce_model_url_for_unknown_model(cli_command: click.Command) -> None:
     runner = CliRunner()
     result = runner.invoke(
         cli_command,
@@ -148,7 +148,7 @@ def test_enforce_model_url_for_unknown_model(cli_command: BaseCommand) -> None:
         ("json", "lgtm_ai.__main__.JsonFormatter"),
     ],
 )
-def test_get_formatter_and_printer(output_format: str, expected_formatter: str, cli_command: BaseCommand) -> None:
+def test_get_formatter_and_printer(output_format: str, expected_formatter: str, cli_command: click.Command) -> None:
     """Ensures the cli is correctly selecting and using the formatter specified."""
     runner = CliRunner()
 
