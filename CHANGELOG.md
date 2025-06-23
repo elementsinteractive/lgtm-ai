@@ -1,3 +1,14 @@
+## v0.7.1 (2025-06-23)
+
+### Fix
+
+- ensure that model name in summary is the **resolved** name without wildcards (#59)
+
+### Technical
+
+- show version of lgtm-ai in verbose mode (#60)
+- update all dependencies (#58)
+
 ## v0.7.0 (2025-06-12)
 
 ### Feat
