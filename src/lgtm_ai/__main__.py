@@ -118,6 +118,7 @@ def review(
     """Review a Pull Request using AI."""
     _set_logging_level(logger, verbose)
 
+    logger.info("lgtm-ai version: %s", __version__)
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting review of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
@@ -182,6 +183,7 @@ def guide(
     """Generate a review guide for a Pull Request using AI."""
     _set_logging_level(logger, verbose)
 
+    logger.info("lgtm-ai version: %s", __version__)
     logger.debug("Parsed PR URL: %s", pr_url)
     logger.info("Starting generating guide of %s", pr_url.full_url)
     resolved_config = ConfigHandler(
