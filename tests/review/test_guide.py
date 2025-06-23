@@ -27,7 +27,7 @@ def test_get_guide_from_url_valid() -> None:
     ):
         guide_generator = ReviewGuideGenerator(
             guide_agent=test_agent,
-            model=mock.Mock(spec=OpenAIModel),
+            model=mock.Mock(spec=OpenAIModel, model_name="gemini-2.0-flash"),
             git_client=MockGitClient(),
             config=ResolvedConfig(),
         )
