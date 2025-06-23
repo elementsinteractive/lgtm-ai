@@ -50,7 +50,7 @@ def test_get_review_from_url_valid() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel),
+            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(
                 additional_context=(
@@ -126,7 +126,7 @@ def test_get_review_adds_technologies_to_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel),
+            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
         )
@@ -159,7 +159,7 @@ def test_get_review_adds_categories_to_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel),
+            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(categories=("Correctness", "Quality")),
         )
@@ -185,7 +185,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
     code_reviewer = CodeReviewer(
         reviewer_agent=mock.Mock(),
         summarizing_agent=mock.Mock(),
-        model=mock.Mock(spec=OpenAIModel),
+        model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
         config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
     )
@@ -208,7 +208,7 @@ def test_file_is_excluded_from_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel),
+            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(exclude=("file2.txt",)),
         )
@@ -240,7 +240,7 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
     code_reviewer = CodeReviewer(
         reviewer_agent=error_agent,
         summarizing_agent=mock.Mock(),
-        model=mock.Mock(spec=OpenAIModel),
+        model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
         config=ResolvedConfig(),
     )
