@@ -1,3 +1,9 @@
+## v0.7.2 (2025-06-27)
+
+### Fix
+
+- raise LGTMException in case of bad git diff parsing (#64)
+
 ## v0.7.1 (2025-06-23)
 
 ### Fix
