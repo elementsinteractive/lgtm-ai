@@ -114,6 +114,7 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
         - 1: The approach taken is wrong, and the author needs to start from scratch. The PR is not ready to be merged as is at all. Provide a summary in the main section of which alternative approach should be taken, and why.
 
     Be more lenient than the reviewer: it tends to be too strict and nitpicky with the score. Have a more human approach to the review when it comes to scoring.
+    You are not allowed to decrease the score, only increase it or keep it the same.
 
     You will receive both the Review and the PR diff. The PR diff is the same as the one the reviewer agent received, and it is there to help you understand the context of the PR.
 """
