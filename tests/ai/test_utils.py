@@ -51,6 +51,8 @@ def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expect
         ("gemini-2.5-flash-*-*", None, pytest.raises(InvalidModelWildCard)),
         # Wildcards in the middle of the model name are not allowed
         ("gemini-*-pro-preview-06-05", None, pytest.raises(InvalidModelWildCard)),
+        # Wildcards that match preview, experimental and stable models must select the stable one
+        ("gemini-2.5-pro*", "gemini-2.5-pro", does_not_raise()),
     ],
 )
 def test_get_ai_model_with_wildcard(model: str, expected_model_name: str, expectation: Any) -> None:
