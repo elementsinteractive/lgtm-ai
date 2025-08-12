@@ -40,6 +40,9 @@ tests/
 # Poetry files you don't need in container (optional)
 poetry.lock  # If you're using only pyproject.toml
 
+# Configuration files (users provide their own)
+lgtm.toml
+
 # Docker files
 Dockerfile
 .dockerignore
