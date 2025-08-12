@@ -1,7 +1,7 @@
 technologies = ["Python", "AI"]
 categories = ["Correctness", "Quality", "Testing", "Security"]
 exclude = ["*.md", "poetry.lock"]
-model = "gemini-2.5-flash-preview-05-20"
+model = "gemini-2.5-pro"
 silent = false
 publish = true
 ai_retries = 2
