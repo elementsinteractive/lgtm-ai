@@ -56,6 +56,7 @@ SupportedAIModels = (
 )
 """Type of all supported AI models in lgtm."""
 
+foo = 1
 SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     get_args(ChatModel)
     + get_args(SupportedGeminiModel)
