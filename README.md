@@ -298,6 +298,7 @@ For GitHub, you can use the official LGTM AI GitHub Action:
   with:
     ai-api-key: ${{ secrets.AI_API_KEY }}
     git-api-key: ${{ secrets.GITHUB_TOKEN }}
+    model: 'gpt-5'
     pr-number: ${{ github.event.issue.number }}
 ```
 

@@ -22,7 +22,6 @@ inputs:
   model:
     description: "AI model to use (e.g. gpt-4o, claude-3-5-sonnet-latest, gemini-2.0-flash)"
     required: false
-    default: "gpt-5"
 
   version:
     description: "LGTM AI version (latest, v0.7.2, etc.)"
@@ -61,10 +60,13 @@ runs:
           --pr-url "https://github.com/${{ github.repository }}/pull/${{ inputs.pr-number }}"
           --git-api-key "${{ inputs.git-api-key }}"
           --ai-api-key "${{ inputs.ai-api-key }}"
-          --model "${{ inputs.model }}"
         )
 
         # Optional flags
+        if [ -n "${{ inputs.model }}" ]; then
+          ARGS+=(--model "${{ inputs.model }}")
+        fi
+
         if [ "${{ inputs.publish }}" = "true" ]; then
           ARGS+=(--publish)
         fi
