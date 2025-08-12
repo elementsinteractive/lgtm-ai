@@ -145,23 +145,23 @@ To use OpenAI LLMs, you need to provide lgtm with an API Key, which can be gener
 
 These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
 
-| Model name |  Description | 
-| --------   |  ----- | 
-| gpt-4.1 | Powerful and reliable model for detailed code analysis. Strong at coding tasks. | 
-| gpt-4.1-mini | Lightweight variant of GPT-4.1 offering faster responses and lower cost—ideal for iterative or high-volume reviews. | 
-| gpt-4.1-nano | Ultra-light model focused on speed and affordability—best for basic code checks or initial feedback. | 
-| gpt-4o * | Cutting-edge model with strong reasoning and code capabilities—ideal for detailed, context-aware reviews. | 
-| gpt-4o-mini | Streamlined GPT-4o variant optimized for fast, cost-effective feedback on code. | 
-| o4-mini | - |
-| o3-mini | - |
-| o3 | - |
-| o1-preview | - |
-| o1-mini | - |
-| o1 | - |
-| gpt-4-turbo | - |
-| gpt-4 | - |
-| gpt-3.5-turbo | - |
-| chatgpt-4o-latest | - |
+| Model name |
+| -------- |
+| gpt-4.1 |
+| gpt-4.1-mini |
+| gpt-4.1-nano |
+| gpt-4o * |
+| gpt-4o-mini |
+| o4-mini |
+| o3-mini |
+| o3 |
+| o1-preview |
+| o1-mini |
+| o1 |
+| gpt-4-turbo |
+| gpt-4 |
+| gpt-3.5-turbo |
+| chatgpt-4o-latest |
 
 </details>
 
@@ -182,14 +182,16 @@ For Gemini models exclusively, you can provide a wildcard at the end of the mode
 <summary>Supported Google's Gemini models</summary>
 
 
-| Model name  | Description |
-| -----------  | --- |
-| gemini-2.5-pro-preview-06-05       | Most advanced publicly available Gemini model. Strong code reasoning and long-context support. Ideal for complex or large reviews. |
-| gemini-2.5-pro-preview-05-06       | Deprecated. Most advanced publicly available Gemini model. Strong code reasoning and long-context support. Ideal for complex or large reviews. |
-| gemini-2.0-pro-exp-02-05            | High-performing general-purpose model. Balances accuracy and efficiency—ideal for robust reviews without 2.5's higher cost.        |
-| gemini-2.0-flash                    | Optimized for low-latency, lower-cost analysis. Ideal for iterative feedback and smaller reviews.                                  |
-| gemini-1.5-pro                      |  Proven performer with solid context and reasoning. Still excellent for general code understanding.                                 |
-| gemini-1.5-flash                    |  Lightweight and fast—suited for real-time or continuous code review loops.                                                         |
+| Model name |
+| ----------- |
+| gemini-2.5-pro |
+| gemini-2.5-pro-preview-06-05 |
+| gemini-2.5-pro-preview-05-06 |
+| gemini-2.5-flash |
+| gemini-2.0-pro-exp-02-05 |
+| gemini-2.0-flash |
+| gemini-1.5-pro |
+| gemini-1.5-flash |
 
 </details>
 
@@ -203,12 +205,12 @@ Check out [Anthropic documentation](https://docs.anthropic.com/en/docs/about-cla
 
 These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
 
-| Model name |   Description |
-| ---------------------------- | ---- |
-| claude-3-opus-latest      |  Anthropic's most advanced model. Highest accuracy, reasoning, and context length—ideal for deep code reviews or complex projects. |
-| claude-3-7-sonnet-latest      |  High-performance version of Sonnet 3.7. Stronger accuracy and broader context window than 3.5—best for nuanced reviews or mid-to-large projects. |
-| claude-3-5-sonnet-latest      | Optimized for efficiency while maintaining solid accuracy. Better latency and cost-performance—ideal for scalable or frequent reviews. |
-| claude-3-5-haiku-latest       |  Lightweight and fast. Designed for quick iterations and basic checks—ideal for continuous or CI-based review flows. |
+| Model name |
+| ---------------------------- |
+| claude-3-opus-latest |
+| claude-3-7-sonnet-latest |
+| claude-3-5-sonnet-latest |
+| claude-3-5-haiku-latest |
 
 </details>
 
@@ -224,11 +226,11 @@ To use Mistral LLMs, you need to provide lgtm with an API Key, which can be gene
 
 These are the main supported models, though the CLI may support additional ones due to the use of [pydantic-ai](https://ai.pydantic.dev).
 
-| Model name         | Description                                                                                         |
-| ------------------ | --------------------------------------------------------------------------------------------------- |
-| mistral-large-latest |  Mistral's top-tier reasoning model for high-complexity tasks. |
-| mistral-small        |  Lightweight and fast. Best used for simple syntax or formatting checks where cost and speed are priorities. |
-| codestrallatest     |   Codestral specializes in low-latency, high-frequency tasks such as fill-in-the-middle (FIM), code correction and test generation.
+| Model name |
+| ------------------ |
+| mistral-large-latest |
+| mistral-small |
+| codestrallatest |
 
 </details>
 
@@ -244,10 +246,10 @@ To get an API key for DeepSeek, create one at [DeepSeek Platform](https://platfo
 
 <summary>Supported DeepSeek models</summary>
 
-| Model name         |  Description                                                                                         |
- ----------- | --------------------------------------------------------------------------------------------------- |
-| deepseek-chat    | General-purpose LLM optimized for chat and code assistance. Ideal for standard reviews and developer interactions. |
-| deepseek-reasoner | Advanced model specialized in reasoning and problem solving—ideal for complex code analysis and critical thinking tasks. |
+| Model name |
+| ----------- |
+| deepseek-chat |
+| deepseek-reasoner |
 
 </details>
 
