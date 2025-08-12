@@ -1,0 +1,82 @@
+name: "LGTM AI Code Review"
+description: "AI-powered code review for pull requests"
+author: "Elements Interactive"
+
+branding:
+  icon: "moon"
+  color: "blue"
+
+inputs:
+  ai-api-key:
+    description: "API key for AI service (OpenAI, Anthropic, Google, etc.)"
+    required: true
+
+  git-api-key:
+    description: "API key for GitHub (you can use GITHUB_TOKEN)"
+    required: true
+
+  pr-number:
+    description: "Pull request number to review"
+    required: true
+
+  model:
+    description: "AI model to use (e.g. gpt-4o, claude-3-5-sonnet-latest, gemini-2.0-flash)"
+    required: false
+    default: "gpt-5"
+
+  version:
+    description: "LGTM AI version (latest, v0.7.2, etc.)"
+    required: false
+    default: "latest"
+
+  publish:
+    description: "Whether to publish the review as PR comments"
+    required: false
+    default: "true"
+
+  exclude:
+    description: "File patterns to exclude (e.g. '*.md *.json package-lock.json')"
+    required: false
+    default: ""
+
+  config:
+    description: "Path to lgtm.toml configuration file (e.g. '.lgtm.toml')"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run LGTM AI Review
+      shell: bash
+      run: |
+        # Build arguments as an array for safety (avoids word-splitting issues)
+        ARGS=(
+          review
+          --pr-url "https://github.com/${{ github.repository }}/pull/${{ inputs.pr-number }}"
+          --git-api-key "${{ inputs.git-api-key }}"
+          --ai-api-key "${{ inputs.ai-api-key }}"
+          --model "${{ inputs.model }}"
+        )
+
+        # Optional flags
+        if [ "${{ inputs.publish }}" = "true" ]; then
+          ARGS+=(--publish)
+        fi
+
+        if [ -n "${{ inputs.exclude }}" ]; then
+          ARGS+=(--exclude "${{ inputs.exclude }}")
+        fi
+
+        if [ -n "${{ inputs.config }}" ]; then
+          ARGS+=(--config "${{ inputs.config }}")
+        fi
+
+        # Verbose mode
+        ARGS+=(-v)
+
+        docker run --rm \
+          -v "${{ github.workspace }}:/workspace" \
+          -w /workspace \
+          elementsinteractive/lgtm-ai:${{ inputs.version }} \
+          "${ARGS[@]}"
