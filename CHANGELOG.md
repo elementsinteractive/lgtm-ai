@@ -1,3 +1,24 @@
+## v0.8.0 (2025-08-12)
+
+### Feat
+
+- **#76**: add explicit support and evaluation for gpt-5 models (#77)
+- **#70**: support gemini 2.5 stable models (#71)
+
+### Fix
+
+- prevent summarizing reviewer from decreasing the score (#72)
+
+### Docs
+
+- add newest gemini models to readme and remove description column (#75)
+
+### Technical
+
+- bump all deps and change lgtm model (#74)
+- bump the patch-updates group with 2 updates (#67)
+- bump ruff from 0.12.0 to 0.12.1 in the patch-updates group (#66)
+
 ## v0.7.2 (2025-06-27)
 
 ### Fix
