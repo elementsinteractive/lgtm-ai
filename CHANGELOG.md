@@ -1,3 +1,9 @@
+## v0.8.1 (2025-08-12)
+
+### Fix
+
+- exclude self lgtm.toml from ending up in docker file (#78)
+
 ## v0.8.0 (2025-08-12)
 
 ### Feat
