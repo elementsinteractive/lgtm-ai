@@ -147,6 +147,8 @@ These are the main supported models, though the CLI may support additional ones 
 
 | Model name |
 | -------- |
+| gpt-5 |
+| gpt-5-mini |
 | gpt-4.1 |
 | gpt-4.1-mini |
 | gpt-4.1-nano |
@@ -207,10 +209,11 @@ These are the main supported models, though the CLI may support additional ones 
 
 | Model name |
 | ---------------------------- |
-| claude-3-opus-latest |
+| claude-sonnet-4-0 |
 | claude-3-7-sonnet-latest |
 | claude-3-5-sonnet-latest |
 | claude-3-5-haiku-latest |
+| claude-3-opus-latest |
 
 </details>
 
