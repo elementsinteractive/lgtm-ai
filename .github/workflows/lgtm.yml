@@ -34,8 +34,6 @@ jobs:
     needs: check-permission
     if: needs.check-permission.outputs.has-permission == 'true'
     runs-on: ubuntu-latest
-    container:
-      image: elementsinteractive/lgtm-ai
     steps:
       - name: Checkout PR code
         uses: actions/checkout@v4
@@ -43,9 +41,8 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
       - name: Run LGTM Review
-        run: |
-          lgtm review \
-          --pr-url "https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}" \
-          --git-api-key "${{ secrets.GITHUB_TOKEN }}" \
-          --ai-api-key "${{ secrets.AI_API_TOKEN }}" \
-          -vv
+        uses: ./
+        with:
+          ai-api-key: ${{ secrets.AI_API_TOKEN }}
+          git-api-key: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.issue.number }}

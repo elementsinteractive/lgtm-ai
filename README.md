@@ -290,7 +290,18 @@ lgtm-review:
     MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
 ```
 
-For GitHub, we plan to provide a GitHub action soon. In the meantime, check out this repo's [lgtm workflow](./.github/workflows/lgtm.yml), with which you can trigger reviews in PRs by commenting `/lgtm review`.
+For GitHub, you can use the official LGTM AI GitHub Action:
+
+```yaml
+- name: AI Code Review
+  uses: elementsinteractive/lgtm-ai@v1
+  with:
+    ai-api-key: ${{ secrets.AI_API_KEY }}
+    git-api-key: ${{ secrets.GITHUB_TOKEN }}
+    pr-number: ${{ github.event.issue.number }}
+```
+
+You can also check out this repo's [lgtm workflow](./.github/workflows/lgtm.yml) for a complete example with comment triggers (`/lgtm review`).
 
 ### Configuration
 
