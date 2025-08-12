@@ -44,6 +44,11 @@ inputs:
     required: false
     default: ""
 
+  verbose:
+    description: "Enable extra verbose output (-vv instead of -v)"
+    required: false
+    default: "false"
+
 runs:
   using: "composite"
   steps:
@@ -72,8 +77,12 @@ runs:
           ARGS+=(--config "${{ inputs.config }}")
         fi
 
-        # Verbose mode
-        ARGS+=(-v)
+        # Verbose mode (default -v, or -vv if verbose=true)
+        if [ "${{ inputs.verbose }}" = "true" ]; then
+          ARGS+=(-vv)
+        else
+          ARGS+=(-v)
+        fi
 
         docker run --rm \
           -v "${{ github.workspace }}:/workspace" \
