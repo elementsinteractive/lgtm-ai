@@ -1,0 +1,31 @@
+
+## 🦉 lgtm Reviewer Guide
+
+### 🔍 Summary
+
+{{ summary | safe }}
+
+### 🔑 Key Changes
+
+| File Name | Description |
+| ---- | ---- |
+{% for change in key_changes -%}
+| {{ change.file_name }} | {{ change.description }} |
+{% endfor %}
+
+### ✅ Reviewer Checklist
+
+{% for item in checklist %}
+- [ ] {{ item.description }}
+{% endfor %}
+
+{% if references %}
+### 📚 References
+{% for ref in references %}
+- [{{ ref.title }}]({{ ref.url }})
+{% endfor %}
+{% endif %}
+
+{{ metadata | safe }}
+
+

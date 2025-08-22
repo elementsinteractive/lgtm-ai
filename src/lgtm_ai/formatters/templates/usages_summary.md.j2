@@ -1,0 +1,14 @@
+<details><summary>Usage summary</summary>
+{% for usage in usages %}
+
+<details><summary>Call {{ loop.index }}</summary>
+
+- **Request count**: `{{ usage.requests }}`
+- **Request tokens**: `{{ usage.request_tokens }}`
+- **Response tokens**: `{{ usage.response_tokens }}`
+- **Total tokens**: `{{ usage.total_tokens }}`
+</details>
+
+{% endfor %}
+**Total tokens**: `{{ total_tokens }}`
+</details>
