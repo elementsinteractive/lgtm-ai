@@ -1,3 +1,23 @@
+## v0.9.0 (2025-08-25)
+
+### Feat
+
+- add github action (#80)
+
+### Fix
+
+- make ai model optional in github action (#82)
+- add verbosity to gh action (#81)
+
+### Refactor
+
+- use jinja for comments instead of inline string formatting (#84)
+
+### Technical
+
+- bump the patch-updates group with 2 updates (#87)
+- bump the patch-updates group with 2 updates (#83)
+
 ## v0.8.1 (2025-08-12)
 
 ### Fix
