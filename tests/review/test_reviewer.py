@@ -18,6 +18,7 @@ from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, 
 from pydantic_ai.messages import ModelMessage, ModelRequest
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.test import TestModel
+from pydantic_ai.usage import Usage
 from tests.review.utils import MOCK_DIFF, MockGitClient
 
 # This is a safety measure to make sure we don't accidentally make real requests to the LLM while testing,
@@ -59,6 +60,11 @@ def test_get_review_from_url_valid() -> None:
                         prompt="These are the development guidelines for the project. Please follow them.",
                         context="contents-of-dev-guidelines",
                     ),
+                    AdditionalContext(
+                        file_url=None,
+                        prompt="Yet another prompt",
+                        context="yet-another-context",
+                    ),
                 )
             ),
         )
@@ -76,38 +82,98 @@ def test_get_review_from_url_valid() -> None:
     )
 
     # There are messages with the correct prompts to the AI agent
-    expected_message = textwrap.dedent(
-        f"""
-        PR Metadata:
-            ```Title
-            foo
-            ```
-            ```Description
-            bar
-            ```
-        PR Diff:
-            ```
-            {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
-            ```
-        Context:
-            ```file1.txt, branch=source
-            contents-of-file-1-context
-            ```
+    expected_message = (
+        textwrap.dedent(
+            f"""
+        PR METADATA:
+        - Title: foo
+        - Description: bar
 
-            ```file2.txt, branch=source
-            contents-of-file-2-context
-            ```
-        Additional context:
-            ```file=None; prompt=These are the development guidelines for the project. Please follow them.
-            contents-of-dev-guidelines
-            ```
+        PR DIFF:
+        ```
+        {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
+        ```
+
+
+        CONTEXT:
+
+        ```file=file1.txt, branch=source
+        contents-of-file-1-context
+        ```
+
+        ```file=file2.txt, branch=source
+        contents-of-file-2-context
+        ```
+
+        ADDITIONAL CONTEXT:
+
+        ```file=None, prompt=These are the development guidelines for the project. Please follow them.
+        contents-of-dev-guidelines
+        ```
+
+        ```file=None, prompt=Yet another prompt
+        yet-another-context
+        ```
         """
-    ).strip()
+        ).strip()
+        + "\n"
+    )
     _assert_agent_message(
         messages,
         expected_message,
         expected_messages=4,
         expected_prompts=["system-prompt", "system-prompt", "system-prompt", "user-prompt"],
+    )
+
+
+def test_summarizing_message_in_review() -> None:
+    test_agent = mock.Mock()
+    test_summarizing_agent = get_summarizing_agent_with_settings()
+    test_agent.run_sync.return_value = mock.Mock(
+        output=ReviewResponse(summary="a", raw_score=1),
+        usage=lambda: Usage(requests=1, request_tokens=1041, response_tokens=6, total_tokens=1047),
+    )
+
+    with (
+        test_summarizing_agent.override(
+            model=TestModel(),
+        ),
+        capture_run_messages() as messages,
+    ):
+        code_reviewer = CodeReviewer(
+            reviewer_agent=test_agent,
+            summarizing_agent=test_summarizing_agent,
+            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            git_client=MockGitClient(),
+            config=ResolvedConfig(),
+        )
+        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
+
+    review = {"summary": "a", "comments": [], "raw_score": 1, "score": "Abandon"}
+    expected_message = textwrap.dedent(
+        f"""
+        PR METADATA:
+        - Title: foo
+        - Description: bar
+
+        PR DIFF:
+        ```
+        {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
+        ```
+
+        REVIEW:
+        ```
+        {review}
+        ```
+
+
+        """
+    ).strip()
+    _assert_agent_message(
+        messages,
+        expected_message,
+        expected_messages=3,
+        expected_prompts=["system-prompt", "system-prompt", "user-prompt"],
     )
 
 
