@@ -19,10 +19,10 @@ class MarkDownFormatter(Formatter[str]):
 
     def __init__(self) -> None:
         template_dir = pathlib.Path(__file__).parent / "templates"
-        self.env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
+        self._template_env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
 
     def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
-        template = self.env.get_template(self.REVIEW_SUMMARY_TEMPLATE)
+        template = self._template_env.get_template(self.REVIEW_SUMMARY_TEMPLATE)
         comments_section = self.format_review_comments_section(comments or [])
         metadata = self._format_metadata(review.metadata)
         return template.render(
@@ -36,12 +36,12 @@ class MarkDownFormatter(Formatter[str]):
     def format_review_comments_section(self, comments: list[ReviewComment]) -> str:
         if not comments:
             return ""
-        template = self.env.get_template(self.REVIEW_COMMENTS_SECTION_TEMPLATE)
+        template = self._template_env.get_template(self.REVIEW_COMMENTS_SECTION_TEMPLATE)
         rendered_comments = [self.format_review_comment(comment, with_footer=False) for comment in comments]
         return template.render(comments=rendered_comments)
 
     def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> str:
-        template = self.env.get_template(self.REVIEW_COMMENT_TEMPLATE)
+        template = self._template_env.get_template(self.REVIEW_COMMENT_TEMPLATE)
         header_category = CATEGORY_MAP[comment.category]
         severity_icon = SEVERITY_MAP[comment.severity]
         snippet = self._format_snippet(comment) if comment.quote_snippet else None
@@ -59,7 +59,7 @@ class MarkDownFormatter(Formatter[str]):
         )
 
     def format_guide(self, guide: ReviewGuide) -> str:
-        template = self.env.get_template(self.REVIEW_GUIDE_TEMPLATE)
+        template = self._template_env.get_template(self.REVIEW_GUIDE_TEMPLATE)
         key_changes = guide.guide_response.key_changes
         checklist = guide.guide_response.checklist
         references = guide.guide_response.references
@@ -73,16 +73,16 @@ class MarkDownFormatter(Formatter[str]):
         )
 
     def _format_snippet(self, comment: ReviewComment) -> str:
-        template = self.env.get_template(self.SNIPPET_TEMPLATE)
+        template = self._template_env.get_template(self.SNIPPET_TEMPLATE)
         return template.render(language=comment.programming_language.lower(), snippet=comment.quote_snippet)
 
     def _format_usages_summary(self, usages: list[Usage]) -> str:
-        template = self.env.get_template(self.USAGES_SUMMARY_TEMPLATE)
+        template = self._template_env.get_template(self.USAGES_SUMMARY_TEMPLATE)
         total_tokens = sum(usage.total_tokens or 0 for usage in usages)
         return template.render(usages=usages, total_tokens=total_tokens)
 
     def _format_metadata(self, metadata: PublishMetadata) -> str:
-        template = self.env.get_template(self.METADATA_TEMPLATE)
+        template = self._template_env.get_template(self.METADATA_TEMPLATE)
         usages_summary = self._format_usages_summary(metadata.usages)
         return template.render(
             uuid=metadata.uuid,

@@ -1,0 +1,26 @@
+PR METADATA:
+- Title: {{ metadata.title }}
+- Description: {{ metadata.description }}
+
+PR DIFF:
+```
+{{ diff }}
+```
+
+{% if context %}
+CONTEXT:
+{% for context_file in context %}
+```file={{ context_file.file_path}}, branch={{ context_file.branch }}
+{{ context_file.content }}
+```
+{% endfor -%}
+{% endif -%}
+
+{% if additional_context %}
+ADDITIONAL CONTEXT:
+{% for context in additional_context %}
+```file={{ context.file_url }}, prompt={{ context.prompt }}
+{{ context.context }}
+```
+{% endfor -%}
+{% endif -%}
