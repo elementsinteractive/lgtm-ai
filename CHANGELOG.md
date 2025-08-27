@@ -1,3 +1,13 @@
+## v0.9.1 (2025-08-27)
+
+### Fix
+
+- **#90**: ensure three backticks in comments do not break markdown snippets (#91)
+
+### Refactor
+
+- **#88**: move to jinja for formatting prompts (#89)
+
 ## v0.9.0 (2025-08-25)
 
 ### Feat
