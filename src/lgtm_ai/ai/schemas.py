@@ -82,7 +82,11 @@ SEVERITY_PRIORITY_MAP: Final[dict[CommentSeverity, CommentSeverityPriority]] = {
 
 
 class CodeSuggestionOffset(BaseModel):
-    offset: Annotated[int, Field(description="Offset relative to the comment line number")]
+    offset: Annotated[
+        int,
+        Field(description="Offset relative to the comment line number"),
+        AfterValidator(lambda v: abs(v)),
+    ]
     direction: Annotated[
         Literal["+", "-"],
         Field(description="Direction of the offset. + means below, - means above"),
@@ -98,10 +102,12 @@ class CodeSuggestionOffset(BaseModel):
 
 class CodeSuggestion(BaseModel):
     start_offset: Annotated[
-        CodeSuggestionOffset, Field(description="Offset (from comment line number) to start the suggestion")
+        CodeSuggestionOffset,
+        Field(description="Offset (from comment line number) to start the suggestion"),
     ]
     end_offset: Annotated[
-        CodeSuggestionOffset, Field(description="Offset (from comment line number) to end the suggestion")
+        CodeSuggestionOffset,
+        Field(description="Offset (from comment line number) to end the suggestion"),
     ]
     snippet: Annotated[str, Field(description="Suggested code snippet to replace the commented code")]
     programming_language: Annotated[str, Field(description="Programming language of the code snippet")]
