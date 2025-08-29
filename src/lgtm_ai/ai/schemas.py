@@ -10,7 +10,24 @@ from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field, model_validator
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames
-from pydantic_ai.usage import Usage
+from pydantic_ai.usage import RunUsage
+
+
+def _recursive_get_args(tp: object) -> tuple[str, ...]:
+    """Recursively get all the arguments of a typing Literal construct.
+
+    For example, str | Literal["a", "b", Literal["c", "d"]] will return ["a", "b", "c", "d"].
+    """
+    args: list[str] = []
+    for arg in get_args(tp):
+        if get_args(arg):
+            args.extend(_recursive_get_args(arg))
+        else:
+            # Check whether arg is a Literal type
+            if isinstance(arg, str):
+                args.append(arg)
+    return tuple(args)
+
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
@@ -59,7 +76,7 @@ SupportedAIModels = (
 SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     get_args(ChatModel)
     + get_args(SupportedGeminiModel)
-    + get_args(LatestAnthropicModelNames)
+    + _recursive_get_args(LatestAnthropicModelNames)
     + get_args(LatestMistralModelNames)
     + get_args(DeepSeekModel)
 )  # Keep in sync with SupportedAIModels except for AnyModel
@@ -169,7 +186,7 @@ class GuideResponse(BaseModel):
 
 class PublishMetadata(BaseModel):
     model_name: str
-    usages: list[Usage]
+    usage: RunUsage
 
     @cached_property
     def created_at(self) -> str:

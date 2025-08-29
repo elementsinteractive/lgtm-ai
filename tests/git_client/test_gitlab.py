@@ -157,7 +157,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+        metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)
@@ -245,7 +245,7 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE]),
+        metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
     )
 
     client.publish_review(MockGitlabUrl, fake_review)

@@ -46,6 +46,26 @@ def additional_context_lgtm_toml_file(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
+def ai_input_token_limit_none_toml_file(tmp_path: Path) -> Iterator[str]:
+    pyproject_toml = tmp_path / "lgtm_ai_input_token_limit_none.toml"
+    data = """
+    ai_input_tokens_limit = "no-limit"
+    """
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
+def ai_input_token_limit_toml_file(tmp_path: Path) -> Iterator[str]:
+    pyproject_toml = tmp_path / "lgtm_ai_input_token_limit_none.toml"
+    data = """
+    ai_input_tokens_limit = 10
+    """
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def pyproject_toml_file(tmp_path: Path) -> Iterator[str]:
     pyproject_toml = tmp_path / "pyproject.toml"
     data = """

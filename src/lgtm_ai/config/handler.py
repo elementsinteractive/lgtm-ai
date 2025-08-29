@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any, ClassVar, Literal, cast, get_args, overload
 
 from lgtm_ai.ai.schemas import AdditionalContext, CommentCategory, SupportedAIModels
-from lgtm_ai.base.schemas import OutputFormat
-from lgtm_ai.config.constants import DEFAULT_AI_MODEL
+from lgtm_ai.base.schemas import IntOrNoLimit, OutputFormat
+from lgtm_ai.config.constants import DEFAULT_AI_MODEL, DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
@@ -36,6 +36,7 @@ class PartialConfig(BaseModel):
     output_format: OutputFormat | None = None
     silent: bool = False
     ai_retries: int | None = None
+    ai_input_tokens_limit: IntOrNoLimit | None = None
 
     # Secrets
     git_api_key: str | None = None
@@ -77,6 +78,9 @@ class ResolvedConfig(BaseModel):
 
     ai_retries: int | None = None
     """Retry count for AI agent queries."""
+
+    ai_input_tokens_limit: int | None = DEFAULT_INPUT_TOKEN_LIMIT
+    """Maximum number of input tokens allowed to send to all AI models in total."""
 
     # Secrets
     git_api_key: str = Field(default="", repr=False)
@@ -138,6 +142,7 @@ class ConfigHandler:
                 output_format=config_data.get("output_format", None),
                 silent=config_data.get("silent", False),
                 ai_retries=config_data.get("ai_retries", None),
+                ai_input_tokens_limit=config_data.get("ai_input_tokens_limit", None),
             )
         except ValidationError as err:
             raise InvalidConfigError(source=file_to_read.name, errors=err.errors()) from None
@@ -197,6 +202,7 @@ class ConfigHandler:
             silent=self.cli_args.silent,
             publish=self.cli_args.publish,
             ai_retries=self.cli_args.ai_retries or None,
+            ai_input_tokens_limit=self.cli_args.ai_input_tokens_limit or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -238,6 +244,9 @@ class ConfigHandler:
             git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
             ai_api_key=self.resolver.resolve_string_field(
                 "ai_api_key", from_cli=from_cli, from_env=from_env, required=False, default=""
+            ),
+            ai_input_tokens_limit=_transform_nolimit_to_none(
+                from_cli.ai_input_tokens_limit or from_file.ai_input_tokens_limit or DEFAULT_INPUT_TOKEN_LIMIT
             ),
         )
         logger.debug("Resolved config: %s", resolved)
@@ -346,3 +355,9 @@ class _ConfigFieldResolver:
                 seen.add(x)
                 saved.append(x)
         return saved
+
+
+def _transform_nolimit_to_none(value: IntOrNoLimit | None) -> int | None:
+    if value == "no-limit":
+        return None
+    return value

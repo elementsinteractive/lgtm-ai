@@ -21,7 +21,7 @@ from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel, LatestAnthropicModelNames
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.mistral import LatestMistralModelNames, MistralModel
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.deepseek import DeepSeekProvider
 from pydantic_ai.providers.google import GoogleProvider
@@ -50,7 +50,7 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
 
     if model_url:
         logger.info("Using model '%s' via custom OpenAI-compatible endpoint: %s", model_name, model_url)
-        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
+        return OpenAIChatModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
 
     if model_name in SupportedAIModelsList and not api_key:
         raise MissingAIAPIKey(model_name=model_name)
@@ -64,13 +64,13 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
             raise InvalidModelName(model_name=model_name)
         return GoogleModel(select_latest_gemini_model(matches), provider=GoogleProvider(api_key=api_key))
     elif _is_openai_model(model_name):
-        return OpenAIModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
+        return OpenAIChatModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key))
     elif _is_anthropic_model(model_name):
         return AnthropicModel(model_name=model_name, provider=AnthropicProvider(api_key=api_key))
     elif _is_mistral_model(model_name):
         return MistralModel(model_name=model_name, provider=MistralProvider(api_key=api_key))
     elif _is_deepseek_model(model_name):
-        return OpenAIModel(model_name=model_name, provider=DeepSeekProvider(api_key=api_key))
+        return OpenAIChatModel(model_name=model_name, provider=DeepSeekProvider(api_key=api_key))
     else:
         # Not known models but no custom URL was provided, so we raise an error
         raise MissingModelUrl(model_name=model_name)

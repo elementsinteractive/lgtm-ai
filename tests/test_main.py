@@ -22,6 +22,13 @@ def test_set_logging_level(verbosity: int, expected_level: int) -> None:
     assert fake_logger.level == expected_level
 
 
+def test_help() -> None:
+    """We have several custom click parameter types, ensure they render correctly without errors."""
+    runner = CliRunner()
+    result = runner.invoke(review, ["--help"])
+    assert result.exit_code == 0
+
+
 @mock.patch("lgtm_ai.__main__.CodeReviewer")
 @mock.patch("lgtm_ai.__main__.PrettyFormatter")
 @mock.patch("lgtm_ai.__main__.get_git_client")

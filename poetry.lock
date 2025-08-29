@@ -1098,6 +1098,22 @@ test-full = ["adlfs", "aiohttp (!=4.0.0a0,!=4.0.0a1)", "cloudpickle", "dask", "d
 tqdm = ["tqdm"]
 
 [[package]]
+name = "genai-prices"
+version = "0.0.24"
+description = "Calculate prices for calling LLM inference APIs."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "genai_prices-0.0.24-py3-none-any.whl", hash = "sha256:620beb35a845b32463201bb2816060181500e15c0a715b3bfa2583ef58e0702d"},
+    {file = "genai_prices-0.0.24.tar.gz", hash = "sha256:faeac6276964bc31ca9a2551219d4642979426bd2c593e884ec5bb40089b298e"},
+]
+
+[package.dependencies]
+httpx = ">=0.28.1"
+pydantic = ">=2.11.7"
+
+[[package]]
 name = "ghp-import"
 version = "2.1.0"
 description = "Copy your docs directly to the gh-pages branch."
@@ -1144,14 +1160,14 @@ urllib3 = ["packaging", "urllib3"]
 
 [[package]]
 name = "google-genai"
-version = "1.29.0"
+version = "1.32.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "google_genai-1.29.0-py3-none-any.whl", hash = "sha256:8b64737de008d15ca4737e593913f88f656f0568544ab6901f768f0d1fd69bbf"},
-    {file = "google_genai-1.29.0.tar.gz", hash = "sha256:a6b036ab032830f668d137b198c2a5abd8951a036d7a8480b61ce837c1c7f36b"},
+    {file = "google_genai-1.32.0-py3-none-any.whl", hash = "sha256:c0c4b1d45adf3aa99501050dd73da2f0dea09374002231052d81a6765d15e7f6"},
+    {file = "google_genai-1.32.0.tar.gz", hash = "sha256:349da3f5ff0e981066bd508585fcdd308d28fc4646f318c8f6d1aa6041f4c7e3"},
 ]
 
 [package.dependencies]
@@ -2140,6 +2156,21 @@ files = [
 ]
 
 [[package]]
+name = "nexus-rpc"
+version = "1.1.0"
+description = "Nexus Python SDK"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "nexus_rpc-1.1.0-py3-none-any.whl", hash = "sha256:d1b007af2aba186a27e736f8eaae39c03aed05b488084ff6c3d1785c9ba2ad38"},
+    {file = "nexus_rpc-1.1.0.tar.gz", hash = "sha256:d65ad6a2f54f14e53ebe39ee30555eaeb894102437125733fb13034a04a44553"},
+]
+
+[package.dependencies]
+typing-extensions = ">=4.12.2"
+
+[[package]]
 name = "nodeenv"
 version = "1.9.1"
 description = "Node.js virtual environment builder"
@@ -2443,6 +2474,27 @@ files = [
 ]
 
 [[package]]
+name = "protobuf"
+version = "5.29.5"
+description = ""
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "protobuf-5.29.5-cp310-abi3-win32.whl", hash = "sha256:3f1c6468a2cfd102ff4703976138844f78ebd1fb45f49011afc5139e9e283079"},
+    {file = "protobuf-5.29.5-cp310-abi3-win_amd64.whl", hash = "sha256:3f76e3a3675b4a4d867b52e4a5f5b78a2ef9565549d4037e06cf7b0942b1d3fc"},
+    {file = "protobuf-5.29.5-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:e38c5add5a311f2a6eb0340716ef9b039c1dfa428b28f25a7838ac329204a671"},
+    {file = "protobuf-5.29.5-cp38-abi3-manylinux2014_aarch64.whl", hash = "sha256:fa18533a299d7ab6c55a238bf8629311439995f2e7eca5caaff08663606e9015"},
+    {file = "protobuf-5.29.5-cp38-abi3-manylinux2014_x86_64.whl", hash = "sha256:63848923da3325e1bf7e9003d680ce6e14b07e55d0473253a690c3a8b8fd6e61"},
+    {file = "protobuf-5.29.5-cp38-cp38-win32.whl", hash = "sha256:ef91363ad4faba7b25d844ef1ada59ff1604184c0bcd8b39b8a6bef15e1af238"},
+    {file = "protobuf-5.29.5-cp38-cp38-win_amd64.whl", hash = "sha256:7318608d56b6402d2ea7704ff1e1e4597bee46d760e7e4dd42a3d45e24b87f2e"},
+    {file = "protobuf-5.29.5-cp39-cp39-win32.whl", hash = "sha256:6f642dc9a61782fa72b90878af134c5afe1917c89a568cd3476d758d3c3a0736"},
+    {file = "protobuf-5.29.5-cp39-cp39-win_amd64.whl", hash = "sha256:470f3af547ef17847a28e1f47200a1cbf0ba3ff57b7de50d22776607cd2ea353"},
+    {file = "protobuf-5.29.5-py3-none-any.whl", hash = "sha256:6cf42630262c59b2d8de33954443d94b746c952b01434fc58a417fdbd2e84bd5"},
+    {file = "protobuf-5.29.5.tar.gz", hash = "sha256:bc1463bafd4b0929216c35f437a8e28731a2b7fe3d98bb77a600efced5a15c84"},
+]
+
+[[package]]
 name = "ptyprocess"
 version = "0.7.0"
 description = "Run a subprocess in a pseudo terminal"
@@ -2533,34 +2585,34 @@ timezone = ["tzdata ; python_version >= \"3.9\" and platform_system == \"Windows
 
 [[package]]
 name = "pydantic-ai"
-version = "0.6.2"
+version = "0.8.0"
 description = "Agent Framework / shim to use Pydantic with LLMs"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic_ai-0.6.2-py3-none-any.whl", hash = "sha256:3e0469cb3888a1986a61fa2901b59b1281de3b04cc00606e6ec165aaa6f23ecd"},
-    {file = "pydantic_ai-0.6.2.tar.gz", hash = "sha256:049450e935cc723c2a1f8241309e55b949be4429030ba2d6dc3a94b86eab7f14"},
+    {file = "pydantic_ai-0.8.0-py3-none-any.whl", hash = "sha256:f288508ae3d105c2c10cbdc51829849bdc593fdcd87394baa1e799be4e1f9f6f"},
+    {file = "pydantic_ai-0.8.0.tar.gz", hash = "sha256:4633ed18e5073e0aaa1a78253da781a1b402daa39e9c0f190354315ef74297b4"},
 ]
 
 [package.dependencies]
-pydantic-ai-slim = {version = "0.6.2", extras = ["ag-ui", "anthropic", "bedrock", "cli", "cohere", "evals", "google", "groq", "huggingface", "mcp", "mistral", "openai", "retries", "vertexai"]}
+pydantic-ai-slim = {version = "0.8.0", extras = ["ag-ui", "anthropic", "bedrock", "cli", "cohere", "evals", "google", "groq", "huggingface", "mcp", "mistral", "openai", "retries", "temporal", "vertexai"]}
 
 [package.extras]
 a2a = ["fasta2a (>=0.4.1)"]
-examples = ["pydantic-ai-examples (==0.6.2)"]
-logfire = ["logfire (>=3.11.0)"]
+examples = ["pydantic-ai-examples (==0.8.0)"]
+logfire = ["logfire (>=3.14.1)"]
 
 [[package]]
 name = "pydantic-ai-slim"
-version = "0.6.2"
+version = "0.8.0"
 description = "Agent Framework / shim to use Pydantic with LLMs, slim package"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic_ai_slim-0.6.2-py3-none-any.whl", hash = "sha256:80fd102bcd6e8108d5dfe42e2940b0b041c0f706c510314894468117dae6a9e0"},
-    {file = "pydantic_ai_slim-0.6.2.tar.gz", hash = "sha256:c5a7e055d6fd2b2483d172d08e23e28f34b6b4290c075b2f81836f2cb6a7cd60"},
+    {file = "pydantic_ai_slim-0.8.0-py3-none-any.whl", hash = "sha256:0f13bbda31d1ce1ee17368120278659cad176e80b1cb8d96bacf0d9f28764003"},
+    {file = "pydantic_ai_slim-0.8.0.tar.gz", hash = "sha256:ccf8010ac6836d7f5a390c912f7a2259e8582f092b7b5b815cc5d18555f95a93"},
 ]
 
 [package.dependencies]
@@ -2570,23 +2622,26 @@ argcomplete = {version = ">=3.5.0", optional = true, markers = "extra == \"cli\"
 boto3 = {version = ">=1.39.0", optional = true, markers = "extra == \"bedrock\""}
 cohere = {version = ">=5.16.0", optional = true, markers = "platform_system != \"Emscripten\" and extra == \"cohere\""}
 eval-type-backport = ">=0.2.0"
+genai-prices = ">=0.0.22"
 google-auth = {version = ">=2.36.0", optional = true, markers = "extra == \"vertexai\""}
-google-genai = {version = ">=1.28.0", optional = true, markers = "extra == \"google\""}
+google-genai = {version = ">=1.31.0", optional = true, markers = "extra == \"google\""}
 griffe = ">=1.3.2"
 groq = {version = ">=0.25.0", optional = true, markers = "extra == \"groq\""}
 httpx = ">=0.27"
 huggingface-hub = {version = ">=0.33.5", extras = ["inference"], optional = true, markers = "extra == \"huggingface\""}
-mcp = {version = ">=1.10.0", optional = true, markers = "python_version >= \"3.10\" and extra == \"mcp\""}
+mcp = {version = ">=1.12.3", optional = true, markers = "python_version >= \"3.10\" and extra == \"mcp\""}
 mistralai = {version = ">=1.9.2", optional = true, markers = "extra == \"mistral\""}
-openai = {version = ">=1.92.0", optional = true, markers = "extra == \"openai\""}
+openai = {version = ">=1.99.9", optional = true, markers = "extra == \"openai\""}
 opentelemetry-api = ">=1.28.0"
 prompt-toolkit = {version = ">=3", optional = true, markers = "extra == \"cli\""}
 pydantic = ">=2.10"
-pydantic-evals = {version = "0.6.2", optional = true, markers = "extra == \"evals\""}
-pydantic-graph = "0.6.2"
+pydantic-evals = {version = "0.8.0", optional = true, markers = "extra == \"evals\""}
+pydantic-graph = "0.8.0"
+pyperclip = {version = ">=1.9.0", optional = true, markers = "extra == \"cli\""}
 requests = {version = ">=2.32.2", optional = true, markers = "extra == \"vertexai\""}
 rich = {version = ">=13", optional = true, markers = "extra == \"cli\""}
 starlette = {version = ">=0.45.3", optional = true, markers = "extra == \"ag-ui\""}
+temporalio = {version = "1.15.0", optional = true, markers = "extra == \"temporal\""}
 tenacity = {version = ">=8.2.3", optional = true, markers = "extra == \"retries\""}
 typing-inspection = ">=0.4.0"
 
@@ -2595,19 +2650,20 @@ a2a = ["fasta2a (>=0.4.1)"]
 ag-ui = ["ag-ui-protocol (>=0.1.8)", "starlette (>=0.45.3)"]
 anthropic = ["anthropic (>=0.61.0)"]
 bedrock = ["boto3 (>=1.39.0)"]
-cli = ["argcomplete (>=3.5.0)", "prompt-toolkit (>=3)", "rich (>=13)"]
+cli = ["argcomplete (>=3.5.0)", "prompt-toolkit (>=3)", "pyperclip (>=1.9.0)", "rich (>=13)"]
 cohere = ["cohere (>=5.16.0) ; platform_system != \"Emscripten\""]
 duckduckgo = ["ddgs (>=9.0.0)"]
-evals = ["pydantic-evals (==0.6.2)"]
-google = ["google-genai (>=1.28.0)"]
+evals = ["pydantic-evals (==0.8.0)"]
+google = ["google-genai (>=1.31.0)"]
 groq = ["groq (>=0.25.0)"]
 huggingface = ["huggingface-hub[inference] (>=0.33.5)"]
-logfire = ["logfire (>=3.11.0)"]
-mcp = ["mcp (>=1.10.0) ; python_version >= \"3.10\""]
+logfire = ["logfire (>=3.14.1)"]
+mcp = ["mcp (>=1.12.3) ; python_version >= \"3.10\""]
 mistral = ["mistralai (>=1.9.2)"]
-openai = ["openai (>=1.92.0)"]
+openai = ["openai (>=1.99.9)"]
 retries = ["tenacity (>=8.2.3)"]
 tavily = ["tavily-python (>=0.5.0)"]
+temporal = ["temporalio (==1.15.0)"]
 vertexai = ["google-auth (>=2.36.0)", "requests (>=2.32.2)"]
 
 [[package]]
@@ -2724,42 +2780,42 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pydantic-evals"
-version = "0.6.2"
+version = "0.8.0"
 description = "Framework for evaluating stochastic code execution, especially code making use of LLMs"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic_evals-0.6.2-py3-none-any.whl", hash = "sha256:f6eec289d0ee256bd937a00a31fbbf1e3f54b0ca34f03e10344752042e93d9f7"},
-    {file = "pydantic_evals-0.6.2.tar.gz", hash = "sha256:0b4895da682c0511c30ed35d794475f494ec8ab719ac05e4bbb1464f2e73c8d1"},
+    {file = "pydantic_evals-0.8.0-py3-none-any.whl", hash = "sha256:d09bb4c292db3f8bbaba4be6f805e346ce10c2d2733e7368f9aec7a7d9933172"},
+    {file = "pydantic_evals-0.8.0.tar.gz", hash = "sha256:430d3a51cfa88edbbb7716440540ad222d44c4d7d7ddaebc960af5f542a65ab2"},
 ]
 
 [package.dependencies]
 anyio = ">=0"
-logfire-api = ">=1.2.0"
+logfire-api = ">=3.14.1"
 pydantic = ">=2.10"
-pydantic-ai-slim = "0.6.2"
+pydantic-ai-slim = "0.8.0"
 pyyaml = ">=6.0.2"
 rich = ">=13.9.4"
 
 [package.extras]
-logfire = ["logfire (>=2.3)"]
+logfire = ["logfire (>=3.14.1)"]
 
 [[package]]
 name = "pydantic-graph"
-version = "0.6.2"
+version = "0.8.0"
 description = "Graph and state machine library"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic_graph-0.6.2-py3-none-any.whl", hash = "sha256:fa7ba3499bd1dd3a6f75a3d82a43831965e28121442e0a24ba8972fd34a1e665"},
-    {file = "pydantic_graph-0.6.2.tar.gz", hash = "sha256:e989468c1ea8b99d7c66689e7b774ba0b9a94425e4d520aed7594aeb1228b7d4"},
+    {file = "pydantic_graph-0.8.0-py3-none-any.whl", hash = "sha256:ed8af83c505f7ec49481d155b2c05ee9e01bfb579df3502a6181ee53d95f529d"},
+    {file = "pydantic_graph-0.8.0.tar.gz", hash = "sha256:23621846d98e673e61f38d3774a1d105710279e5847dbe9bec7e3375d9b8981f"},
 ]
 
 [package.dependencies]
 httpx = ">=0.27"
-logfire-api = ">=1.2.0"
+logfire-api = ">=3.14.1"
 pydantic = ">=2.10"
 typing-inspection = ">=0.4.0"
 
@@ -2887,6 +2943,17 @@ cffi = ">=1.4.1"
 [package.extras]
 docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
 tests = ["hypothesis (>=3.27.0)", "pytest (>=3.2.1,!=3.3.0)"]
+
+[[package]]
+name = "pyperclip"
+version = "1.9.0"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "pyperclip-1.9.0.tar.gz", hash = "sha256:b7de0142ddc81bfc5c7507eea19da920b92252b548b96186caf94a5e2527d310"},
+]
 
 [[package]]
 name = "pytest"
@@ -3502,6 +3569,34 @@ typing-extensions = {version = ">=4.10.0", markers = "python_version < \"3.13\""
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "temporalio"
+version = "1.15.0"
+description = "Temporal.io Python SDK"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "temporalio-1.15.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:74bc5cc0e6bdc161a43015538b0821b8713f5faa716c4209971c274b528e0d47"},
+    {file = "temporalio-1.15.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:ee8001304dae5723d79797516cfeebe04b966fdbdf348e658fce3b43afdda3cd"},
+    {file = "temporalio-1.15.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8febd1ac36720817e69c2176aa4aca14a97fe0b83f0d2449c0c730b8f0174d02"},
+    {file = "temporalio-1.15.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:202d81a42cafaed9ccc7ccbea0898838e3b8bf92fee65394f8790f37eafbaa63"},
+    {file = "temporalio-1.15.0-cp39-abi3-win_amd64.whl", hash = "sha256:aae5b18d7c9960238af0f3ebf6b7e5959e05f452106fc0d21a8278d78724f780"},
+    {file = "temporalio-1.15.0.tar.gz", hash = "sha256:a4bc6ca01717880112caab75d041713aacc8263dc66e41f5019caef68b344fa0"},
+]
+
+[package.dependencies]
+nexus-rpc = "1.1.0"
+protobuf = ">=3.20,<6"
+types-protobuf = ">=3.20"
+typing-extensions = ">=4.2.0,<5"
+
+[package.extras]
+grpc = ["grpcio (>=1.48.2,<2)"]
+openai-agents = ["eval-type-backport (>=0.2.2) ; python_full_version < \"3.10.0\"", "openai-agents (>=0.2.3,<0.3)"]
+opentelemetry = ["opentelemetry-api (>=1.11.1,<2)", "opentelemetry-sdk (>=1.11.1,<2)"]
+pydantic = ["pydantic (>=2.0.0,<3)"]
+
+[[package]]
 name = "tenacity"
 version = "9.1.2"
 description = "Retry code until it succeeds"
@@ -3615,6 +3710,18 @@ files = [
 [package.extras]
 docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
+
+[[package]]
+name = "types-protobuf"
+version = "6.30.2.20250822"
+description = "Typing stubs for protobuf"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "types_protobuf-6.30.2.20250822-py3-none-any.whl", hash = "sha256:5584c39f7e36104b5f8bdfd31815fa1d5b7b3455a79ddddc097b62320f4b1841"},
+    {file = "types_protobuf-6.30.2.20250822.tar.gz", hash = "sha256:faacbbe87bd8cba4472361c0bd86f49296bd36f7761e25d8ada4f64767c1bde9"},
+]
 
 [[package]]
 name = "types-requests"

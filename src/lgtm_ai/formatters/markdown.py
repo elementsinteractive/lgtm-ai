@@ -5,7 +5,6 @@ from jinja2 import Environment, FileSystemLoader
 from lgtm_ai.ai.schemas import PublishMetadata, Review, ReviewComment, ReviewGuide
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.constants import CATEGORY_MAP, SCORE_MAP, SEVERITY_MAP
-from pydantic_ai.usage import Usage
 
 
 class MarkDownFormatter(Formatter[str]):
@@ -14,7 +13,6 @@ class MarkDownFormatter(Formatter[str]):
     REVIEW_COMMENT_TEMPLATE: ClassVar[str] = "review_comment.md.j2"
     REVIEW_GUIDE_TEMPLATE: ClassVar[str] = "review_guide.md.j2"
     SNIPPET_TEMPLATE: ClassVar[str] = "snippet.md.j2"
-    USAGES_SUMMARY_TEMPLATE: ClassVar[str] = "usages_summary.md.j2"
     METADATA_TEMPLATE: ClassVar[str] = "metadata.md.j2"
 
     def __init__(self, use_suggestions: bool = False) -> None:
@@ -79,17 +77,11 @@ class MarkDownFormatter(Formatter[str]):
         template = self._template_env.get_template(self.SNIPPET_TEMPLATE)
         return template.render(language=comment.programming_language.lower(), snippet=comment.quote_snippet)
 
-    def _format_usages_summary(self, usages: list[Usage]) -> str:
-        template = self._template_env.get_template(self.USAGES_SUMMARY_TEMPLATE)
-        total_tokens = sum(usage.total_tokens or 0 for usage in usages)
-        return template.render(usages=usages, total_tokens=total_tokens)
-
     def _format_metadata(self, metadata: PublishMetadata) -> str:
         template = self._template_env.get_template(self.METADATA_TEMPLATE)
-        usages_summary = self._format_usages_summary(metadata.usages)
         return template.render(
             uuid=metadata.uuid,
             model_name=metadata.model_name,
             created_at=metadata.created_at,
-            usages_summary=usages_summary,
+            usage=metadata.usage,
         )

@@ -13,8 +13,9 @@ from lgtm_ai.ai.agent import (
     get_summarizing_agent_with_settings,
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
-from lgtm_ai.base.schemas import OutputFormat, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_suggestions
+from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.json import JsonFormatter
@@ -24,6 +25,7 @@ from lgtm_ai.git_client.utils import get_git_client
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.guide import ReviewGuideGenerator
 from lgtm_ai.validators import (
+    IntOrNoLimitType,
     ModelChoice,
     parse_pr_url,
     validate_model_url,
@@ -79,6 +81,11 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         type=int,
         help="How many times the AI agent can retry queries to the LLM (NOTE: can impact billing!).",
     )
+    @click.option(
+        "--ai-input-tokens-limit",
+        type=IntOrNoLimitType(),
+        help=f"Maximum number of input tokens allowed to send to all AI models in total (defaults to {DEFAULT_INPUT_TOKEN_LIMIT:,}). Pass `'no-limit'` to disable the limit.",
+    )
     @click.option("--verbose", "-v", count=True, help="Set logging level.")
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -112,6 +119,7 @@ def review(
     output_format: OutputFormat | None,
     silent: bool,
     ai_retries: int | None,
+    ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
     technologies: tuple[str, ...],
     categories: tuple[CommentCategory, ...],
@@ -135,6 +143,7 @@ def review(
             output_format=output_format,
             silent=silent,
             ai_retries=ai_retries,
+            ai_input_tokens_limit=ai_input_tokens_limit,
         ),
         config_file=config,
     ).resolve_config()
@@ -183,6 +192,7 @@ def guide(
     output_format: OutputFormat | None,
     silent: bool,
     ai_retries: int | None,
+    ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
 ) -> None:
     """Generate a review guide for a Pull Request using AI."""
@@ -202,6 +212,7 @@ def guide(
             output_format=output_format,
             silent=silent,
             ai_retries=ai_retries,
+            ai_input_tokens_limit=ai_input_tokens_limit,
         ),
         config_file=config,
     ).resolve_config()

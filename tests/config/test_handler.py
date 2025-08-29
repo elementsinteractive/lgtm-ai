@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
@@ -209,3 +210,27 @@ def test_additional_context_from_file(additional_context_lgtm_toml_file: str) ->
     assert config.additional_context[1].file_url is None
     assert config.additional_context[1].prompt == "inline intro prompt"
     assert config.additional_context[1].context == "inline additional context"
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_ai_input_token_limit_none(ai_input_token_limit_none_toml_file: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=ai_input_token_limit_none_toml_file)
+    config = handler.resolve_config()
+    assert config.ai_input_tokens_limit is None
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_ai_input_token_limit_uses_default(lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(cli_args=PartialConfig(), config_file=lgtm_toml_file)
+    config = handler.resolve_config()
+    assert config.ai_input_tokens_limit == DEFAULT_INPUT_TOKEN_LIMIT
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_ai_input_token_limit_uses_none_from_cli(ai_input_token_limit_toml_file: str) -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(ai_input_tokens_limit="no-limit"),
+        config_file=ai_input_token_limit_toml_file,  # This files contains a value, but won't be used because `none` has precedence from the cli
+    )
+    config = handler.resolve_config()
+    assert config.ai_input_tokens_limit is None

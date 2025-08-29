@@ -8,6 +8,7 @@ from lgtm_ai.review.exceptions import handle_ai_exceptions
 from lgtm_ai.review.prompt_generators import PromptGenerator
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
+from pydantic_ai.usage import UsageLimits
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -30,6 +31,7 @@ class ReviewGuideGenerator:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.git_client.get_context(pr_url, pr_diff)
         metadata = self.git_client.get_pr_metadata(pr_url)
+        usage_limits = UsageLimits(input_tokens_limit=self.config.ai_input_tokens_limit)
 
         prompt_generator = PromptGenerator(self.config, metadata)
 
@@ -39,11 +41,12 @@ class ReviewGuideGenerator:
             raw_res = self.guide_agent.run_sync(
                 model=self.model,
                 user_prompt=guide_prompt,
+                usage_limits=usage_limits,
             )
         logger.info("Guide generation completed")
 
         return ReviewGuide(
             pr_diff=pr_diff,
             guide_response=raw_res.output,
-            metadata=PublishMetadata(model_name=self.model.model_name, usages=[raw_res.usage()]),
+            metadata=PublishMetadata(model_name=self.model.model_name, usage=raw_res.usage()),
         )

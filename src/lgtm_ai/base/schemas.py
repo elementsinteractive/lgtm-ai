@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Literal
+
+type IntOrNoLimit = int | Literal["no-limit"]
+"""Represents either an integer or the string "no-limit". Can be used for distinguishing between not given (`None`) and explicitly set to null (`"no-limit"`)."""
 
 
 class PRSource(StrEnum):

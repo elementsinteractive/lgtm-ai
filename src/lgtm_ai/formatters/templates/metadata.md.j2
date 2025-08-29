@@ -5,7 +5,14 @@
 - **Created at**: `{{ created_at }}`
 
 
-{{ usages_summary | safe }}
+<details><summary>Usage summary</summary>
+
+- **Request count**: `{{ usage.requests }}`
+- **Request tokens**: `{{ '{:,}'.format(usage.input_tokens) }}`
+- **Response tokens**: `{{ '{:,}'.format(usage.output_tokens) }}`
+- **Total tokens**: `{{ '{:,}'.format(usage.total_tokens) }}`
+
+</details>
 
 
 > See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.
