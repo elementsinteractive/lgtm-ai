@@ -11,7 +11,7 @@ from lgtm_ai.ai.schemas import (
     PublishMetadata,
     ReviewGuide,
 )
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.review.guide import ReviewGuideGenerator
@@ -32,7 +32,7 @@ def test_get_guide_from_url_valid() -> None:
             config=ResolvedConfig(),
         )
         guide = guide_generator.generate_review_guide(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert guide == ReviewGuide(

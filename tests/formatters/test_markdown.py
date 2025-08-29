@@ -1,6 +1,9 @@
 from unittest import mock
 
+import pytest
 from lgtm_ai.ai.schemas import (
+    CodeSuggestion,
+    CodeSuggestionOffset,
     GuideChecklistItem,
     GuideKeyChange,
     GuideReference,
@@ -163,12 +166,16 @@ class TestMarkdownFormatter:
             "comment 2",
             "",
             "",
+            "",
+            "",
             "- #### 🦉 🧪 Testing",
             "",
             "> **Severity:** MEDIUM 🟡",
             "",
             "",
             "comment 3",
+            "",
+            "",
             "",
             "",
             "- #### 🦉 🎯 Correctness",
@@ -181,8 +188,129 @@ class TestMarkdownFormatter:
             "",
             "",
             "",
+            "",
+            "",
         ]
         assert self.formatter.format_review_comments_section(review.review_response.comments).split("\n") == expected
+
+    def test_format_comments_with_suggestions(self) -> None:
+        formatter = MarkDownFormatter(use_suggestions=True)
+        review = Review(
+            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            review_response=ReviewResponse(
+                raw_score=5,
+                summary="summary",
+                comments=[
+                    ReviewComment(
+                        comment="comment 1",
+                        category="Correctness",
+                        severity="LOW",
+                        old_path="old_path",
+                        new_path="new_path",
+                        line_number=1,
+                        relative_line_number=1,
+                        is_comment_on_new_path=True,
+                        programming_language="python",
+                        suggestion=CodeSuggestion(
+                            start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+                            end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+                            snippet="print('Hello World')",
+                            programming_language="python",
+                            ready_for_replacement=True,
+                        ),
+                    ),
+                ],
+            ),
+            pr_diff=mock.Mock(spec=PRDiff),
+        )
+
+        expected = [
+            "**Specific Comments:**",
+            "",
+            "- #### 🦉 🎯 Correctness",
+            "",
+            "> **Severity:** LOW 🔵",
+            "",
+            "",
+            "comment 1",
+            "",
+            "",
+            "",
+            "`````suggestion:-1+2",
+            "print('Hello World')",
+            "`````",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        ]
+        assert formatter.format_review_comments_section(review.review_response.comments).split("\n") == expected
+
+    @pytest.mark.parametrize(
+        ("use_suggestions", "ready_for_replacement"),
+        [
+            (True, False),  # should not format as suggestion block if not ready
+            (False, True),  # even if ready, should not format as suggestion block if use_suggestions is False
+        ],
+    )
+    def test_format_comments_with_suggestions_but_formatted_normally(
+        self, use_suggestions: bool, ready_for_replacement: bool
+    ) -> None:
+        formatter = MarkDownFormatter(use_suggestions=use_suggestions)
+        review = Review(
+            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            review_response=ReviewResponse(
+                raw_score=5,
+                summary="summary",
+                comments=[
+                    ReviewComment(
+                        comment="comment 1",
+                        category="Correctness",
+                        severity="LOW",
+                        old_path="old_path",
+                        new_path="new_path",
+                        line_number=1,
+                        relative_line_number=1,
+                        is_comment_on_new_path=True,
+                        programming_language="python",
+                        suggestion=CodeSuggestion(
+                            start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+                            end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+                            snippet="print('Hello World')",
+                            programming_language="python",
+                            ready_for_replacement=ready_for_replacement,
+                        ),
+                    ),
+                ],
+            ),
+            pr_diff=mock.Mock(spec=PRDiff),
+        )
+
+        expected = [
+            "**Specific Comments:**",
+            "",
+            "- #### 🦉 🎯 Correctness",
+            "",
+            "> **Severity:** LOW 🔵",
+            "",
+            "",
+            "comment 1",
+            "",
+            "",
+            "",
+            "`````python",  # not a suggestion block
+            "print('Hello World')",
+            "`````",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        ]
+        assert formatter.format_review_comments_section(review.review_response.comments).split("\n") == expected
 
     def test_format_comment_with_snippet(self) -> None:
         review = Review(
@@ -220,6 +348,8 @@ class TestMarkdownFormatter:
             "",
             "",
             "comment",
+            "",
+            "",
             "",
             "",
             "<details><summary>More information about this comment</summary>",

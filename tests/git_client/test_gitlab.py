@@ -12,7 +12,7 @@ from lgtm_ai.ai.schemas import (
     ReviewGuide,
     ReviewResponse,
 )
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.gitlab import GitlabClient
@@ -25,7 +25,7 @@ MockGitlabUrl = PRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
     repo_path="foo",
     pr_number=1,
-    source="gitlab",
+    source=PRSource.gitlab,
 )
 
 
@@ -336,7 +336,7 @@ def test_get_context_multiple_files() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         pr_diff=pr_diff,
     )
 
@@ -369,7 +369,7 @@ def test_get_context_one_file_missing() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         pr_diff=pr_diff,
     )
 
@@ -401,7 +401,7 @@ def test_get_context_deleted_file() -> None:
     client = mock_gitlab_client(m_project)
 
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="gitlab"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         pr_diff=pr_diff,
     )
 

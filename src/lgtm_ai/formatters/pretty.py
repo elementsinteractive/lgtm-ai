@@ -43,6 +43,7 @@ class PrettyFormatter(Formatter[Panel | Layout]):
                 padding=(1, 1),
             )
             content = Group(snippet_panel, Text(comment.comment))
+            # TODO: add code suggestions
         else:
             content = Text(comment.comment)
 

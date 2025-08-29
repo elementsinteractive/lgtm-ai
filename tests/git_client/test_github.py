@@ -12,7 +12,7 @@ from lgtm_ai.ai.schemas import (
     ReviewGuide,
     ReviewResponse,
 )
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.github import GitHubClient
@@ -26,7 +26,7 @@ MockGithubUrl = PRUrl(
     full_url="https://github.com/foo/bar/pull/1",
     repo_path="foo/bar",
     pr_number=1,
-    source="github",
+    source=PRSource.github,
 )
 
 
@@ -202,7 +202,7 @@ def test_get_context_multiple_files() -> None:
         mock.Mock(decoded_content=b"surprise"),
     ]
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         pr_diff=pr_diff,
     )
 
@@ -243,7 +243,7 @@ def test_get_context_single_file_multiple_objects() -> None:
         ]
     ]
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         pr_diff=pr_diff,
     )
 
@@ -288,7 +288,7 @@ def test_get_context_one_file_missing() -> None:
         github.GithubException(status=404, message="Not Found"),  # target branch
     ]
     context = client.get_context(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         pr_diff=pr_diff,
     )
 
@@ -338,7 +338,7 @@ def test_post_review_successful() -> None:
     )
 
     client.publish_review(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"),
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         fake_review,
     )
 
@@ -361,7 +361,9 @@ def test_publish_guide_successful() -> None:
     m_repo = mock_repo(m_pr)
     client = mock_github_client(m_repo)
 
-    client.publish_guide(PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source="github"), FAKE_GUIDE)
+    client.publish_guide(
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github), FAKE_GUIDE
+    )
 
     assert m_pr.create_review.call_args_list == [
         mock.call(

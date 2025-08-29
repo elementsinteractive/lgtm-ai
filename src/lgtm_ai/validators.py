@@ -1,9 +1,8 @@
 from enum import StrEnum
-from typing import Literal
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 
 
 class AllowedLocations(StrEnum):
@@ -35,7 +34,7 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
             return _parse_pr_url(
                 parsed,
                 split_str="/-/merge_requests/",
-                source="gitlab",
+                source=PRSource.gitlab,
                 error_url_msg="The PR URL must be a merge request URL.",
                 error_num_msg="The PR URL must contain a valid MR number.",
             )
@@ -44,7 +43,7 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
             return _parse_pr_url(
                 parsed,
                 split_str="/pull/",
-                source="github",
+                source=PRSource.github,
                 error_url_msg="The PR URL must be a pull request URL.",
                 error_num_msg="The PR URL must contain a valid PR number.",
             )
@@ -94,7 +93,7 @@ def validate_model_url(ctx: click.Context, param: click.Parameter, value: str | 
 
 
 def _parse_pr_url(
-    parsed: ParseResult, *, split_str: str, source: Literal["github", "gitlab"], error_url_msg: str, error_num_msg: str
+    parsed: ParseResult, *, split_str: str, source: PRSource, error_url_msg: str, error_num_msg: str
 ) -> PRUrl:
     full_project_path = parsed.path
     try:

@@ -2,12 +2,12 @@ import datetime
 import zoneinfo
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Annotated, Final, Literal, get_args
+from typing import Annotated, Final, Literal, Self, get_args
 from uuid import uuid4
 
 from lgtm_ai.git_client.schemas import PRDiff
 from openai.types import ChatModel
-from pydantic import AfterValidator, BaseModel, Field, computed_field
+from pydantic import AfterValidator, BaseModel, Field, computed_field, model_validator
 from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames
 from pydantic_ai.usage import Usage
@@ -81,6 +81,35 @@ SEVERITY_PRIORITY_MAP: Final[dict[CommentSeverity, CommentSeverityPriority]] = {
 }
 
 
+class CodeSuggestionOffset(BaseModel):
+    offset: Annotated[int, Field(description="Offset relative to the comment line number")]
+    direction: Annotated[
+        Literal["+", "-"],
+        Field(description="Direction of the offset. + means below, - means above"),
+    ]
+
+    @model_validator(mode="after")
+    def change_direction_of_zero(self) -> Self:
+        # GitLab freaks out if the offset is 0 and the direction is +. We change it to -.
+        if self.offset == 0:
+            self.direction = "-"
+        return self
+
+
+class CodeSuggestion(BaseModel):
+    start_offset: Annotated[
+        CodeSuggestionOffset, Field(description="Offset (from comment line number) to start the suggestion")
+    ]
+    end_offset: Annotated[
+        CodeSuggestionOffset, Field(description="Offset (from comment line number) to end the suggestion")
+    ]
+    snippet: Annotated[str, Field(description="Suggested code snippet to replace the commented code")]
+    programming_language: Annotated[str, Field(description="Programming language of the code snippet")]
+    ready_for_replacement: Annotated[
+        bool, Field(description="Whether the suggestion is totally ready to be applied directly")
+    ] = False
+
+
 class ReviewComment(BaseModel):
     """Individual comment representation in a PR code review."""
 
@@ -94,6 +123,7 @@ class ReviewComment(BaseModel):
     is_comment_on_new_path: Annotated[bool, Field(description="Whether the comment is on a new path")]
     programming_language: Annotated[str, Field(description="Programming language of the file")]
     quote_snippet: Annotated[str | None, Field(description="Quoted code snippet")] = None
+    suggestion: Annotated[CodeSuggestion | None, Field(description="Suggested code change")] = None
 
 
 class ReviewResponse(BaseModel):

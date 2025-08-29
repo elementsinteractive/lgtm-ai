@@ -14,6 +14,7 @@ from lgtm_ai.ai.agent import (
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm_ai.base.schemas import OutputFormat, PRUrl
+from lgtm_ai.base.utils import git_source_supports_suggestions
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.json import JsonFormatter
@@ -138,7 +139,11 @@ def review(
         config_file=config,
     ).resolve_config()
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    git_client = get_git_client(pr_url=pr_url, config=resolved_config, formatter=MarkDownFormatter())
+    git_client = get_git_client(
+        pr_url=pr_url,
+        config=resolved_config,
+        formatter=MarkDownFormatter(use_suggestions=git_source_supports_suggestions(pr_url.source)),
+    )
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(agent_extra_settings),
         summarizing_agent=get_summarizing_agent_with_settings(agent_extra_settings),
