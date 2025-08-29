@@ -20,6 +20,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestMetadataError,
 )
 from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
 logger = logging.getLogger("lgtm.git")
@@ -50,7 +51,11 @@ class GitHubClient(GitClient):
                 new_path=file.filename,
                 old_path=getattr(file, "previous_filename", None),
             )
-            parsed_diff = parse_diff_patch(metadata=metadata, diff_text=file.patch)
+            try:
+                parsed_diff = parse_diff_patch(metadata=metadata, diff_text=file.patch)
+            except GitDiffParseError:
+                logger.exception("Failed to parse diff patch, will skip it")
+                continue
             parsed.append(parsed_diff)
 
         return PRDiff(
