@@ -1,3 +1,17 @@
+## v0.10.0 (2025-08-29)
+
+### Feat
+
+- **#96**: use code suggestions for GitLab (#98)
+
+### Fix
+
+- **#99**: handle git diff errors when working with non-text files (#100)
+
+### Technical
+
+- filter useless warnings in tests (#101)
+
 ## v0.9.1 (2025-08-27)
 
 ### Fix
