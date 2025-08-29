@@ -1,4 +1,5 @@
 import pytest
+from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffResult, parse_diff_patch
 from tests.git_parser.fixtures import (
     COMPLEX_DIFF_TEXT,
@@ -19,6 +20,11 @@ from tests.git_parser.fixtures import (
 )
 def test_parse_diff_patch(input_diff: str, expected: DiffResult) -> None:
     assert parse_diff_patch(DUMMY_METADATA, input_diff) == expected
+
+
+def test_parse_diff_patch_non_text_files() -> None:
+    with pytest.raises(GitDiffParseError, match="Diff text is not a string"):
+        parse_diff_patch(DUMMY_METADATA, diff_text=bytes(1234))
 
 
 @pytest.mark.parametrize(
