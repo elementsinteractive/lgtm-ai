@@ -49,5 +49,5 @@ def test_get_guide_from_url_valid() -> None:
             checklist=[GuideChecklistItem(description="a")],
             references=[GuideReference(title="a", url="a")],
         ),
-        metadata=PublishMetadata(model_name="gemini-2.0-flash", usages=guide.metadata.usages),
+        metadata=PublishMetadata(model_name="gemini-2.0-flash", usage=guide.metadata.usage),
     )

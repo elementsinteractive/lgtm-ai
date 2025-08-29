@@ -61,5 +61,5 @@ FAKE_GUIDE = ReviewGuide(
         checklist=[GuideChecklistItem(description="item 1")],
         references=[GuideReference(title="title", url="https://example.com")],
     ),
-    metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE]),
+    metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
 )

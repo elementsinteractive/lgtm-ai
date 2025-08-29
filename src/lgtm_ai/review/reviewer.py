@@ -11,6 +11,7 @@ from lgtm_ai.ai.schemas import (
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.review.additional_context import AdditionalContextGenerator
 from lgtm_ai.review.exceptions import (
     handle_ai_exceptions,
@@ -18,6 +19,7 @@ from lgtm_ai.review.exceptions import (
 from lgtm_ai.review.prompt_generators import PromptGenerator
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
+from pydantic_ai.usage import RunUsage
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -44,20 +46,45 @@ class CodeReviewer:
         )
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
-        pr_diff = self.git_client.get_diff_from_url(pr_url)
-        context = self.git_client.get_context(pr_url, pr_diff)
+        """Peform a full review of the given pull request URL and return it."""
+        total_usage = RunUsage()
         metadata = self.git_client.get_pr_metadata(pr_url)
+        prompt_generator = PromptGenerator(self.config, metadata)
+        pr_diff = self.git_client.get_diff_from_url(pr_url)
+        initial_review_response = self._perform_initial_review(
+            pr_url, pr_diff=pr_diff, prompt_generator=prompt_generator, total_usage=total_usage
+        )
+        final_review, final_usage = self._summarize_initial_review(
+            pr_diff,
+            initial_review_response=initial_review_response,
+            prompt_generator=prompt_generator,
+            total_usage=total_usage,
+        )
+        logger.info("Final review completed")
+        logger.debug(
+            "Final review score: %d; Number of comments: %d", final_review.raw_score, len(final_review.comments)
+        )
+
+        return Review(
+            pr_diff=pr_diff,
+            review_response=final_review,
+            metadata=PublishMetadata(model_name=self.model.model_name, usage=final_usage),
+        )
+
+    def _perform_initial_review(
+        self, pr_url: PRUrl, *, pr_diff: PRDiff, prompt_generator: PromptGenerator, total_usage: RunUsage
+    ) -> ReviewResponse:
+        """Perform an initial review of the PR with the reviewer agent."""
+        context = self.git_client.get_context(pr_url, pr_diff)
         additional_context = self.additional_context_generator.get_additional_context_content(
             pr_url=pr_url,
             additional_context=self.config.additional_context,
         )
 
-        prompt_generator = PromptGenerator(self.config, metadata)
-
         review_prompt = prompt_generator.generate_review_prompt(
             pr_diff=pr_diff, context=context, additional_context=additional_context
         )
-        logger.info("Running AI model on the PR diff")
+        logger.info("Running Reviewer agent on the PR diff")
         with handle_ai_exceptions():
             raw_res = self.reviewer_agent.run_sync(
                 model=self.model,
@@ -65,6 +92,7 @@ class CodeReviewer:
                 deps=ReviewerDeps(
                     configured_technologies=self.config.technologies, configured_categories=self.config.categories
                 ),
+                usage=total_usage,
             )
         logger.info("Initial review completed")
         logger.debug(
@@ -72,28 +100,29 @@ class CodeReviewer:
         )
         initial_usage = raw_res.usage()
         logger.info(
-            f"Initial review usage summary: {initial_usage.requests=} {initial_usage.request_tokens=} {initial_usage.response_tokens=} {initial_usage.total_tokens=}"
+            f"Initial review usage summary: {initial_usage.requests=} {initial_usage.input_tokens=} {initial_usage.output_tokens=} {initial_usage.total_tokens=}"
         )
+        return raw_res.output
 
+    def _summarize_initial_review(
+        self,
+        pr_diff: PRDiff,
+        *,
+        initial_review_response: ReviewResponse,
+        prompt_generator: PromptGenerator,
+        total_usage: RunUsage,
+    ) -> tuple[ReviewResponse, RunUsage]:
+        """Summarize the initial review with the summarizing agent."""
         logger.info("Running AI model to summarize the review")
-        summary_prompt = prompt_generator.generate_summarizing_prompt(pr_diff=pr_diff, raw_review=raw_res.output)
+        summary_prompt = prompt_generator.generate_summarizing_prompt(
+            pr_diff=pr_diff, raw_review=initial_review_response
+        )
         with handle_ai_exceptions():
             final_res = self.summarizing_agent.run_sync(
                 model=self.model,
                 user_prompt=summary_prompt,
                 deps=SummarizingDeps(configured_categories=self.config.categories),
+                usage=total_usage,
             )
-        logger.info("Final review completed")
-        logger.debug(
-            "Final review score: %d; Number of comments: %d", final_res.output.raw_score, len(final_res.output.comments)
-        )
-        final_usage = final_res.usage()
-        logger.info(
-            f"Final review usage summary: {final_usage.requests=} {final_usage.input_tokens=} {final_usage.output_tokens=} {final_usage.total_tokens=}"
-        )
-
-        return Review(
-            pr_diff=pr_diff,
-            review_response=final_res.output,
-            metadata=PublishMetadata(model_name=self.model.model_name, usages=[initial_usage, final_usage]),
-        )
+        usage = final_res.usage()
+        return final_res.output, usage

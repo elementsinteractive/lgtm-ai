@@ -25,7 +25,7 @@ class TestJsonFormatter:
                 uuid="fb64cb958fcf49219545912156e0a4a0",
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
-                usages=[MOCK_USAGE] * 3,
+                usage=MOCK_USAGE,
                 spec=PublishMetadata,
             ),
             review_response=ReviewResponse(
@@ -84,41 +84,17 @@ class TestJsonFormatter:
             "review_response": {"summary": "summary", "comments": [], "raw_score": 5, "score": "LGTM"},
             "metadata": {
                 "model_name": "whatever",
-                "usages": [
-                    {
-                        "input_tokens": 200,
-                        "cache_write_tokens": 1,
-                        "cache_read_tokens": 1,
-                        "output_tokens": 100,
-                        "input_audio_tokens": 1,
-                        "cache_audio_read_tokens": 1,
-                        "output_audio_tokens": 1,
-                        "details": {},
-                        "requests": 1,
-                    },
-                    {
-                        "input_tokens": 200,
-                        "cache_write_tokens": 1,
-                        "cache_read_tokens": 1,
-                        "output_tokens": 100,
-                        "input_audio_tokens": 1,
-                        "cache_audio_read_tokens": 1,
-                        "output_audio_tokens": 1,
-                        "details": {},
-                        "requests": 1,
-                    },
-                    {
-                        "input_tokens": 200,
-                        "cache_write_tokens": 1,
-                        "cache_read_tokens": 1,
-                        "output_tokens": 100,
-                        "input_audio_tokens": 1,
-                        "cache_audio_read_tokens": 1,
-                        "output_audio_tokens": 1,
-                        "details": {},
-                        "requests": 1,
-                    },
-                ],
+                "usage": {
+                    "input_tokens": 200,
+                    "cache_write_tokens": 1,
+                    "cache_read_tokens": 1,
+                    "output_tokens": 100,
+                    "input_audio_tokens": 1,
+                    "cache_audio_read_tokens": 1,
+                    "output_audio_tokens": 1,
+                    "details": {},
+                    "requests": 1,
+                },
             },
         }
 
@@ -148,7 +124,7 @@ class TestJsonFormatter:
                 uuid="fb64cb958fcf49219545912156e0a4a0",
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
-                usages=[MOCK_USAGE],
+                usage=MOCK_USAGE,
                 spec=PublishMetadata,
             ),
         )
@@ -209,18 +185,16 @@ class TestJsonFormatter:
             },
             "metadata": {
                 "model_name": "whatever",
-                "usages": [
-                    {
-                        "input_tokens": 200,
-                        "cache_write_tokens": 1,
-                        "cache_read_tokens": 1,
-                        "output_tokens": 100,
-                        "input_audio_tokens": 1,
-                        "cache_audio_read_tokens": 1,
-                        "output_audio_tokens": 1,
-                        "details": {},
-                        "requests": 1,
-                    }
-                ],
+                "usage": {
+                    "input_tokens": 200,
+                    "cache_write_tokens": 1,
+                    "cache_read_tokens": 1,
+                    "output_tokens": 100,
+                    "input_audio_tokens": 1,
+                    "cache_audio_read_tokens": 1,
+                    "output_audio_tokens": 1,
+                    "details": {},
+                    "requests": 1,
+                },
             },
         }

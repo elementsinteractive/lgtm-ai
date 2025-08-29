@@ -28,7 +28,7 @@ class TestMarkdownFormatter:
                 uuid="fb64cb958fcf49219545912156e0a4a0",
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
-                usages=[MOCK_USAGE] * 3,
+                usage=MOCK_USAGE,
                 spec=PublishMetadata,
             ),
             review_response=ReviewResponse(
@@ -58,37 +58,11 @@ class TestMarkdownFormatter:
             "",
             "<details><summary>Usage summary</summary>",
             "",
-            "",
-            "<details><summary>Call 1</summary>",
-            "",
             "- **Request count**: `1`",
             "- **Request tokens**: `200`",
             "- **Response tokens**: `100`",
             "- **Total tokens**: `300`",
-            "</details>",
             "",
-            "",
-            "",
-            "<details><summary>Call 2</summary>",
-            "",
-            "- **Request count**: `1`",
-            "- **Request tokens**: `200`",
-            "- **Response tokens**: `100`",
-            "- **Total tokens**: `300`",
-            "</details>",
-            "",
-            "",
-            "",
-            "<details><summary>Call 3</summary>",
-            "",
-            "- **Request count**: `1`",
-            "- **Request tokens**: `200`",
-            "- **Response tokens**: `100`",
-            "- **Total tokens**: `300`",
-            "</details>",
-            "",
-            "",
-            "**Total tokens**: `900`",
             "</details>",
             "",
             "",
@@ -105,14 +79,14 @@ class TestMarkdownFormatter:
                 summary="summary",
             ),
             pr_diff=mock.Mock(spec=PRDiff),
-            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
         )
 
         assert self.formatter.format_review_comments_section(review.review_response.comments) == ""
 
     def test_format_comments_section_several_comments(self) -> None:
         review = Review(
-            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -196,7 +170,7 @@ class TestMarkdownFormatter:
     def test_format_comments_with_suggestions(self) -> None:
         formatter = MarkDownFormatter(use_suggestions=True)
         review = Review(
-            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -260,7 +234,7 @@ class TestMarkdownFormatter:
     ) -> None:
         formatter = MarkDownFormatter(use_suggestions=use_suggestions)
         review = Review(
-            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -314,7 +288,7 @@ class TestMarkdownFormatter:
 
     def test_format_comment_with_snippet(self) -> None:
         review = Review(
-            metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+            metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
                 raw_score=5,
                 summary="summary",
@@ -386,7 +360,7 @@ class TestMarkdownFormatter:
                 uuid="fb64cb958fcf49219545912156e0a4a0",
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
-                usages=[MOCK_USAGE],
+                usage=MOCK_USAGE,
                 spec=PublishMetadata,
             ),
         )
@@ -428,17 +402,11 @@ class TestMarkdownFormatter:
             "",
             "<details><summary>Usage summary</summary>",
             "",
-            "",
-            "<details><summary>Call 1</summary>",
-            "",
             "- **Request count**: `1`",
             "- **Request tokens**: `200`",
             "- **Response tokens**: `100`",
             "- **Total tokens**: `300`",
-            "</details>",
             "",
-            "",
-            "**Total tokens**: `300`",
             "</details>",
             "",
             "",

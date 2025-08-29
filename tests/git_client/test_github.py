@@ -334,7 +334,7 @@ def test_post_review_successful() -> None:
                 ),
             ],
         ),
-        metadata=PublishMetadata(model_name="whatever", usages=[MOCK_USAGE] * 2),
+        metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
     )
 
     client.publish_review(
