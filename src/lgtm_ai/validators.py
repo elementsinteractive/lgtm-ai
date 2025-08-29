@@ -2,7 +2,7 @@ from enum import StrEnum
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm_ai.base.schemas import PRSource, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, PRSource, PRUrl
 
 
 class AllowedLocations(StrEnum):
@@ -75,6 +75,21 @@ class ModelChoice(click.ParamType):
 
     def get_choices(self, param: click.Parameter | None) -> tuple[str, ...]:
         return self.choices
+
+
+class IntOrNoLimitType(click.ParamType):
+    name = "int-or-no-limit"
+
+    def convert(self, value: str, param: click.Parameter | None, ctx: click.Context | None) -> IntOrNoLimit:
+        if value == "no-limit":
+            return "no-limit"
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            self.fail(f"{value!r} is not a valid integer or 'no-limit'", param, ctx)
+
+    def get_metavar(self, param: click.Parameter, ctx: click.Context) -> str | None:
+        return "[INTEGER|'no-limit']"
 
 
 def validate_model_url(ctx: click.Context, param: click.Parameter, value: str | None) -> str | None:

@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from pydantic_ai import AgentRunError, UnexpectedModelBehavior
 from pydantic_ai.exceptions import (
     ModelHTTPError,
+    UsageLimitExceeded,
 )
 
 
@@ -21,7 +22,7 @@ class BaseAIError[T: AgentRunError](LGTMException):
         return False
 
 
-class UsageLimitsExceededError(BaseAIError[ModelHTTPError]):
+class ServerUsageLimitsExceededError(BaseAIError[ModelHTTPError]):
     def __init__(
         self, message: str = "The request to the AI model is too large or the AI model has been called too many times."
     ) -> None:
@@ -30,6 +31,16 @@ class UsageLimitsExceededError(BaseAIError[ModelHTTPError]):
     @classmethod
     def match(cls, error: ModelHTTPError) -> bool:
         return error.status_code in {HTTPStatus.REQUEST_ENTITY_TOO_LARGE, HTTPStatus.TOO_MANY_REQUESTS}
+
+
+class ClientUsageLimitsExceededError(BaseAIError[UsageLimitExceeded]):
+    def __init__(self, message: str = "The request to the AI model exceeds the configured usage limits.") -> None:
+        message += ". You can increase the limit by setting `ai_input_tokens_limit` in the configuration file or through the cli."
+        super().__init__(message)
+
+    @classmethod
+    def match(cls, error: UsageLimitExceeded) -> bool:
+        return True  # There is only one type of UsageLimitExceeded error, so we always match it.
 
 
 class ServerError(BaseAIError[ModelHTTPError]):
@@ -78,7 +89,7 @@ class ModelNotFoundError(BaseAIError[ModelHTTPError]):
 
 
 MAPPED_HTTP_ERRORS: Final[tuple[type[BaseAIError[ModelHTTPError]], ...]] = (
-    UsageLimitsExceededError,
+    ServerUsageLimitsExceededError,
     ServerError,
     ModelNotFoundError,
 )
@@ -109,6 +120,8 @@ def handle_ai_exceptions() -> Iterator[None]:
         _raise_mapped_error(MAPPED_HTTP_ERRORS, err)
     except UnexpectedModelBehavior as err:
         _raise_mapped_error(MAPPED_BEHAVIOR_ERRORS, err)
+    except UsageLimitExceeded as err:
+        raise ClientUsageLimitsExceededError(err.message) from err
     except AgentRunError as err:
         raise UnknownAIError from err
     except openai.APIConnectionError as err:

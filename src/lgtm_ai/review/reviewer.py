@@ -19,7 +19,7 @@ from lgtm_ai.review.exceptions import (
 from lgtm_ai.review.prompt_generators import PromptGenerator
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
-from pydantic_ai.usage import RunUsage
+from pydantic_ai.usage import RunUsage, UsageLimits
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -48,17 +48,23 @@ class CodeReviewer:
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         """Peform a full review of the given pull request URL and return it."""
         total_usage = RunUsage()
+        usage_limits = UsageLimits(input_tokens_limit=self.config.ai_input_tokens_limit)
         metadata = self.git_client.get_pr_metadata(pr_url)
         prompt_generator = PromptGenerator(self.config, metadata)
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         initial_review_response = self._perform_initial_review(
-            pr_url, pr_diff=pr_diff, prompt_generator=prompt_generator, total_usage=total_usage
+            pr_url,
+            pr_diff=pr_diff,
+            prompt_generator=prompt_generator,
+            total_usage=total_usage,
+            usage_limits=usage_limits,
         )
         final_review, final_usage = self._summarize_initial_review(
             pr_diff,
             initial_review_response=initial_review_response,
             prompt_generator=prompt_generator,
             total_usage=total_usage,
+            usage_limits=usage_limits,
         )
         logger.info("Final review completed")
         logger.debug(
@@ -72,7 +78,13 @@ class CodeReviewer:
         )
 
     def _perform_initial_review(
-        self, pr_url: PRUrl, *, pr_diff: PRDiff, prompt_generator: PromptGenerator, total_usage: RunUsage
+        self,
+        pr_url: PRUrl,
+        *,
+        pr_diff: PRDiff,
+        prompt_generator: PromptGenerator,
+        total_usage: RunUsage,
+        usage_limits: UsageLimits,
     ) -> ReviewResponse:
         """Perform an initial review of the PR with the reviewer agent."""
         context = self.git_client.get_context(pr_url, pr_diff)
@@ -93,6 +105,7 @@ class CodeReviewer:
                     configured_technologies=self.config.technologies, configured_categories=self.config.categories
                 ),
                 usage=total_usage,
+                usage_limits=usage_limits,
             )
         logger.info("Initial review completed")
         logger.debug(
@@ -111,6 +124,7 @@ class CodeReviewer:
         initial_review_response: ReviewResponse,
         prompt_generator: PromptGenerator,
         total_usage: RunUsage,
+        usage_limits: UsageLimits,
     ) -> tuple[ReviewResponse, RunUsage]:
         """Summarize the initial review with the summarizing agent."""
         logger.info("Running AI model to summarize the review")
@@ -123,6 +137,7 @@ class CodeReviewer:
                 user_prompt=summary_prompt,
                 deps=SummarizingDeps(configured_categories=self.config.categories),
                 usage=total_usage,
+                usage_limits=usage_limits,
             )
         usage = final_res.usage()
         return final_res.output, usage

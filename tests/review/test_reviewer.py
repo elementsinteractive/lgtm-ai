@@ -12,9 +12,22 @@ from lgtm_ai.config.constants import DEFAULT_AI_MODEL
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.review import CodeReviewer
-from lgtm_ai.review.exceptions import InvalidAIResponseError, ServerError, UnknownAIError, UsageLimitsExceededError
+from lgtm_ai.review.exceptions import (
+    ClientUsageLimitsExceededError,
+    InvalidAIResponseError,
+    ServerError,
+    ServerUsageLimitsExceededError,
+    UnknownAIError,
+)
 from pydantic import ValidationError
-from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, capture_run_messages, models
+from pydantic_ai import (
+    AgentRunError,
+    ModelHTTPError,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+    capture_run_messages,
+    models,
+)
 from pydantic_ai.messages import ModelMessage, ModelRequest
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.test import TestModel
@@ -297,10 +310,11 @@ def test_file_is_excluded_from_prompt() -> None:
     [
         (AgentRunError("Error"), UnknownAIError),
         (ModelHTTPError(500, "Error"), ServerError),
-        (ModelHTTPError(429, "Error"), UsageLimitsExceededError),
+        (ModelHTTPError(429, "Error"), ServerUsageLimitsExceededError),
         (ModelHTTPError(312, "Error"), UnknownAIError),
         (_get_ai_validation_error(is_validation_error=True), InvalidAIResponseError),
         (_get_ai_validation_error(is_validation_error=False), UnknownAIError),
+        (UsageLimitExceeded("Error"), ClientUsageLimitsExceededError),
     ],
 )
 def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_error: type[Exception]) -> None:
