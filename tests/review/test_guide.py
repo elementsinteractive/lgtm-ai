@@ -15,7 +15,7 @@ from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.review.guide import ReviewGuideGenerator
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.test import TestModel
 from tests.review.utils import MOCK_DIFF, MockGitClient
 
@@ -27,7 +27,7 @@ def test_get_guide_from_url_valid() -> None:
     ):
         guide_generator = ReviewGuideGenerator(
             guide_agent=test_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name="gemini-2.0-flash"),
+            model=mock.Mock(spec=OpenAIChatModel, model_name="gemini-2.0-flash"),
             git_client=MockGitClient(),
             config=ResolvedConfig(),
         )

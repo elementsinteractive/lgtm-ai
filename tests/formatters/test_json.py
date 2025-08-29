@@ -85,9 +85,39 @@ class TestJsonFormatter:
             "metadata": {
                 "model_name": "whatever",
                 "usages": [
-                    {"requests": 1, "request_tokens": 200, "response_tokens": 100, "total_tokens": 300, "details": []},
-                    {"requests": 1, "request_tokens": 200, "response_tokens": 100, "total_tokens": 300, "details": []},
-                    {"requests": 1, "request_tokens": 200, "response_tokens": 100, "total_tokens": 300, "details": []},
+                    {
+                        "input_tokens": 200,
+                        "cache_write_tokens": 1,
+                        "cache_read_tokens": 1,
+                        "output_tokens": 100,
+                        "input_audio_tokens": 1,
+                        "cache_audio_read_tokens": 1,
+                        "output_audio_tokens": 1,
+                        "details": {},
+                        "requests": 1,
+                    },
+                    {
+                        "input_tokens": 200,
+                        "cache_write_tokens": 1,
+                        "cache_read_tokens": 1,
+                        "output_tokens": 100,
+                        "input_audio_tokens": 1,
+                        "cache_audio_read_tokens": 1,
+                        "output_audio_tokens": 1,
+                        "details": {},
+                        "requests": 1,
+                    },
+                    {
+                        "input_tokens": 200,
+                        "cache_write_tokens": 1,
+                        "cache_read_tokens": 1,
+                        "output_tokens": 100,
+                        "input_audio_tokens": 1,
+                        "cache_audio_read_tokens": 1,
+                        "output_audio_tokens": 1,
+                        "details": {},
+                        "requests": 1,
+                    },
                 ],
             },
         }
@@ -180,7 +210,17 @@ class TestJsonFormatter:
             "metadata": {
                 "model_name": "whatever",
                 "usages": [
-                    {"requests": 1, "request_tokens": 200, "response_tokens": 100, "total_tokens": 300, "details": []}
+                    {
+                        "input_tokens": 200,
+                        "cache_write_tokens": 1,
+                        "cache_read_tokens": 1,
+                        "output_tokens": 100,
+                        "input_audio_tokens": 1,
+                        "cache_audio_read_tokens": 1,
+                        "output_audio_tokens": 1,
+                        "details": {},
+                        "requests": 1,
+                    }
                 ],
             },
         }

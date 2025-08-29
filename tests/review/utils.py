@@ -5,9 +5,11 @@ from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRContextFileContents, PRDiff, PRMetadata
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
-from pydantic_ai.usage import Usage
+from pydantic_ai.usage import RunUsage
 
-MOCK_USAGE = mock.MagicMock(requests=1, request_tokens=200, response_tokens=100, total_tokens=300, spec=Usage)
+MOCK_USAGE = mock.MagicMock(
+    requests=1, input_tokens=200, output_tokens=100, total_tokens=300, details={}, spec=RunUsage
+)
 
 MOCK_DIFF = [
     DiffResult(

@@ -16,9 +16,9 @@ from lgtm_ai.review.exceptions import InvalidAIResponseError, ServerError, Unkno
 from pydantic import ValidationError
 from pydantic_ai import AgentRunError, ModelHTTPError, UnexpectedModelBehavior, capture_run_messages, models
 from pydantic_ai.messages import ModelMessage, ModelRequest
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.test import TestModel
-from pydantic_ai.usage import Usage
+from pydantic_ai.usage import RunUsage
 from tests.review.utils import MOCK_DIFF, MockGitClient
 
 # This is a safety measure to make sure we don't accidentally make real requests to the LLM while testing,
@@ -51,7 +51,7 @@ def test_get_review_from_url_valid() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(
                 additional_context=(
@@ -131,7 +131,7 @@ def test_summarizing_message_in_review() -> None:
     test_summarizing_agent = get_summarizing_agent_with_settings()
     test_agent.run_sync.return_value = mock.Mock(
         output=ReviewResponse(summary="a", raw_score=1),
-        usage=lambda: Usage(requests=1, request_tokens=1041, response_tokens=6, total_tokens=1047),
+        usage=lambda: RunUsage(requests=1, input_tokens=1041, output_tokens=6),
     )
 
     with (
@@ -143,7 +143,7 @@ def test_summarizing_message_in_review() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summarizing_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(),
         )
@@ -194,7 +194,7 @@ def test_get_review_adds_technologies_to_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
         )
@@ -227,7 +227,7 @@ def test_get_review_adds_categories_to_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(categories=("Correctness", "Quality")),
         )
@@ -253,7 +253,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
     code_reviewer = CodeReviewer(
         reviewer_agent=mock.Mock(),
         summarizing_agent=mock.Mock(),
-        model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+        model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
         config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
     )
@@ -278,7 +278,7 @@ def test_file_is_excluded_from_prompt() -> None:
         code_reviewer = CodeReviewer(
             reviewer_agent=test_agent,
             summarizing_agent=test_summary_agent,
-            model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             config=ResolvedConfig(exclude=("file2.txt",)),
         )
@@ -310,7 +310,7 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
     code_reviewer = CodeReviewer(
         reviewer_agent=error_agent,
         summarizing_agent=mock.Mock(),
-        model=mock.Mock(spec=OpenAIModel, model_name=DEFAULT_AI_MODEL),
+        model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
         config=ResolvedConfig(),
     )

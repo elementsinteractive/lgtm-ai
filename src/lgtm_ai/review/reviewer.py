@@ -89,7 +89,7 @@ class CodeReviewer:
         )
         final_usage = final_res.usage()
         logger.info(
-            f"Final review usage summary: {final_usage.requests=} {final_usage.request_tokens=} {final_usage.response_tokens=} {final_usage.total_tokens=}"
+            f"Final review usage summary: {final_usage.requests=} {final_usage.input_tokens=} {final_usage.output_tokens=} {final_usage.total_tokens=}"
         )
 
         return Review(
