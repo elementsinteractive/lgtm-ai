@@ -67,7 +67,10 @@ addopts = """
     --cov-report=xml:./tests/coverage.xml
     --junitxml=./tests/junit.xml
 """
-
+filterwarnings = [
+   "ignore:Pydantic serializer warnings:UserWarning",
+   "ignore:There is no current event loop:DeprecationWarning"
+]
 
 [tool.ruff]
 target-version = "py312"
