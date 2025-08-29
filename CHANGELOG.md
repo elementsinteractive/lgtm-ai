@@ -1,3 +1,13 @@
+## v0.11.0 (2025-08-29)
+
+### Feat
+
+- **#95**: add new option and config `ai-input-tokens-limit` (#102)
+
+### Fix
+
+- make it easier for LLMs to get code suggestions right (#103)
+
 ## v0.10.0 (2025-08-29)
 
 ### Feat
