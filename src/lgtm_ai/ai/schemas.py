@@ -88,8 +88,9 @@ class CodeSuggestionOffset(BaseModel):
         AfterValidator(lambda v: abs(v)),
     ]
     direction: Annotated[
-        Literal["+", "-"],
+        Literal["+", "-", "UP", "DOWN"],  # some LLMs (looking at you gpt5) mess this up and use UP/DOWN instead of +/-.
         Field(description="Direction of the offset. + means below, - means above"),
+        AfterValidator(lambda v: v if v in ("+", "-") else ("+" if v == "DOWN" else "-")),
     ]
 
     @model_validator(mode="after")
