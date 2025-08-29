@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Literal
+
+
+class PRSource(StrEnum):
+    github = "github"
+    gitlab = "gitlab"
 
 
 @dataclass(frozen=True, slots=True)
@@ -8,7 +12,7 @@ class PRUrl:
     full_url: str
     repo_path: str
     pr_number: int
-    source: Literal["github", "gitlab"]
+    source: PRSource
 
 
 class OutputFormat(StrEnum):

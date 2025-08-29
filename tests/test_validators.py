@@ -5,7 +5,7 @@ from unittest import mock
 
 import click
 import pytest
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.validators import parse_pr_url, validate_model_url
 
 
@@ -41,7 +41,7 @@ def test_parse_url_gitlab_valid() -> None:
         full_url=url,
         repo_path="foo",
         pr_number=1,
-        source="gitlab",
+        source=PRSource.gitlab,
     )
 
 

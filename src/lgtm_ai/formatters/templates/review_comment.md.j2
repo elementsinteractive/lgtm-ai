@@ -8,6 +8,18 @@
 {% endif %}
 {{ comment | safe }}
 
+{% if suggestion %}
+{% if use_suggestions and suggestion.ready_for_replacement %}
+`````suggestion:{{ suggestion.start_offset.direction}}{{ suggestion.start_offset.offset }}{{ suggestion.end_offset.direction }}{{ suggestion.end_offset.offset }}
+{{ suggestion.snippet | safe }}
+`````
+{% else %}
+`````{{ suggestion.programming_language }}
+{{ suggestion.snippet | safe }}
+`````
+{% endif %}
+{% endif %}
+
 {% if with_footer %}
 <details><summary>More information about this comment</summary>
 

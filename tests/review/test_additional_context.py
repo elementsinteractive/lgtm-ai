@@ -2,7 +2,7 @@ from unittest import mock
 
 import httpx
 from lgtm_ai.ai.schemas import AdditionalContext
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.review.additional_context import AdditionalContextGenerator
 from tests.review.utils import MockGitClient
 
@@ -12,7 +12,7 @@ def test_retrieve_additional_context_from_git() -> None:
         git_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
     )
 
-    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source="github")
+    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github)
 
     additional_context = additional_context_gen.get_additional_context_content(
         pr_url,
@@ -38,7 +38,7 @@ def test_retrieve_additional_context_from_url() -> None:
     )
     additional_context_gen = AdditionalContextGenerator(git_client=MockGitClient(), httpx_client=m_httpx_client)
 
-    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source="github")
+    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github)
 
     additional_context = additional_context_gen.get_additional_context_content(
         pr_url,
@@ -60,7 +60,7 @@ def test_retrieve_additional_context_from_config() -> None:
     additional_context_gen = AdditionalContextGenerator(
         git_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
     )
-    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source="github")
+    pr_url = PRUrl(full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github)
 
     additional_context = additional_context_gen.get_additional_context_content(
         pr_url,

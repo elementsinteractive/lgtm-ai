@@ -1,6 +1,8 @@
 import fnmatch
 import pathlib
 
+from lgtm_ai.base.schemas import PRSource
+
 
 def file_matches_any_pattern(file_name: str, patterns: tuple[str, ...]) -> bool:
     for pattern in patterns:
@@ -10,3 +12,11 @@ def file_matches_any_pattern(file_name: str, patterns: tuple[str, ...]) -> bool:
         if matches:
             return True
     return False
+
+
+def git_source_supports_suggestions(source: PRSource) -> bool:
+    """For now, we only support suggestions in GitLab.
+
+    TODO: https://github.com/elementsinteractive/lgtm-ai/issues/96
+    """
+    return source == PRSource.gitlab

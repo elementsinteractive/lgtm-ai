@@ -101,9 +101,12 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
     - Evaluate whether some comments are more likely to simply be incorrect. If they are likely to be incorrect, remove them.
     - Merge duplicate comments. If there are two comments that refer to the same issue, merge them into one.
     - Comments have a code snippet that they refer to. Consider whether the snippet needs a bit more code context, and if so, expand the snippet. Otherwise don't touch them.
-    - If you can add a suggestion code snippet to the comment text, do it. Use markdown code blocks with 5 backticks. Do it only when you are very sure about the suggestion with the context you have.
     - Check that categories of each comment are correct. Re-categorize them if needed.
     - Check the summary. Feel free to rephrase it, add more information, or generally improve it. The summary comment must be a general comment informing the PR author about the overall quality of the PR, the weakpoints it has, and which general issues need to be addressed.
+    - If you can add a suggestion code snippet to the comment text, do it. Do it only when you are very sure about the suggestion with the context you have.
+    - Suggestions must be passed separately (not as part of the comment content), and they must include how many lines above and below the comment to include in the suggestion.
+    - The offsets of suggestions must encompass all the code that needs to be changed. e.g., if you intend to change a whole function, the suggestion must include the full function. If you intend to change a single line, then the offsets will be 0.
+    - If a suggestion is given, a flag indicating whether the suggestion is ready to be applied directly by the author must be given. That is, if the suggestion includes comments to be filled by the author, or skips parts and is intended for clarification, the flag `ready_for_replacement` must be set to `false`.
 
     The review will have a score for the PR (1-5, with 5 being the best). It is your job to evaluate whether this score holds after removing the comments.
     You must evaluate the score, and change it if necessary. Here is some guidance:

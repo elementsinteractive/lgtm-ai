@@ -7,7 +7,7 @@ import pytest
 from lgtm_ai.ai.agent import get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
 from lgtm_ai.ai.schemas import AdditionalContext, PublishMetadata, Review, ReviewResponse
 from lgtm_ai.base.exceptions import NothingToReviewError
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.config.constants import DEFAULT_AI_MODEL
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.schemas import PRDiff
@@ -69,7 +69,7 @@ def test_get_review_from_url_valid() -> None:
             ),
         )
         review = code_reviewer.review_pull_request(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     # We get an actual review object
@@ -147,7 +147,9 @@ def test_summarizing_message_in_review() -> None:
             git_client=MockGitClient(),
             config=ResolvedConfig(),
         )
-        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
+        code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+        )
 
     review = {"summary": "a", "comments": [], "raw_score": 1, "score": "Abandon"}
     expected_message = textwrap.dedent(
@@ -197,7 +199,7 @@ def test_get_review_adds_technologies_to_prompt() -> None:
             config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
         )
         review = code_reviewer.review_pull_request(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -230,7 +232,7 @@ def test_get_review_adds_categories_to_prompt() -> None:
             config=ResolvedConfig(categories=("Correctness", "Quality")),
         )
         review = code_reviewer.review_pull_request(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -256,7 +258,9 @@ def test_review_fails_if_all_files_are_excluded() -> None:
         config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
     )
     with pytest.raises(NothingToReviewError):
-        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
+        code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+        )
 
 
 def test_file_is_excluded_from_prompt() -> None:
@@ -279,7 +283,7 @@ def test_file_is_excluded_from_prompt() -> None:
             config=ResolvedConfig(exclude=("file2.txt",)),
         )
         review = code_reviewer.review_pull_request(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab")
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -312,7 +316,9 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
     )
 
     with pytest.raises(expected_error):
-        code_reviewer.review_pull_request(pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source="gitlab"))
+        code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+        )
 
 
 def _assert_agent_message(
