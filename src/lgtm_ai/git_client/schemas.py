@@ -1,7 +1,7 @@
 from typing import Literal
 
-from groq import BaseModel
 from lgtm_ai.git_parser.parser import DiffResult
+from pydantic import BaseModel
 
 type ContextBranch = Literal["source", "target"]
 
