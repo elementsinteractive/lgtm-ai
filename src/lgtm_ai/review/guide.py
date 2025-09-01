@@ -1,9 +1,11 @@
 import logging
 
+import httpx
 from lgtm_ai.ai.schemas import GuideResponse, PublishMetadata, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.base import GitClient
+from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.exceptions import handle_ai_exceptions
 from lgtm_ai.review.prompt_generators import PromptGenerator
 from pydantic_ai import Agent
@@ -26,10 +28,11 @@ class ReviewGuideGenerator:
         self.model = model
         self.git_client = git_client
         self.config = config
+        self.context_retriever = ContextRetriever(git_client=git_client, httpx_client=httpx.Client(timeout=3))
 
     def generate_review_guide(self, pr_url: PRUrl) -> ReviewGuide:
         pr_diff = self.git_client.get_diff_from_url(pr_url)
-        context = self.git_client.get_context(pr_url, pr_diff)
+        context = self.context_retriever.get_code_context(pr_url, pr_diff)
         metadata = self.git_client.get_pr_metadata(pr_url)
         usage_limits = UsageLimits(input_tokens_limit=self.config.ai_input_tokens_limit)
 

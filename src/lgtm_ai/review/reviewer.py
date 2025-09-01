@@ -12,7 +12,7 @@ from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.schemas import PRDiff
-from lgtm_ai.review.additional_context import AdditionalContextGenerator
+from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.exceptions import (
     handle_ai_exceptions,
 )
@@ -41,9 +41,7 @@ class CodeReviewer:
         self.model = model
         self.git_client = git_client
         self.config = config
-        self.additional_context_generator = AdditionalContextGenerator(
-            httpx_client=httpx.Client(timeout=3), git_client=git_client
-        )
+        self.context_retriever = ContextRetriever(git_client=git_client, httpx_client=httpx.Client(timeout=3))
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         """Peform a full review of the given pull request URL and return it."""
@@ -87,8 +85,8 @@ class CodeReviewer:
         usage_limits: UsageLimits,
     ) -> ReviewResponse:
         """Perform an initial review of the PR with the reviewer agent."""
-        context = self.git_client.get_context(pr_url, pr_diff)
-        additional_context = self.additional_context_generator.get_additional_context_content(
+        context = self.context_retriever.get_code_context(pr_url=pr_url, pr_diff=pr_diff)
+        additional_context = self.context_retriever.get_additional_context(
             pr_url=pr_url,
             additional_context=self.config.additional_context,
         )

@@ -88,7 +88,11 @@ def test_get_review_from_url_valid() -> None:
     # We get an actual review object
     assert review == Review(
         pr_diff=PRDiff(
-            id=1, diff=MOCK_DIFF, changed_files=["file1", "file2"], target_branch="main", source_branch="feature"
+            id=1,
+            diff=MOCK_DIFF,
+            changed_files=["file-1.txt", "file-2.txt"],
+            target_branch="main",
+            source_branch="feature",
         ),
         review_response=ReviewResponse(summary="a", raw_score=1),
         metadata=PublishMetadata(model_name=DEFAULT_AI_MODEL, usage=review.metadata.usage),
@@ -110,12 +114,12 @@ def test_get_review_from_url_valid() -> None:
 
         CONTEXT:
 
-        ```file=file1.txt, branch=source
-        contents-of-file-1-context
+        ```file=file-1.txt, branch=source
+        contents-of-file-1.txt-context
         ```
 
-        ```file=file2.txt, branch=source
-        contents-of-file-2-context
+        ```file=file-2.txt, branch=source
+        contents-of-file-2.txt-context
         ```
 
         ADDITIONAL CONTEXT:

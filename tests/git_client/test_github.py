@@ -16,7 +16,7 @@ from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.github import GitHubClient
-from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE
@@ -172,50 +172,33 @@ def test_get_diff_from_url_successful() -> None:
     )
 
 
-def test_get_context_multiple_files() -> None:
+def test_get_file_contents_single_file() -> None:
     diffs_response = {
         "files": [
             {
                 "filename": "important.py",
                 "patch": "important content",
             },
-            {
-                "filename": "logic.py",
-                "patch": "surprise",
-            },
         ]
     }
     m_pr = mock_pr(diffs_response)
     m_repo = mock_repo(m_pr)
     client = mock_github_client(m_repo)
-
-    pr_diff = PRDiff(
-        id=10,
-        changed_files=["important.py", "logic.py"],
-        target_branch="main",
-        source_branch="feature",
-        diff=[],
-    )
 
     m_repo.get_contents.side_effect = [
         mock.Mock(decoded_content=b"lorem ipsum dolor sit amet"),
-        mock.Mock(decoded_content=b"surprise"),
     ]
-    context = client.get_context(
+    content = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
-        pr_diff=pr_diff,
+        file_path="important.py",
+        branch_name="source",
     )
 
-    assert context == PRContext(
-        file_contents=[
-            PRContextFileContents(file_path="important.py", content="lorem ipsum dolor sit amet"),
-            PRContextFileContents(file_path="logic.py", content="surprise"),
-        ]
-    )
+    assert content == "lorem ipsum dolor sit amet"
 
 
-def test_get_context_single_file_multiple_objects() -> None:
-    """GitHub can return multiple contents for a single file."""
+def test_get_file_contents_single_file_multiple_objects() -> None:
+    """GitHub can return multiple contents for a single file. They are concatenated."""
     diffs_response = {
         "files": [
             {
@@ -227,14 +210,6 @@ def test_get_context_single_file_multiple_objects() -> None:
     m_pr = mock_pr(diffs_response)
     m_repo = mock_repo(m_pr)
     client = mock_github_client(m_repo)
-
-    pr_diff = PRDiff(
-        id=10,
-        changed_files=["important.py"],
-        target_branch="main",
-        source_branch="feature",
-        diff=[],
-    )
 
     m_repo.get_contents.side_effect = [
         [
@@ -242,22 +217,17 @@ def test_get_context_single_file_multiple_objects() -> None:
             mock.Mock(decoded_content=b"lorem ipsum dolor sit amet"),
         ]
     ]
-    context = client.get_context(
+    content = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
-        pr_diff=pr_diff,
+        file_path="important.py",
+        branch_name="source",
     )
 
     # We concatenate the contents
-    assert context == PRContext(
-        file_contents=[
-            PRContextFileContents(
-                file_path="important.py", content="lorem ipsum dolor sit ametlorem ipsum dolor sit amet"
-            ),
-        ]
-    )
+    assert content == "lorem ipsum dolor sit ametlorem ipsum dolor sit amet"
 
 
-def test_get_context_one_file_missing() -> None:
+def test_get_file_contents_one_file_missing() -> None:
     diffs_response = {
         "files": [
             {
@@ -274,7 +244,7 @@ def test_get_context_one_file_missing() -> None:
     m_repo = mock_repo(m_pr)
     client = mock_github_client(m_repo)
 
-    pr_diff = PRDiff(
+    PRDiff(
         id=10,
         changed_files=["important.py", "logic.py"],
         target_branch="main",
@@ -287,16 +257,19 @@ def test_get_context_one_file_missing() -> None:
         github.GithubException(status=404, message="Not Found"),  # source branch
         github.GithubException(status=404, message="Not Found"),  # target branch
     ]
-    context = client.get_context(
+    content_1 = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
-        pr_diff=pr_diff,
+        file_path="important.py",
+        branch_name="source",
+    )
+    content_2 = client.get_file_contents(
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        file_path="logic.py",
+        branch_name="source",
     )
 
-    assert context == PRContext(
-        file_contents=[
-            PRContextFileContents(file_path="important.py", content="lorem ipsum dolor sit amet"),
-        ]
-    )
+    assert content_1 == "lorem ipsum dolor sit amet"
+    assert content_2 is None
 
 
 def test_post_review_successful() -> None:

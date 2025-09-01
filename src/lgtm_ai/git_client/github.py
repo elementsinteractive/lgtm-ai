@@ -19,7 +19,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestMetadataError,
 )
-from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
@@ -94,38 +94,6 @@ class GitHubClient(GitClient):
             raise PublishReviewError from err
         logger.info("Review published successfully")
 
-    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
-        """Return a PRContext object containing the context of the given pull request URL."""
-        try:
-            pr = _get_pr(self.client, pr_url)
-            files = pr.get_files()
-        except github.GithubException:
-            logger.error("Failed to retrieve the context of the pull request, skipping...")
-            return PRContext(file_contents=[])
-
-        context_files: list[PRContextFileContents] = []
-        for file in files:
-            # Attempt to download the file context from the PR branch
-            context_content = self._get_context_file_contents(pr_url=pr_url, file=file, branch_name="source")
-            if context_content is None:
-                logger.warning(
-                    "File %s is not available in the source branch %s, trying target branch...",
-                    file.filename,
-                    pr_diff.source_branch,
-                )
-                # If the file is not available in the source branch, try the target branch
-                context_content = self._get_context_file_contents(pr_url=pr_url, file=file, branch_name="target")
-
-                if context_content is None:
-                    logger.warning(
-                        "File %s is not available in the target branch %s, skipping...",
-                        file.filename,
-                        pr_diff.target_branch,
-                    )
-                    continue
-            context_files.append(context_content)
-        return PRContext(file_contents=context_files)
-
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         """Return a PRMetadata object containing the metadata of the given pull request URL."""
         try:
@@ -186,27 +154,6 @@ class GitHubClient(GitClient):
                 return None
             decoded_content.append(decoded_chunk_content)
         return "".join(decoded_content)
-
-    def _get_context_file_contents(
-        self,
-        pr_url: PRUrl,
-        file: github.File.File,
-        branch_name: ContextBranch,
-    ) -> PRContextFileContents | None:
-        """Return the contents of the given file from the given repository and branch."""
-        file_contents = self.get_file_contents(
-            file_path=file.filename,
-            pr_url=pr_url,
-            branch_name=branch_name,
-        )
-        if file_contents is None:
-            return None
-
-        return PRContextFileContents(
-            file_path=file.filename,
-            content=file_contents,
-            branch=branch_name,
-        )
 
 
 @lru_cache(maxsize=64)

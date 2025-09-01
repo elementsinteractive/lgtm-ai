@@ -39,7 +39,7 @@ def test_get_guide_from_url_valid() -> None:
         pr_diff=PRDiff(
             id=1,
             diff=MOCK_DIFF,
-            changed_files=["file1", "file2"],
+            changed_files=["file-1.txt", "file-2.txt"],
             target_branch="main",
             source_branch="feature",
         ),

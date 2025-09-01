@@ -16,7 +16,7 @@ from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.gitlab import GitlabClient
-from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff
+from lgtm_ai.git_client.schemas import PRDiff
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE, PARSED_GIT_DIFF
 from tests.review.utils import MOCK_USAGE
@@ -316,18 +316,9 @@ def test_post_review_with_a_successful_and_an_unsuccessful_comments() -> None:
     )
 
 
-def test_get_context_multiple_files() -> None:
+def test_get_file_contents_multiple_files() -> None:
     m_mr = mock_mr()
     m_project = mock_project(m_mr)
-
-    pr_diff = PRDiff(
-        id=10,
-        changed_files=["important.py", "logic.py"],
-        target_branch="main",
-        source_branch="feature",
-        diff=[],
-    )
-
     m_project.files.get.side_effect = [
         mock.Mock(content=b"bG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQ="),
         mock.Mock(content=b"c3VycHJpc2U="),
@@ -335,31 +326,24 @@ def test_get_context_multiple_files() -> None:
 
     client = mock_gitlab_client(m_project)
 
-    context = client.get_context(
+    contents_1 = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
-        pr_diff=pr_diff,
+        file_path="important.py",
+        branch_name="source",
+    )
+    contents_2 = client.get_file_contents(
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        file_path="logic.py",
+        branch_name="source",
     )
 
-    assert context == PRContext(
-        file_contents=[
-            PRContextFileContents(file_path="important.py", content="lorem ipsum dolor sit amet"),
-            PRContextFileContents(file_path="logic.py", content="surprise"),
-        ]
-    )
+    assert contents_1 == "lorem ipsum dolor sit amet"
+    assert contents_2 == "surprise"
 
 
-def test_get_context_one_file_missing() -> None:
+def test_get_file_contents_one_file_missing() -> None:
     m_mr = mock_mr()
     m_project = mock_project(m_mr)
-
-    pr_diff = PRDiff(
-        id=10,
-        changed_files=["important.py", "logic.py"],
-        target_branch="main",
-        source_branch="feature",
-        diff=[],
-    )
-
     m_project.files.get.side_effect = [
         gitlab.exceptions.GitlabGetError("File not found"),  # The initial call fails
         gitlab.exceptions.GitlabGetError("File not found again"),  # The follow-up in case of deletion fails
@@ -368,53 +352,27 @@ def test_get_context_one_file_missing() -> None:
 
     client = mock_gitlab_client(m_project)
 
-    context = client.get_context(
+    missing_1 = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
-        pr_diff=pr_diff,
+        file_path="whatever",
+        branch_name="source",
     )
 
-    assert context == PRContext(
-        file_contents=[
-            # Notice there is no content for important.py, but the other file is still there
-            PRContextFileContents(file_path="logic.py", content="surprise", branch="source"),
-        ]
-    )
-
-
-def test_get_context_deleted_file() -> None:
-    m_mr = mock_mr()
-    m_project = mock_project(m_mr)
-
-    pr_diff = PRDiff(
-        id=10,
-        changed_files=["missing.py"],
-        target_branch="main",
-        source_branch="feature",
-        diff=[],
-    )
-
-    m_project.files.get.side_effect = [
-        gitlab.exceptions.GitlabGetError("File not found"),  # The initial call on the PR sha fails
-        mock.Mock(content=b"c3VycHJpc2U="),  # The follow-up on main succeeds
-    ]
-
-    client = mock_gitlab_client(m_project)
-
-    context = client.get_context(
+    missing_2 = client.get_file_contents(
         PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
-        pr_diff=pr_diff,
+        file_path="whatever",
+        branch_name="target",
     )
 
-    assert context == PRContext(
-        file_contents=[
-            PRContextFileContents(file_path="missing.py", content="surprise", branch="target"),
-        ]
+    contents = client.get_file_contents(
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        file_path="logic.py",
+        branch_name="source",
     )
-    calls = m_project.files.get.call_args_list
 
-    assert len(calls) == 2
-    assert calls[0][1]["ref"] == mock.ANY
-    assert calls[1][1]["ref"] == "main"  # The target branch is used for the deleted file
+    assert missing_1 is None
+    assert missing_2 is None
+    assert contents == "surprise"
 
 
 def test_publish_guide_successful() -> None:
