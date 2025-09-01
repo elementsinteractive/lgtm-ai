@@ -19,7 +19,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 
@@ -56,31 +56,6 @@ class GitlabClient(GitClient):
             target_branch=pr.target_branch,
             source_branch=pr.source_branch,
         )
-
-    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
-        """Get the context by using the GitLab API to retrieve the files in the PR diff.
-
-        It mimics the information a human reviewer might have access to, which usually implies
-        only looking at the PR in question.
-        """
-        logger.info("Fetching context from GitLab")
-        context = PRContext(file_contents=[])
-        branch: ContextBranch = "source"
-        for file_path in pr_diff.changed_files:
-            branch = "source"
-            content = self.get_file_contents(file_path=file_path, pr_url=pr_url, branch_name=branch)
-            if content is None:
-                logger.warning(
-                    "Failed to retrieve file %s from source branch, attempting to retrieve from target branch...",
-                    file_path,
-                )
-                branch = "target"
-                content = self.get_file_contents(file_path=file_path, pr_url=pr_url, branch_name="target")
-                if content is None:
-                    logger.warning("Failed to retrieve file %s from target branch, skipping...", file_path)
-                    continue
-            context.add_file(file_path, content, branch)
-        return context
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         pr = _get_pr_from_url(self.client, pr_url)

@@ -8,7 +8,8 @@ from lgtm_ai.ai.schemas import AdditionalContext, ReviewResponse
 from lgtm_ai.base.exceptions import NothingToReviewError
 from lgtm_ai.base.utils import file_matches_any_pattern
 from lgtm_ai.config.handler import ResolvedConfig
-from lgtm_ai.git_client.schemas import PRContext, PRContextFileContents, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import PRDiff, PRMetadata
+from lgtm_ai.review.schemas import PRCodeContext, PRContextFileContents
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -27,7 +28,7 @@ class PromptGenerator:
         self._template_env = Environment(loader=FileSystemLoader(template_dir), autoescape=False)  # noqa: S701
 
     def generate_review_prompt(
-        self, *, pr_diff: PRDiff, context: PRContext, additional_context: list[AdditionalContext] | None = None
+        self, *, pr_diff: PRDiff, context: PRCodeContext, additional_context: list[AdditionalContext] | None = None
     ) -> str:
         """Generate the initial prompt for the AI model to review the PR.
 
@@ -54,7 +55,7 @@ class PromptGenerator:
         )
 
     def generate_guide_prompt(
-        self, *, pr_diff: PRDiff, context: PRContext, additional_context: list[AdditionalContext] | None = None
+        self, *, pr_diff: PRDiff, context: PRCodeContext, additional_context: list[AdditionalContext] | None = None
     ) -> str:
         return self.generate_review_prompt(
             pr_diff=pr_diff, context=context, additional_context=additional_context

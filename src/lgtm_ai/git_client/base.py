@@ -2,7 +2,7 @@ from typing import Protocol
 
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
-from lgtm_ai.git_client.schemas import ContextBranch, PRContext, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
 
 
 class GitClient(Protocol):
@@ -13,9 +13,6 @@ class GitClient(Protocol):
 
     def publish_review(self, pr_url: PRUrl, review: Review) -> None:
         """Publish a whole review to the PR. It will create several comments/reviews etc. depending on the git service."""
-
-    def get_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRContext:
-        """Get context for the PR given its URL and diff."""
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         """Get metadata for the PR given its URL."""
