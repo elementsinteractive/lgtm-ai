@@ -17,3 +17,8 @@ class PRDiff(BaseModel):
 class PRMetadata(BaseModel):
     title: str
     description: str
+
+
+class IssueContent(BaseModel):
+    title: str
+    description: str

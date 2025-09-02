@@ -90,9 +90,22 @@ class CodeReviewer:
             pr_url=pr_url,
             additional_context=self.config.additional_context,
         )
+        if self.config.issues_source and self.config.issues_url and self.config.issues_regex:
+            logger.info("Fetching issue context related to the PR")
+            issue_context = self.context_retriever.get_issues_context(
+                issues_source=self.config.issues_source,
+                issues_url=self.config.issues_url,
+                issues_regex=self.config.issues_regex,
+                pr_metadata=self.git_client.get_pr_metadata(pr_url),
+            )
+        else:
+            issue_context = None
 
         review_prompt = prompt_generator.generate_review_prompt(
-            pr_diff=pr_diff, context=context, additional_context=additional_context
+            pr_diff=pr_diff,
+            context=context,
+            additional_context=additional_context,
+            issue_context=issue_context,
         )
         logger.info("Running Reviewer agent on the PR diff")
         with handle_ai_exceptions():

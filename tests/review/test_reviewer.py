@@ -103,8 +103,101 @@ def test_get_review_from_url_valid() -> None:
         textwrap.dedent(
             f"""
         PR METADATA:
-        - Title: foo
+        - Title: feat(#288): a title
         - Description: bar
+
+
+
+        PR DIFF:
+        ```
+        {json.dumps([diff.model_dump() for diff in MOCK_DIFF])}
+        ```
+
+
+        CONTEXT:
+
+        ```file=file-1.txt, branch=source
+        contents-of-file-1.txt-context
+        ```
+
+        ```file=file-2.txt, branch=source
+        contents-of-file-2.txt-context
+        ```
+
+        ADDITIONAL CONTEXT:
+
+        ```file=None, prompt=These are the development guidelines for the project. Please follow them.
+        contents-of-dev-guidelines
+        ```
+
+        ```file=None, prompt=Yet another prompt
+        yet-another-context
+        ```
+        """
+        ).strip()
+        + "\n"
+    )
+    _assert_agent_message(
+        messages,
+        expected_message,
+        expected_messages=4,
+        expected_prompts=["system-prompt", "system-prompt", "system-prompt", "user-prompt"],
+    )
+
+
+def test_get_review_with_issue() -> None:
+    test_agent = get_reviewer_agent_with_settings()
+    test_summary_agent = get_summarizing_agent_with_settings()
+    with (
+        test_agent.override(
+            model=TestModel(),
+        ),
+        test_summary_agent.override(
+            model=TestModel(),
+        ),
+        capture_run_messages() as messages,
+    ):
+        code_reviewer = CodeReviewer(
+            reviewer_agent=test_agent,
+            summarizing_agent=test_summary_agent,
+            model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
+            git_client=MockGitClient(),
+            config=ResolvedConfig(
+                additional_context=(
+                    AdditionalContext(
+                        file_url=None,
+                        prompt="These are the development guidelines for the project. Please follow them.",
+                        context="contents-of-dev-guidelines",
+                    ),
+                    AdditionalContext(
+                        file_url=None,
+                        prompt="Yet another prompt",
+                        context="yet-another-context",
+                    ),
+                ),
+                issues_source="gitlab",
+                issues_url="https://gitlab.com/example/repo/-/issues/",
+            ),
+        )
+        review = code_reviewer.review_pull_request(
+            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+        )
+
+    assert isinstance(review, Review)
+
+    # There are messages with the correct prompts to the AI agent
+    expected_message = (
+        textwrap.dedent(
+            f"""
+        PR METADATA:
+        - Title: feat(#288): a title
+        - Description: bar
+
+
+        USER STORY:
+        - Title: Issue title
+        - Description: Issue description
+
 
         PR DIFF:
         ```
@@ -172,7 +265,7 @@ def test_summarizing_message_in_review() -> None:
     expected_message = textwrap.dedent(
         f"""
         PR METADATA:
-        - Title: foo
+        - Title: feat(#288): a title
         - Description: bar
 
         PR DIFF:

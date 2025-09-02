@@ -4,10 +4,11 @@ import httpx
 import pytest
 from lgtm_ai.ai.schemas import AdditionalContext
 from lgtm_ai.base.schemas import PRSource, PRUrl
+from lgtm_ai.config.constants import DEFAULT_ISSUE_REGEX
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.github import GitHubClient
 from lgtm_ai.git_client.gitlab import GitlabClient
-from lgtm_ai.git_client.schemas import PRDiff
+from lgtm_ai.git_client.schemas import PRDiff, PRMetadata
 from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.schemas import PRCodeContext, PRContextFileContents
 from tests.review.utils import MockGitClient
@@ -138,3 +139,98 @@ class TestCodeContext:
                 PRContextFileContents(file_path="logic.py", content="surprise", branch="source"),
             ]
         )
+
+
+class TestIssueContext:
+    @pytest.mark.parametrize(
+        ("metadata", "expected"),
+        [
+            pytest.param(
+                PRMetadata(
+                    title="feat(PROJ-123): Implement new feature",
+                    description="This PR implements the new feature as described in PROJ-957.",
+                ),
+                "PROJ-123",
+                id="jira-no-hash-in-scope",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="feat(#PROJ-123): Implement new feature",
+                    description="This PR implements the new feature as described in PROJ-957.",
+                ),
+                "PROJ-123",
+                id="jira-with-hash-in-scope",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="feat(#123): Implement new feature",
+                    description="This PR implements the new feature as described in PROJ-957.",
+                ),
+                "123",
+                id="number-with-hash-in-scope",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="feat(123): Implement new feature",
+                    description="This PR implements the new feature as described in PROJ-957.",
+                ),
+                None,
+                id="number-no-hash-in-scope",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="fix: Bug fix for issue #456",
+                    description="Closes #456 and relates to PROJ-789.",
+                ),
+                "456",
+                id="number-with-hash-in-title-and-description",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="fix: Bug fix for issue 456",
+                    description="Does something. refs #456",
+                ),
+                "456",
+                id="number-with-hash-in-description",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="docs: Update documentation",
+                    description="No issue reference here.",
+                ),
+                None,
+                id="no-issue-reference",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="chore: Misc updates",
+                    description="Refs #1234 in the description.",
+                ),
+                "1234",
+                id="number-with-hash-in-description",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="chore: Misc updates",
+                    description="Refs #nothing in the description.",
+                ),
+                None,
+                id="non-numeric-hash-in-description",
+            ),
+            pytest.param(
+                PRMetadata(
+                    title="chore: Misc updates",
+                    description="Refs 1234 in the description without #.",
+                ),
+                None,
+                id="number-no-hash-in-description",
+            ),
+        ],
+    )
+    def test_extract_issue_code_from_metadata(self, metadata: PRMetadata, expected: str | None) -> None:
+        context_retriever = ContextRetriever(
+            git_client=mock.Mock(spec=GitClient), httpx_client=mock.Mock(spec=httpx.Client)
+        )
+
+        issue_code = context_retriever._extract_issue_code_from_metadata(metadata, DEFAULT_ISSUE_REGEX)
+        assert issue_code == expected

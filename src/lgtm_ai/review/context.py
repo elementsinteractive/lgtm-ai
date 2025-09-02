@@ -1,14 +1,16 @@
 import logging
+import re
 from urllib.parse import ParseResult, urlparse
 
 import httpx
 from lgtm_ai.ai.schemas import (
     AdditionalContext,
 )
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import IssuesSource, PRUrl
 from lgtm_ai.git_client.base import GitClient
-from lgtm_ai.git_client.schemas import ContextBranch, PRDiff
+from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from lgtm_ai.review.schemas import PRCodeContext
+from pydantic import HttpUrl
 
 logger = logging.getLogger("lgtm.ai")
 
@@ -53,7 +55,7 @@ class ContextRetriever:
     ) -> list[AdditionalContext] | None:
         """Get additional context content for the AI model to review the PR.
 
-        From the provided additional context configurations it returns a list of `Additionalcontext` that contains
+        From the provided additional context configurations it returns a list of `AdditionalContext` that contains
         the necessary additional context contents to generate a prompt for the AI.
 
         It either downloads the content from the provided URLs directly (no authentication/custom headers supported)
@@ -93,6 +95,21 @@ class ContextRetriever:
 
         return extra_context or None
 
+    def get_issues_context(
+        self, issues_source: IssuesSource, issues_url: HttpUrl, issues_regex: str, pr_metadata: PRMetadata
+    ) -> IssueContent | None:
+        """Retrieve the contents of the issue/user story linked to the PR, if any."""
+        issue_code = self._extract_issue_code_from_metadata(pr_metadata, issues_regex)
+        if not issue_code:
+            logger.info("No issue code found in PR metadata. Skipping issue context retrieval.")
+            return None
+        logger.info("Found issue code '%s' in PR metadata. Fetching issue content...", issue_code)
+
+        if issues_source.is_git_platform:
+            return self._git_client.get_issue_content(issues_url=issues_url, issue_id=issue_code)
+        # TODO: Jira, Asana, Trello, etc.
+        return None
+
     def _is_relative_path(self, path: ParseResult) -> bool:
         """Check if the path is relative. If it is relative, we assume it is a file in the repository."""
         return not path.netloc and not path.scheme
@@ -117,3 +134,19 @@ class ContextRetriever:
             return None
 
         return response.text
+
+    def _extract_issue_code_from_metadata(self, pr_metadata: PRMetadata, issues_regex: str) -> str | None:
+        pattern = re.compile(issues_regex, re.IGNORECASE)
+        for text in (pr_metadata.title, pr_metadata.description):
+            matches = []
+            for m in pattern.finditer(text):
+                first_group = next((g for g in m.groups() if g), None)
+                if first_group:
+                    matches.append(first_group)
+            if matches:
+                # TODO: multiple issues?
+                issue_id = matches[0]
+                if issue_id and issue_id.startswith("#"):
+                    issue_id = issue_id[1:]
+                return issue_id
+        return None

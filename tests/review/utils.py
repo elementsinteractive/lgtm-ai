@@ -3,8 +3,9 @@ from unittest import mock
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git_client.base import GitClient
-from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from pydantic import HttpUrl
 from pydantic_ai.usage import RunUsage
 
 MOCK_USAGE = mock.MagicMock(
@@ -53,10 +54,13 @@ class MockGitClient(GitClient):
         return None
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
-        return PRMetadata(title="foo", description="bar")
+        return PRMetadata(title="feat(#288): a title", description="bar")
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         return None
+
+    def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        return IssueContent(title="Issue title", description="Issue description")
 
     def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
         return f"contents-of-{file_path}-context"
