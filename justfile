@@ -36,7 +36,7 @@ test *test-args='': venv
 
 # Runs all tests including coverage report.
 test-all: venv
-    {{ run }} pytest
+    {{ run }} pytest --junitxml=pytest.xml --cov-report=xml:coverage.xml
 
 # Format all code in the project.
 format *files=target_dirs: venv
