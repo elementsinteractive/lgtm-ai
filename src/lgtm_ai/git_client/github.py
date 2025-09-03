@@ -22,6 +22,7 @@ from lgtm_ai.git_client.exceptions import (
 from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
+from pydantic import HttpUrl
 
 logger = logging.getLogger("lgtm.git")
 
@@ -103,6 +104,9 @@ class GitHubClient(GitClient):
             raise PullRequestMetadataError from err
 
         return PRMetadata(title=pr.title or "", description=pr.body or "")
+
+    def get_issue_content(self, issue_url: HttpUrl, issue_id: str) -> None:
+        raise NotImplementedError("GitHub issues are not yet supported")
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         pr = _get_pr(self.client, pr_url)

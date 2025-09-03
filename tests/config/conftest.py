@@ -98,6 +98,17 @@ def toml_with_invalid_config_field(tmp_path: Path) -> Iterator[str]:
 
 
 @pytest.fixture
+def toml_with_some_issues_configs(tmp_path: Path) -> Iterator[str]:
+    pyproject_toml = tmp_path / "lgtm.toml"
+    data = """
+    issues_source = "gitlab"
+    issues_regex = "some-regex"
+    """
+    with create_tmp_file(pyproject_toml, data) as tmp_file:
+        yield tmp_file
+
+
+@pytest.fixture
 def inject_env_secrets() -> Iterator[None]:
     # Backup a copy of the current environment
     original_env = copy.deepcopy(os.environ)

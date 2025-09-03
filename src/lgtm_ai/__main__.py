@@ -13,7 +13,7 @@ from lgtm_ai.ai.agent import (
     get_summarizing_agent_with_settings,
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
-from lgtm_ai.base.schemas import IntOrNoLimit, OutputFormat, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig
@@ -96,6 +96,21 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 @entry_point.command()
 @click.option(
+    "--issues-url",
+    type=click.STRING,
+    help="The URL of the issues page to retrieve additional context from.",
+)
+@click.option(
+    "--issues-source",
+    type=click.Choice([source.value for source in IssuesSource]),
+    help="The platform of the issues page.",
+)
+@click.option(
+    "--issues-regex",
+    type=click.STRING,
+    help="Regex to extract issue ID from the PR title and description.",
+)
+@click.option(
     "--technologies",
     multiple=True,
     help="List of technologies the reviewer is an expert in. If not provided, the reviewer will be an expert of all technologies in the given PR. Use it if you want to guide the reviewer to focus on specific technologies.",
@@ -123,6 +138,9 @@ def review(
     verbose: int,
     technologies: tuple[str, ...],
     categories: tuple[CommentCategory, ...],
+    issues_url: str | None,
+    issues_regex: str | None,
+    issues_source: IssuesSource | None,
 ) -> None:
     """Review a Pull Request using AI."""
     _set_logging_level(logger, verbose)
@@ -144,6 +162,9 @@ def review(
             silent=silent,
             ai_retries=ai_retries,
             ai_input_tokens_limit=ai_input_tokens_limit,
+            issues_url=issues_url,
+            issues_regex=issues_regex,
+            issues_source=issues_source,
         ),
         config_file=config,
     ).resolve_config()

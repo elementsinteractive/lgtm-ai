@@ -2,7 +2,8 @@ from typing import Protocol
 
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
-from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
+from pydantic import HttpUrl
 
 
 class GitClient(Protocol):
@@ -16,6 +17,9 @@ class GitClient(Protocol):
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         """Get metadata for the PR given its URL."""
+
+    def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        """Fetch the content of an issue from its URL."""
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         """Publish a review guide to the PR."""

@@ -2,6 +2,12 @@ PR METADATA:
 - Title: {{ metadata.title }}
 - Description: {{ metadata.description }}
 
+{% if issue_context %}
+USER STORY:
+- Title: {{ issue_context.title }}
+- Description: {{ issue_context.description }}
+{% endif %}
+
 PR DIFF:
 ```
 {{ diff }}

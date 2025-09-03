@@ -2,14 +2,16 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
+from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT, DEFAULT_ISSUE_REGEX
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
     InvalidConfigFileError,
+    InvalidOptionsError,
     MissingRequiredConfigError,
 )
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig
+from pydantic import HttpUrl
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
@@ -234,3 +236,59 @@ def test_ai_input_token_limit_uses_none_from_cli(ai_input_token_limit_toml_file:
     )
     config = handler.resolve_config()
     assert config.ai_input_tokens_limit is None
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_configuration_missing(lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues"),
+        config_file=lgtm_toml_file,
+    )
+    with pytest.raises(MissingRequiredConfigError, match="all issues fields must be provided"):
+        handler.resolve_config()
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_configuration_url_not_valid(lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(issues_url="what-is-this"),
+        config_file=lgtm_toml_file,
+    )
+    with pytest.raises(InvalidOptionsError, match="Input should be a valid URL"):
+        handler.resolve_config()
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_configuration_all_present(toml_with_some_issues_configs: str) -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues"),
+        config_file=toml_with_some_issues_configs,
+    )
+    config = handler.resolve_config()
+
+    assert config.issues_url == HttpUrl("https://gitlab.com/user/repo/-/issues")
+    assert config.issues_source == "gitlab"
+    assert config.issues_regex == "some-regex"
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_regex_uses_default(lgtm_toml_file: str) -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues", issues_source="gitlab"),
+        config_file=lgtm_toml_file,
+    )
+    config = handler.resolve_config()
+
+    assert config.issues_regex == DEFAULT_ISSUE_REGEX
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_regex_invalid() -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(
+            issues_url="https://gitlab.com/user/repo/-/issues", issues_source="gitlab", issues_regex="*bad-regex"
+        ),
+        config_file=None,
+    )
+    with pytest.raises(InvalidOptionsError, match="Invalid regex"):
+        handler.resolve_config()

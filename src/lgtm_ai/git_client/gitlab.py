@@ -3,6 +3,7 @@ import binascii
 import functools
 import logging
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import gitlab
 import gitlab.exceptions
@@ -19,9 +20,10 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
 )
-from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
+from pydantic import HttpUrl
 
 logger = logging.getLogger("lgtm.git")
 
@@ -62,6 +64,19 @@ class GitlabClient(GitClient):
         return PRMetadata(
             title=pr.title or "",
             description=pr.description or "",
+        )
+
+    def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        try:
+            project = _get_project_from_issues_url(self.client, issues_url)
+            issue = project.issues.get(issue_id)
+        except (gitlab.exceptions.GitlabError, ValueError):
+            logger.error("Failed to retrieve the issue content from GitLab for issue %s", issue_id)
+            return None
+
+        return IssueContent(
+            title=issue.title or "",
+            description=issue.description or "",
         )
 
     def publish_review(self, pr_url: PRUrl, review: Review) -> None:
@@ -244,3 +259,12 @@ def _get_project_from_url(client: gitlab.Gitlab, pr_url: PRUrl) -> gitlab.v4.obj
     """Get the project from the GitLab client using the project path from the PR URL."""
     logger.debug("Fetching project from GitLab (cache miss)")
     return client.projects.get(pr_url.repo_path)
+
+
+@functools.lru_cache(maxsize=32)
+def _get_project_from_issues_url(client: gitlab.Gitlab, issues_url: HttpUrl) -> gitlab.v4.objects.Project:
+    """Get the project from the GitLab client using the project path from the issues URL."""
+    logger.debug("Fetching project from GitLab (cache miss)")
+    parsed = urlparse(str(issues_url))
+    project_path, _ = parsed.path.split("/-/issues")
+    return client.projects.get(project_path.strip("/"))

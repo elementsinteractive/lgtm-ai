@@ -55,6 +55,7 @@ You will receive:
         }}
         ```
 - `Context`, which consists on the contents of each of the changed files in the source (PR) branch or the target branch. This should help you to understand the context of the PR.
+- Optionally, `User Story` that the PR is implementing, which will consist of a title and a description. You must evaluate whether the PR is correctly implementing the user story (in its totality or partially).
 - Optionally, `Additional context` that the author of the PR has provided, which may contain a prompt (to give you a hint on what to use it for), and some content.
 
 You should make two types of comments:

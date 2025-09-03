@@ -11,6 +11,14 @@ class PRSource(StrEnum):
     gitlab = "gitlab"
 
 
+class IssuesSource(StrEnum):
+    gitlab = "gitlab"
+
+    @property
+    def is_git_platform(self) -> bool:
+        return self in {IssuesSource.gitlab}
+
+
 @dataclass(frozen=True, slots=True)
 class PRUrl:
     full_url: str

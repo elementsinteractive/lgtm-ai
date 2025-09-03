@@ -4,18 +4,20 @@ import pathlib
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, ClassVar, Literal, cast, get_args, overload
+from typing import Annotated, Any, ClassVar, Literal, Self, cast, get_args, overload
 
 from lgtm_ai.ai.schemas import AdditionalContext, CommentCategory, SupportedAIModels
-from lgtm_ai.base.schemas import IntOrNoLimit, OutputFormat
-from lgtm_ai.config.constants import DEFAULT_AI_MODEL, DEFAULT_INPUT_TOKEN_LIMIT
+from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat
+from lgtm_ai.config.constants import DEFAULT_AI_MODEL, DEFAULT_INPUT_TOKEN_LIMIT, DEFAULT_ISSUE_REGEX
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigError,
     InvalidConfigFileError,
+    InvalidOptionsError,
     MissingRequiredConfigError,
 )
-from pydantic import BaseModel, Field, ValidationError
+from lgtm_ai.config.validators import validate_regex
+from pydantic import AfterValidator, BaseModel, Field, HttpUrl, ValidationError, model_validator
 
 logger = logging.getLogger("lgtm")
 
@@ -37,6 +39,9 @@ class PartialConfig(BaseModel):
     silent: bool = False
     ai_retries: int | None = None
     ai_input_tokens_limit: IntOrNoLimit | None = None
+    issues_url: str | None = None
+    issues_regex: str | None = None
+    issues_source: IssuesSource | None = None
 
     # Secrets
     git_api_key: str | None = None
@@ -82,12 +87,31 @@ class ResolvedConfig(BaseModel):
     ai_input_tokens_limit: int | None = DEFAULT_INPUT_TOKEN_LIMIT
     """Maximum number of input tokens allowed to send to all AI models in total."""
 
+    issues_url: HttpUrl | None = None
+    """The URL of the issues page to retrieve additional context from."""
+
+    issues_regex: Annotated[str, AfterValidator(validate_regex)] = DEFAULT_ISSUE_REGEX
+    """Regex to extract issue ID from the PR title and description."""
+
+    issues_source: IssuesSource | None = None
+    """The platform of the issues page."""
+
     # Secrets
     git_api_key: str = Field(default="", repr=False)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
 
     ai_api_key: str = Field(default="", repr=False)
     """API key to interact with the AI model service (OpenAI, etc.)."""
+
+    @model_validator(mode="after")
+    def validate_issues_options(self) -> Self:
+        all_fields = (self.issues_url, self.issues_source)
+        if any(field is not None for field in all_fields) and not all(field is not None for field in all_fields):
+            raise MissingRequiredConfigError(
+                "If any `--issues-*` configuration is provided, all issues fields must be provided. Check --help."
+            )
+        # TODO: if source is JIRA, we need to ensure we have credentials
+        return self
 
 
 class ConfigHandler:
@@ -143,6 +167,9 @@ class ConfigHandler:
                 silent=config_data.get("silent", False),
                 ai_retries=config_data.get("ai_retries", None),
                 ai_input_tokens_limit=config_data.get("ai_input_tokens_limit", None),
+                issues_url=config_data.get("issues_url", None),
+                issues_source=config_data.get("issues_source", None),
+                issues_regex=config_data.get("issues_regex", None),
             )
         except ValidationError as err:
             raise InvalidConfigError(source=file_to_read.name, errors=err.errors()) from None
@@ -203,6 +230,9 @@ class ConfigHandler:
             publish=self.cli_args.publish,
             ai_retries=self.cli_args.ai_retries or None,
             ai_input_tokens_limit=self.cli_args.ai_input_tokens_limit or None,
+            issues_url=self.cli_args.issues_url or None,
+            issues_source=self.cli_args.issues_source or None,
+            issues_regex=self.cli_args.issues_regex or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -219,36 +249,42 @@ class ConfigHandler:
         self, *, from_cli: PartialConfig, from_file: PartialConfig, from_env: PartialConfig
     ) -> ResolvedConfig:
         """Resolve the config fields given all the config sources."""
-        resolved = ResolvedConfig(
-            technologies=self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file),
-            categories=cast(
-                tuple[CommentCategory, ...],
-                self.resolver.resolve_tuple_field(
-                    "categories", from_cli=from_cli, from_file=from_file, default=get_args(CommentCategory)
+        try:
+            resolved = ResolvedConfig(
+                technologies=self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file),
+                categories=cast(
+                    tuple[CommentCategory, ...],
+                    self.resolver.resolve_tuple_field(
+                        "categories", from_cli=from_cli, from_file=from_file, default=get_args(CommentCategory)
+                    ),
                 ),
-            ),
-            exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
-            model=self.resolver.resolve_string_field(
-                "model",
-                from_cli=from_cli,
-                from_file=from_file,
-                required=False,
-                default=DEFAULT_AI_MODEL,
-            ),
-            model_url=from_cli.model_url or from_file.model_url,
-            additional_context=from_file.additional_context or (),
-            publish=from_cli.publish or from_file.publish,
-            output_format=from_cli.output_format or from_file.output_format or OutputFormat.pretty,
-            silent=from_cli.silent or from_file.silent,
-            ai_retries=from_cli.ai_retries or from_file.ai_retries,
-            git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
-            ai_api_key=self.resolver.resolve_string_field(
-                "ai_api_key", from_cli=from_cli, from_env=from_env, required=False, default=""
-            ),
-            ai_input_tokens_limit=_transform_nolimit_to_none(
-                from_cli.ai_input_tokens_limit or from_file.ai_input_tokens_limit or DEFAULT_INPUT_TOKEN_LIMIT
-            ),
-        )
+                exclude=self.resolver.resolve_tuple_field("exclude", from_cli=from_cli, from_file=from_file),
+                model=self.resolver.resolve_string_field(
+                    "model",
+                    from_cli=from_cli,
+                    from_file=from_file,
+                    required=False,
+                    default=DEFAULT_AI_MODEL,
+                ),
+                model_url=from_cli.model_url or from_file.model_url,
+                additional_context=from_file.additional_context or (),
+                publish=from_cli.publish or from_file.publish,
+                output_format=from_cli.output_format or from_file.output_format or OutputFormat.pretty,
+                silent=from_cli.silent or from_file.silent,
+                ai_retries=from_cli.ai_retries or from_file.ai_retries,
+                git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
+                ai_api_key=self.resolver.resolve_string_field(
+                    "ai_api_key", from_cli=from_cli, from_env=from_env, required=False, default=""
+                ),
+                ai_input_tokens_limit=_transform_nolimit_to_none(
+                    from_cli.ai_input_tokens_limit or from_file.ai_input_tokens_limit or DEFAULT_INPUT_TOKEN_LIMIT
+                ),
+                issues_regex=from_cli.issues_regex or from_file.issues_regex or DEFAULT_ISSUE_REGEX,
+                issues_url=from_cli.issues_url or from_file.issues_url,
+                issues_source=from_cli.issues_source or from_file.issues_source,
+            )
+        except ValidationError as err:
+            raise InvalidOptionsError(err) from None
         logger.debug("Resolved config: %s", resolved)
         return resolved
 
