@@ -12,6 +12,7 @@ from lgtm_ai.config.constants import DEFAULT_AI_MODEL
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.schemas import PRDiff
 from lgtm_ai.review import CodeReviewer
+from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.exceptions import (
     ClientUsageLimitsExceededError,
     InvalidAIResponseError,
@@ -49,7 +50,16 @@ def _get_ai_validation_error(*, is_validation_error: bool) -> UnexpectedModelBeh
     return exc
 
 
-def test_get_review_from_url_valid() -> None:
+@pytest.fixture
+def context_retriever() -> ContextRetriever:
+    return ContextRetriever(
+        git_client=MockGitClient(),
+        issues_client=MockGitClient(),
+        httpx_client=mock.Mock(),
+    )
+
+
+def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
     with (
@@ -66,6 +76,7 @@ def test_get_review_from_url_valid() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(
                 additional_context=(
                     AdditionalContext(
@@ -145,7 +156,7 @@ def test_get_review_from_url_valid() -> None:
     )
 
 
-def test_get_review_with_issue() -> None:
+def test_get_review_with_issue(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
     with (
@@ -162,6 +173,7 @@ def test_get_review_with_issue() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(
                 additional_context=(
                     AdditionalContext(
@@ -236,7 +248,7 @@ def test_get_review_with_issue() -> None:
     )
 
 
-def test_summarizing_message_in_review() -> None:
+def test_summarizing_message_in_review(context_retriever: ContextRetriever) -> None:
     test_agent = mock.Mock()
     test_summarizing_agent = get_summarizing_agent_with_settings()
     test_agent.run_sync.return_value = mock.Mock(
@@ -255,6 +267,7 @@ def test_summarizing_message_in_review() -> None:
             summarizing_agent=test_summarizing_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(),
         )
         code_reviewer.review_pull_request(
@@ -289,7 +302,7 @@ def test_summarizing_message_in_review() -> None:
     )
 
 
-def test_get_review_adds_technologies_to_prompt() -> None:
+def test_get_review_adds_technologies_to_prompt(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
     with (
@@ -306,6 +319,7 @@ def test_get_review_adds_technologies_to_prompt() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
         )
         review = code_reviewer.review_pull_request(
@@ -322,7 +336,7 @@ def test_get_review_adds_technologies_to_prompt() -> None:
     assert first_request.parts[1].content == 'You are an expert in "COBOL", "FORTRAN", "ODIN".'
 
 
-def test_get_review_adds_categories_to_prompt() -> None:
+def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
     with (
@@ -339,6 +353,7 @@ def test_get_review_adds_categories_to_prompt() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(categories=("Correctness", "Quality")),
         )
         review = code_reviewer.review_pull_request(
@@ -365,6 +380,11 @@ def test_review_fails_if_all_files_are_excluded() -> None:
         summarizing_agent=mock.Mock(),
         model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
+        context_retriever=ContextRetriever(
+            git_client=MockGitClient(),
+            issues_client=MockGitClient(),
+            httpx_client=mock.Mock(),
+        ),
         config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
     )
     with pytest.raises(NothingToReviewError):
@@ -373,7 +393,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
         )
 
 
-def test_file_is_excluded_from_prompt() -> None:
+def test_file_is_excluded_from_prompt(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
     with (
@@ -390,6 +410,7 @@ def test_file_is_excluded_from_prompt() -> None:
             summarizing_agent=test_summary_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
+            context_retriever=context_retriever,
             config=ResolvedConfig(exclude=("file2.txt",)),
         )
         review = code_reviewer.review_pull_request(
@@ -423,6 +444,11 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
         summarizing_agent=mock.Mock(),
         model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
         git_client=MockGitClient(),
+        context_retriever=ContextRetriever(
+            git_client=MockGitClient(),
+            issues_client=MockGitClient(),
+            httpx_client=mock.Mock(),
+        ),
         config=ResolvedConfig(),
     )
 

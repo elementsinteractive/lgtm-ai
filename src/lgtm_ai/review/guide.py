@@ -28,7 +28,9 @@ class ReviewGuideGenerator:
         self.model = model
         self.git_client = git_client
         self.config = config
-        self.context_retriever = ContextRetriever(git_client=git_client, httpx_client=httpx.Client(timeout=3))
+        self.context_retriever = ContextRetriever(
+            git_client=git_client, issues_client=git_client, httpx_client=httpx.Client(timeout=3)
+        )
 
     def generate_review_guide(self, pr_url: PRUrl) -> ReviewGuide:
         pr_diff = self.git_client.get_diff_from_url(pr_url)

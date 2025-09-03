@@ -5,6 +5,7 @@ from importlib.metadata import version
 from typing import Any, assert_never, get_args
 
 import click
+import httpx
 import rich
 from lgtm_ai.ai.agent import (
     get_ai_model,
@@ -16,13 +17,15 @@ from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels
 from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
-from lgtm_ai.config.handler import ConfigHandler, PartialConfig
+from lgtm_ai.config.handler import ConfigHandler, PartialConfig, ResolvedConfig
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.json import JsonFormatter
 from lgtm_ai.formatters.markdown import MarkDownFormatter
 from lgtm_ai.formatters.pretty import PrettyFormatter
+from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.utils import get_git_client
 from lgtm_ai.review import CodeReviewer
+from lgtm_ai.review.context import ContextRetriever, IssuesClient
 from lgtm_ai.review.guide import ReviewGuideGenerator
 from lgtm_ai.validators import (
     IntOrNoLimitType,
@@ -84,7 +87,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     @click.option(
         "--ai-input-tokens-limit",
         type=IntOrNoLimitType(),
-        help=f"Maximum number of input tokens allowed to send to all AI models in total (defaults to {DEFAULT_INPUT_TOKEN_LIMIT:,}). Pass `'no-limit'` to disable the limit.",
+        help=f"Maximum number of input tokens allowed to send to all AI models in total (defaults to {DEFAULT_INPUT_TOKEN_LIMIT:,}). Pass 'no-limit' to disable the limit.",
     )
     @click.option("--verbose", "-v", count=True, help="Set logging level.")
     @functools.wraps(func)
@@ -95,20 +98,25 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 
 @entry_point.command()
+@_common_options
 @click.option(
     "--issues-url",
     type=click.STRING,
-    help="The URL of the issues page to retrieve additional context from.",
+    help="The URL of the issues page to retrieve additional context from. If not given, issues won't be used for reviews.",
 )
 @click.option(
     "--issues-source",
     type=click.Choice([source.value for source in IssuesSource]),
-    help="The platform of the issues page.",
+    help="The platform of the issues page. If `--issues-url` is given, this is mandatory either through the CLI or config file.",
 )
 @click.option(
     "--issues-regex",
     type=click.STRING,
     help="Regex to extract issue ID from the PR title and description.",
+)
+@click.option(
+    "--issues-api-key",
+    help="The optional API key to the issues service (Jira, GitLab, GitHub, etc.). If using GitHub or GitLab and not provided, `--git-api-key` will be used instead.",
 )
 @click.option(
     "--technologies",
@@ -121,7 +129,6 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     type=click.Choice(get_args(CommentCategory)),
     help="List of categories the reviewer should focus on. If not provided, the reviewer will focus on all categories.",
 )
-@_common_options
 def review(
     pr_url: PRUrl,
     model: SupportedAIModels | None,
@@ -141,6 +148,7 @@ def review(
     issues_url: str | None,
     issues_regex: str | None,
     issues_source: IssuesSource | None,
+    issues_api_key: str | None,
 ) -> None:
     """Review a Pull Request using AI."""
     _set_logging_level(logger, verbose)
@@ -165,20 +173,23 @@ def review(
             issues_url=issues_url,
             issues_regex=issues_regex,
             issues_source=issues_source,
+            issues_api_key=issues_api_key,
         ),
         config_file=config,
     ).resolve_config()
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    git_client = get_git_client(
-        pr_url=pr_url,
-        config=resolved_config,
-        formatter=MarkDownFormatter(use_suggestions=git_source_supports_suggestions(pr_url.source)),
-    )
+    formatter: Formatter[Any] = MarkDownFormatter(use_suggestions=git_source_supports_suggestions(pr_url.source))
+    git_client = get_git_client(source=pr_url.source, token=resolved_config.git_api_key, formatter=formatter)
+    issues_client = _get_issues_client(resolved_config, git_client, formatter)
+
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(agent_extra_settings),
         summarizing_agent=get_summarizing_agent_with_settings(agent_extra_settings),
         model=get_ai_model(
             model_name=resolved_config.model, api_key=resolved_config.ai_api_key, model_url=resolved_config.model_url
+        ),
+        context_retriever=ContextRetriever(
+            git_client=git_client, issues_client=issues_client, httpx_client=httpx.Client(timeout=3)
         ),
         git_client=git_client,
         config=resolved_config,
@@ -238,7 +249,7 @@ def guide(
         config_file=config,
     ).resolve_config()
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    git_client = get_git_client(pr_url=pr_url, config=resolved_config, formatter=MarkDownFormatter())
+    git_client = get_git_client(source=pr_url.source, token=resolved_config.git_api_key, formatter=MarkDownFormatter())
     review_guide = ReviewGuideGenerator(
         guide_agent=get_guide_agent_with_settings(agent_extra_settings),
         model=get_ai_model(
@@ -280,3 +291,27 @@ def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[A
         return JsonFormatter(), print
     else:
         assert_never(output_format)
+
+
+def _get_issues_client(
+    resolved_config: ResolvedConfig, git_client: GitClient, formatter: Formatter[Any]
+) -> IssuesClient:
+    """Select a different issues client for retrieving issues.
+
+    Will only return a different client if all of the following are true:
+        1) Be used at all
+        2) Be retrieved from a git platform and not elsewhere (e.g., Jira, Asana, etc.)
+        3) Have a specific API key configured
+    """
+    issues_client = git_client
+    if not resolved_config.issues_url or not resolved_config.issues_source or not resolved_config.issues_regex:
+        return issues_client
+    if resolved_config.issues_source.is_git_platform:
+        if resolved_config.issues_api_key:
+            issues_client = get_git_client(
+                source=resolved_config.issues_source, token=resolved_config.issues_api_key, formatter=formatter
+            )
+    else:
+        # TODO: implement other issues sources
+        raise NotImplementedError("Only GitHub and GitLab are supported as issues sources for now.")
+    return issues_client

@@ -1,6 +1,5 @@
 import logging
 
-import httpx
 from lgtm_ai.ai.schemas import (
     PublishMetadata,
     Review,
@@ -25,7 +24,32 @@ logger = logging.getLogger("lgtm.ai")
 
 
 class CodeReviewer:
-    """Code reviewer that uses pydantic-ai agents to review pull requests."""
+    """
+    CodeReviewer orchestrates the automated review of pull requests using AI agents and contextual information.
+
+    This class coordinates the process of reviewing a pull request (PR) by leveraging two pydantic-ai agents:
+    - reviewer_agent: Generates the initial review, including comments and scores, based on the PR diff and context.
+    - summarizing_agent: Refines and summarizes the initial review for clarity and conciseness.
+
+    Key responsibilities:
+    - Retrieve PR metadata and diffs using a GitClient.
+    - Gather code context, additional context, and related issue context for the PR using a ContextRetriever.
+    - Generate prompts for the AI agents using a PromptGenerator, tailored to the PR and its context.
+    - Run the reviewer agent to produce an initial review, including inline comments and a summary.
+    - Optionally fetch and incorporate related issue context if configured.
+    - Run the summarizing agent to produce a final, polished review response.
+    - Track and aggregate usage statistics for AI model calls.
+    - Return a Review object containing the PR diff, final review response, and metadata about the review process.
+
+    Main workflow:
+    1. Call review_pull_request(pr_url):
+        - Fetch PR metadata and diff.
+        - Gather code and additional context, and optionally issue context.
+        - Generate a review prompt and run the reviewer agent for the initial review.
+        - Summarize the initial review using the summarizing agent.
+        - Return a Review object with all results and metadata.
+
+    """
 
     def __init__(
         self,
@@ -33,15 +57,33 @@ class CodeReviewer:
         reviewer_agent: Agent[ReviewerDeps, ReviewResponse],
         summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
         model: Model,
+        context_retriever: ContextRetriever,
         git_client: GitClient,
         config: ResolvedConfig,
     ) -> None:
+        """
+        Initialize a CodeReviewer instance.
+
+        Args:
+            reviewer_agent (Agent[ReviewerDeps, ReviewResponse]):
+                AI agent that generates the initial review, including comments and scores, based on the PR diff and context.
+            summarizing_agent (Agent[SummarizingDeps, ReviewResponse]):
+                AI agent that refines and summarizes the initial review for clarity and conciseness.
+            model (Model):
+                The AI model to use for both agents (e.g., GPT-4, Claude, etc.).
+            context_retriever (ContextRetriever):
+                Utility to gather code context, additional context, and related issue context for the PR.
+            git_client (GitClient):
+                Abstraction for interacting with the git hosting service (GitHub, GitLab, etc.), used to fetch PR metadata and diffs.
+            config (ResolvedConfig):
+                The resolved configuration object, containing settings for AI limits, context sources, technologies, categories, and more.
+        """
         self.reviewer_agent = reviewer_agent
         self.summarizing_agent = summarizing_agent
         self.model = model
         self.git_client = git_client
         self.config = config
-        self.context_retriever = ContextRetriever(git_client=git_client, httpx_client=httpx.Client(timeout=3))
+        self.context_retriever = context_retriever
 
     def review_pull_request(self, pr_url: PRUrl) -> Review:
         """Peform a full review of the given pull request URL and return it."""
@@ -93,7 +135,6 @@ class CodeReviewer:
         if self.config.issues_source and self.config.issues_url and self.config.issues_regex:
             logger.info("Fetching issue context related to the PR")
             issue_context = self.context_retriever.get_issues_context(
-                issues_source=self.config.issues_source,
                 issues_url=self.config.issues_url,
                 issues_regex=self.config.issues_regex,
                 pr_metadata=self.git_client.get_pr_metadata(pr_url),

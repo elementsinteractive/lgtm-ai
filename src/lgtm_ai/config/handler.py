@@ -46,6 +46,7 @@ class PartialConfig(BaseModel):
     # Secrets
     git_api_key: str | None = None
     ai_api_key: str | None = None
+    issues_api_key: str | None = None
 
 
 class ResolvedConfig(BaseModel):
@@ -103,6 +104,9 @@ class ResolvedConfig(BaseModel):
     ai_api_key: str = Field(default="", repr=False)
     """API key to interact with the AI model service (OpenAI, etc.)."""
 
+    issues_api_key: str | None = Field(default=None, repr=False)
+    """API key to interact with the issues service (GitHub, GitLab, Jira, etc.)."""
+
     @model_validator(mode="after")
     def validate_issues_options(self) -> Self:
         all_fields = (self.issues_url, self.issues_source)
@@ -110,7 +114,12 @@ class ResolvedConfig(BaseModel):
             raise MissingRequiredConfigError(
                 "If any `--issues-*` configuration is provided, all issues fields must be provided. Check --help."
             )
-        # TODO: if source is JIRA, we need to ensure we have credentials
+        # TODO: Adapt needed credentials and extra options for JIRA (https://github.com/elementsinteractive/lgtm-ai/issues/94)
+        if self.issues_source is not None and not self.issues_source.is_git_platform and not self.issues_api_key:
+            raise MissingRequiredConfigError(
+                f"An API key is required to access issues from {self.issues_source.value}. Please provide it via the --issues-api-key option or the LGTM_ISSUES_API_KEY environment variable."
+            )
+
         return self
 
 
@@ -233,6 +242,7 @@ class ConfigHandler:
             issues_url=self.cli_args.issues_url or None,
             issues_source=self.cli_args.issues_source or None,
             issues_regex=self.cli_args.issues_regex or None,
+            issues_api_key=self.cli_args.issues_api_key or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -241,6 +251,7 @@ class ConfigHandler:
             return PartialConfig(
                 git_api_key=os.environ.get("LGTM_GIT_API_KEY", None),
                 ai_api_key=os.environ.get("LGTM_AI_API_KEY", None),
+                issues_api_key=os.environ.get("LGTM_ISSUES_API_KEY", None),
             )
         except ValidationError as err:
             raise InvalidConfigError(source="Environment variables", errors=err.errors()) from None
@@ -282,6 +293,9 @@ class ConfigHandler:
                 issues_regex=from_cli.issues_regex or from_file.issues_regex or DEFAULT_ISSUE_REGEX,
                 issues_url=from_cli.issues_url or from_file.issues_url,
                 issues_source=from_cli.issues_source or from_file.issues_source,
+                issues_api_key=self.resolver.resolve_string_field(
+                    "issues_api_key", from_cli=from_cli, from_env=from_env, required=False, default=None
+                ),
             )
         except ValidationError as err:
             raise InvalidOptionsError(err) from None
