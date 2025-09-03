@@ -5,6 +5,7 @@ import click
 import pytest
 from click.testing import CliRunner
 from lgtm_ai.__main__ import _set_logging_level, guide, review
+from lgtm_ai.base.schemas import IssuesSource
 
 
 @pytest.mark.parametrize(
@@ -185,3 +186,50 @@ def test_get_formatter_and_printer(output_format: str, expected_formatter: str, 
         assert m_formatter().format_review_summary_section.call_count == 1
     else:
         assert m_formatter().format_guide.call_count == 1
+
+
+@pytest.mark.parametrize(
+    ("issues_source", "given_issues_token", "expect_reuse_git_client", "expected_token"),
+    [
+        (IssuesSource.gitlab, None, True, "git-token"),
+        (IssuesSource.gitlab, "issues-token", False, "issues-token"),
+        (IssuesSource.github, None, True, "git-token"),
+        (IssuesSource.github, "issues-token", False, "issues-token"),
+    ],
+)
+def test_review_issues_correct_issues_client_according_to_cli(
+    issues_source: IssuesSource, given_issues_token: str | None, expect_reuse_git_client: bool, expected_token: str
+) -> None:
+    runner = CliRunner()
+    extra_cli_args = ["--issues-api-key", given_issues_token] if given_issues_token else []
+    with (
+        mock.patch("lgtm_ai.__main__.ReviewGuideGenerator"),
+        mock.patch("lgtm_ai.__main__.CodeReviewer"),
+        mock.patch("lgtm_ai.__main__.PrettyFormatter"),
+        mock.patch("lgtm_ai.__main__.get_git_client") as m_get_git_client,
+    ):
+        result = runner.invoke(
+            review,
+            [
+                "--pr-url",
+                "https://gitlab.com/user/repo/-/merge_requests/1",
+                "--ai-api-key",
+                "fake-token",
+                "--git-api-key",
+                "git-token",
+                "--issues-url",
+                "https://gitlab.com/user/repo/-/issues",
+                "--issues-source",
+                issues_source.value,
+                *extra_cli_args,
+            ],
+            catch_exceptions=False,
+        )
+
+    assert result.exit_code == 0
+    expected_calls = 1 if expect_reuse_git_client else 2
+    assert m_get_git_client.call_count == expected_calls
+    if not expect_reuse_git_client:
+        # We expect the second call to be for the issues client
+        # and to use the given issues token
+        assert m_get_git_client.call_args_list[1].kwargs["token"] == expected_token

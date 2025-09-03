@@ -1,12 +1,13 @@
 import logging
 import re
+from typing import Protocol
 from urllib.parse import ParseResult, urlparse
 
 import httpx
 from lgtm_ai.ai.schemas import (
     AdditionalContext,
 )
-from lgtm_ai.base.schemas import IssuesSource, PRUrl
+from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from lgtm_ai.review.schemas import PRCodeContext
@@ -15,14 +16,20 @@ from pydantic import HttpUrl
 logger = logging.getLogger("lgtm.ai")
 
 
+class IssuesClient(Protocol):
+    def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        """Fetch the content of an issue from the base URL of the issues page."""
+
+
 class ContextRetriever:
     """Retrieves context for a given PR.
 
     "Context" is defined as "whatever information the LLM might need (apart from the git diff) to make better reviews or guides".
     """
 
-    def __init__(self, git_client: GitClient, httpx_client: httpx.Client) -> None:
+    def __init__(self, git_client: GitClient, issues_client: IssuesClient, httpx_client: httpx.Client) -> None:
         self._git_client = git_client
+        self._issues_client = issues_client
         self._httpx_client = httpx_client
 
     def get_code_context(self, pr_url: PRUrl, pr_diff: PRDiff) -> PRCodeContext:
@@ -96,7 +103,7 @@ class ContextRetriever:
         return extra_context or None
 
     def get_issues_context(
-        self, issues_source: IssuesSource, issues_url: HttpUrl, issues_regex: str, pr_metadata: PRMetadata
+        self, issues_url: HttpUrl, issues_regex: str, pr_metadata: PRMetadata
     ) -> IssueContent | None:
         """Retrieve the contents of the issue/user story linked to the PR, if any."""
         issue_code = self._extract_issue_code_from_metadata(pr_metadata, issues_regex)
@@ -105,10 +112,8 @@ class ContextRetriever:
             return None
         logger.info("Found issue code '%s' in PR metadata. Fetching issue content...", issue_code)
 
-        if issues_source.is_git_platform:
-            return self._git_client.get_issue_content(issues_url=issues_url, issue_id=issue_code)
         # TODO: Jira, Asana, Trello, etc.
-        return None
+        return self._issues_client.get_issue_content(issues_url=issues_url, issue_id=issue_code)
 
     def _is_relative_path(self, path: ParseResult) -> bool:
         """Check if the path is relative. If it is relative, we assume it is a file in the repository."""

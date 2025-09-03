@@ -261,7 +261,7 @@ def test_issues_configuration_url_not_valid(lgtm_toml_file: str) -> None:
 @pytest.mark.usefixtures("inject_env_secrets")
 def test_issues_configuration_all_present(toml_with_some_issues_configs: str) -> None:
     handler = ConfigHandler(
-        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues"),
+        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues", issues_api_key="key"),
         config_file=toml_with_some_issues_configs,
     )
     config = handler.resolve_config()
@@ -269,6 +269,7 @@ def test_issues_configuration_all_present(toml_with_some_issues_configs: str) ->
     assert config.issues_url == HttpUrl("https://gitlab.com/user/repo/-/issues")
     assert config.issues_source == "gitlab"
     assert config.issues_regex == "some-regex"
+    assert config.issues_api_key == "key"
 
 
 @pytest.mark.usefixtures("inject_env_secrets")

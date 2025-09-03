@@ -9,14 +9,16 @@ from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.github import GitHubClient
 from lgtm_ai.git_client.gitlab import GitlabClient
 from lgtm_ai.git_client.schemas import PRDiff, PRMetadata
-from lgtm_ai.review.context import ContextRetriever
+from lgtm_ai.review.context import ContextRetriever, IssuesClient
 from lgtm_ai.review.schemas import PRCodeContext, PRContextFileContents
 from tests.review.utils import MockGitClient
 
 
 class TestAdditionalContext:
     def test_retrieve_additional_context_from_git(self) -> None:
-        context_retriever = ContextRetriever(git_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client))
+        context_retriever = ContextRetriever(
+            git_client=MockGitClient(), issues_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
+        )
 
         pr_url = PRUrl(
             full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
@@ -43,7 +45,9 @@ class TestAdditionalContext:
             status_code=200,
             text="File contents for https://example.com/file.txt",
         )
-        context_retriever = ContextRetriever(git_client=MockGitClient(), httpx_client=m_httpx_client)
+        context_retriever = ContextRetriever(
+            git_client=MockGitClient(), issues_client=MockGitClient(), httpx_client=m_httpx_client
+        )
 
         pr_url = PRUrl(
             full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
@@ -65,7 +69,9 @@ class TestAdditionalContext:
         ]
 
     def test_retrieve_additional_context_from_config(self) -> None:
-        context_retriever = ContextRetriever(git_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client))
+        context_retriever = ContextRetriever(
+            git_client=MockGitClient(), issues_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
+        )
         pr_url = PRUrl(
             full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
         )
@@ -90,7 +96,9 @@ class TestCodeContext:
             "lorem ipsum dolor sit amet",
             "surprise",
         ]
-        context_retriever = ContextRetriever(git_client=m_client, httpx_client=mock.Mock(spec=httpx.Client))
+        context_retriever = ContextRetriever(
+            git_client=m_client, issues_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
+        )
         pr_diff = PRDiff(
             id=10,
             changed_files=["important.py", "logic.py"],
@@ -118,7 +126,9 @@ class TestCodeContext:
             None,  # Missing in target branch
             "surprise",
         ]
-        context_retriever = ContextRetriever(git_client=m_client, httpx_client=mock.Mock(spec=httpx.Client))
+        context_retriever = ContextRetriever(
+            git_client=m_client, issues_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
+        )
 
         pr_diff = PRDiff(
             id=10,
@@ -179,6 +189,14 @@ class TestIssueContext:
             ),
             pytest.param(
                 PRMetadata(
+                    title="feat(#123,#321): Implement new feature",
+                    description="This PR implements the new feature as described in PROJ-957.",
+                ),
+                None,  # TODO: We may want to support this too!
+                id="multiple-issues-in-scope",
+            ),
+            pytest.param(
+                PRMetadata(
                     title="fix: Bug fix for issue #456",
                     description="Closes #456 and relates to PROJ-789.",
                 ),
@@ -229,7 +247,9 @@ class TestIssueContext:
     )
     def test_extract_issue_code_from_metadata(self, metadata: PRMetadata, expected: str | None) -> None:
         context_retriever = ContextRetriever(
-            git_client=mock.Mock(spec=GitClient), httpx_client=mock.Mock(spec=httpx.Client)
+            git_client=mock.Mock(spec=GitClient),
+            issues_client=mock.Mock(spec=IssuesClient),
+            httpx_client=mock.Mock(spec=httpx.Client),
         )
 
         issue_code = context_retriever._extract_issue_code_from_metadata(metadata, DEFAULT_ISSUE_REGEX)

@@ -89,7 +89,7 @@ class IntOrNoLimitType(click.ParamType):
             self.fail(f"{value!r} is not a valid integer or 'no-limit'", param, ctx)
 
     def get_metavar(self, param: click.Parameter, ctx: click.Context) -> str | None:
-        return "[INTEGER|'no-limit']"
+        return "[INTEGER|no-limit]"
 
 
 def validate_model_url(ctx: click.Context, param: click.Parameter, value: str | None) -> str | None:
