@@ -1,3 +1,23 @@
+## v0.12.0 (2025-09-03)
+
+### Feat
+
+- **#92**: add GitHub issues to prompt to the LLM (#107)
+- **#93**: lgtm can now optionally use issues from GitLab (#106)
+
+### Refactor
+
+- **#94**: separate issues_client from git_client, add issues-api-key (#108)
+- **#93**: move all context generation to its own class (#104)
+
+### CI
+
+- add coverage comment to gh actions (#109)
+
+### Technical
+
+- replace pydantic-ai with pydantic-ai-slim (#105)
+
 ## v0.11.0 (2025-08-29)
 
 ### Feat
