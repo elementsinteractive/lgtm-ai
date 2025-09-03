@@ -51,3 +51,12 @@ jobs:
       - name: Test with pytest
         run: |
           just test-all
+
+      - name: Coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-xml-coverage-path: ./coverage.xml
+          junitxml-path: ./pytest.xml
+          unique-id-for-comment: ${{ matrix.python-version }}
+          title: Coverage for Python ${{ matrix.python-version }}
+          report-only-changed-files: true
