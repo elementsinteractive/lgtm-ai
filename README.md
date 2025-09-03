@@ -22,6 +22,7 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
 - [How it works](#how-it-works)
   - [Review scores and comment categories](#review-scores-and-comment-categories)
   - [Supported Code Repository Services](#supported-code-repository-services)
+  - [Using Issue/User Story Information](#using-issueuser-story-information)
   - [Supported AI models](#supported-ai-models)
     - [OpenAI](#openai)
     - [Google Gemini](#google-gemini)
@@ -31,7 +32,10 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
     - [Local models](#local-models)
   - [CI/CD Integration](#cicd-integration)
   - [Configuration](#configuration)
-    - [Configuration file](#configuration-file)
+    - [Main options](#main-options)
+    - [Review options](#review-options)
+    - [Issues Integration options](#issues-integration-options)
+    - [Example `lgtm.toml`](#example-lgtmtoml)
 - [Contributing](#contributing)
   - [Running the project](#running-the-project)
   - [Managing requirements](#managing-requirements)
@@ -124,7 +128,41 @@ lgtm aims to work with as many services as possible, and that includes remote re
 - [GitLab](https://gitlab.com) (only gitlab.com, not self-hosted)
 - [GitHub](https://github.com)
 
-lgtm will autodetect the url of the pull request passed to `--pr-url` automatically.
+lgtm will autodetect the url of the pull request passed to `--pr-url`.
+
+
+### Using Issue/User Story Information
+
+lgtm-ai can enhance code reviews by including context from linked issues or user stories (e.g., GitHub/GitLab issues). This helps the AI understand the purpose and requirements of the PR.
+
+**How to use:**
+
+- Provide the following options to the `lgtm review` command:
+  - `--issues-url`: The base URL of the issues or user story page.
+  - `--issues-source`: The platform for the issues (e.g., `github`, `gitlab`).
+  - `--issues-regex`: (Optional) A regex pattern to extract the issue ID from the PR title or description.
+  - `--issues-api-key`: (Optional) API key for the issues service (if different from `--git-api-key`).
+
+**Example:**
+```sh
+lgtm review \
+  --pr-url "https://github.com/your-org/your-repo/pull/42" \
+  --issues-url "https://github.com/your-org/your-repo/issues" \
+  --issues-source github \
+  --issues-regex "(?:Fixes|Resolves) #(\d+)" \
+  --issues-api-key $GITHUB_TOKEN \
+  ...
+```
+
+- These options can also be set in the `lgtm.toml` configuration file, see more in the [configuration section](#configuration).
+- lgtm will automatically extract the issue ID from the PR metadata using the provided regex, fetch the issue content, and include it as additional context for the review.
+
+**Notes:**
+
+- Only GitHub and GitLab issues are supported for now.
+- If `--issues-api-key` is not provided, lgtm will use `--git-api-key` for authentication.
+- If no issue is found, the review will proceed without issue context.
+- lgtm provides a default regex for extracting issue IDs that works with [conventional commits](https://www.conventionalcommits.org). This means you often do not need to specify `--issues-regex` if your PR titles or commit messages follow the conventional commit format (e.g., `feat(#123): add new feature`), or if your PR descriptions contain mentions to issues like: `refs: #123` or `closes: #123`.
 
 ### Supported AI models
 
@@ -308,25 +346,74 @@ You can also check out this repo's [lgtm workflow](./.github/workflows/lgtm.yml)
 
 You can customize how lgtm works by passing cli arguments to it on invocation, or by using the *lgtm configuration file*. 
 
-#### Configuration file
+You can configure lgtm through cli arguments, through environment variables, and through a configuration file. lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.toml` file in the current directory, or you can pass a specific file path with the CLI option `--config <path>`.
 
-lgtm uses a `.toml` file to configure how it works. It will autodetect a `lgtm.toml` file in the current directory, or you can pass a specific file path with the CLI option `--config <path>`. These are the available options at the moment:
+Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing--toml/) files, you just need to nest the options inside `[tool.lgtm]`.
 
-- **technologies**: You can specify, as a list of free strings, which technologies lgtm specializes in. This can be helpful for directing the reviewer towards specific technologies. By default, lgtm won't assume any technology and will just review the PR considering itself an "expert" in it.
-- **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g.: if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas).
-- **model**: Choose which AI model you want lgtm to use.
-- **model_url**: When not using one of the specific supported models from the providers mentioned above, you can pass a custom url where the model is deployed.
-- **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (`exclude = ["*.md", "package-lock.json"]`)
-- **output_format**: Format of the terminal output of lgtm. Can be `pretty` (default), `json`, and `markdown`.
-- **silent**: Do not print the review in the terminal.
-- **publish**: If `true`, it will post the review as comments on the PR page.
-- **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
-- **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`). This is required to not be empty if using a non-local model.
+When it comes to preference for selecting options, lgtm follows this preference order:
+
+  `CLI options` > `lgtm.toml` > `pyproject.toml`
+
+
+<details>
+
+<summary>Summary of options</summary>
+
+| Option               | Feature Group         | Optionality         | Notes/Conditions                                                                |
+|----------------------|----------------------|---------------------|---------------------------------------------------------------------------------|
+| model                | Main (review/guide)  | 🔴 Required*                   | AI model to use. Defaults to `gpt-4.1` if not set.                              |
+| model_url            | Main (review/guide)  | 🟢 Optional                   | Only needed for custom/local models.                                             |
+| exclude              | Main (review/guide)  | 🟢 Optional                   | File patterns to exclude from review.                                            |
+| publish              | Main (review/guide)  | 🟢 Optional                   | If true, posts review as comments. Default: false.                               |
+| output_format        | Main (review/guide)  | 🟢 Optional                   | `pretty` (default), `json`, or `markdown`.                                      |
+| silent               | Main (review/guide)  | 🟢 Optional                   | Suppress terminal output. Default: false.                                        |
+| ai_retries           | Main (review/guide)  | 🟢 Optional                   | Number of retries for AI agent queries. Default: 1.                              |
+| ai_input_tokens_limit| Main (review/guide)  | 🟢 Optional                   | Max input tokens for LLM. Default: 500,000. Use `"no-limit"` to disable.        |
+| git_api_key          | Main (review/guide)  | 🔴 Required*                  | API key for git service (GitHub/GitLab). Can't be given through config file. Also available through env variable `LGTM_GIT_API_KEY`.     |
+| ai_api_key           | Main (review/guide)  | 🔴 Required*                  | API key for AI model. Can't be given through config file. Also available through env variable `LGTM_AI_API_KEY`.                        |
+| technologies         | Main (review)        | 🟢 Optional                   | List of technologies for reviewer expertise.                                     |
+| categories           | Main (review)        | 🟢 Optional                   | Review categories. Defaults to all (`Quality`, `Correctness`, `Testing`, `Security`). |
+| additional_context   | Main (review)        | 🟢 Optional                   | Extra context for the LLM (array of prompts/paths/URLs). Can't be given through the CLI |
+| issues_url           | Issues Integration   | 🟢 Optional                   | Enables issue context. If set, `issues_source` becomes required.                 |
+| issues_source        | Issues Integration   | 🟡 Conditionally required     | Required if `issues_url` is set.                                                 |
+| issues_regex         | Issues Integration   | 🟢 Optional                   | Regex for issue ID extraction. Defaults to conventional commit compatible regex. |
+| issues_api_key       | Issues Integration   | 🟢 Optional                   | API key for issues service (if different from `git_api_key`). Can't be given through config file. Also available through env variable `LGTM_ISSUES_API_KEY`.                         |
+
+</details>
+
+#### Main options
+
+These options apply to both reviews and guides generated by lgtm.
+
+- **model**: Choose which AI model you want lgtm to use. If not set, defaults to `gpt-4.1`.
+- **model_url**: When not using one of the specific supported models from the providers mentioned above, you can pass a custom URL where the model is deployed (e.g., for local/hosted models).
+- **exclude**: Instruct lgtm to ignore certain files. This is important to reduce noise in reviews, but also to reduce the amount of tokens used for each review (and to avoid running into token limits). You can specify file patterns (e.g., `exclude = ["*.md", "package-lock.json"]`).
+- **publish**: If `true`, lgtm will post the review as comments on the PR page. Default is `false`.
+- **output_format**: Format of the terminal output of lgtm. Can be `pretty` (default), `json`, or `markdown`.
+- **silent**: Do not print the review in the terminal. Default is `false`.
 - **ai_retries**: How many times to retry calls to the LLM when they do not succeed. By default, this is set to 1 (no retries at all).
 - **ai_input_tokens_limit**: Set a limit on the input tokens sent to the LLM in total. Default is 500,000. To disable the limit, you can pass the string `"no-limit"`.
+- **git_api_key**: API key to post the review in the source system of the PR. Can be given as a CLI argument, or as an environment variable (`LGTM_GIT_API_KEY`).
+- **ai_api_key**: API key to call the selected AI model. Can be given as a CLI argument, or as an environment variable (`LGTM_AI_API_KEY`).
+
+#### Review options
+
+These options are only used when performing reviews through the command `lgtm review`.
+
+- **technologies**: Specify, as a list of free strings, which technologies lgtm specializes in. This can help direct the reviewer towards specific technologies. By default, lgtm won't assume any technology and will just review the PR considering itself an "expert" in it.
+- **categories**: lgtm will, by default, evaluate several areas of the given PR (`Quality`, `Correctness`, `Testing`, and `Security`). You can choose any subset of these (e.g., if you are only interested in `Correctness`, you can configure `categories` so that lgtm does not evaluate the other missing areas).
 - **additional_context**: TOML array of extra context to send to the LLM. It supports setting the context directly in the `context` field, passing a relative file path so that lgtm downloads it from the repository, or passing any URL from which to download the context. Each element of the array must contain `prompt`, and either `context` (directly injecting context) or `file_url` (for directing lgtm to download it from there).
 
-**Example `lgtm.toml`:**
+#### Issues Integration options
+
+See [Using Issue/User Story Information section](#using-issueuser-story-information).
+
+- **issues_url**: The base URL of the issues or user story page to fetch additional context for the PR. If set, `issues_source` becomes required.
+- **issues_source**: The platform for the issues (e.g., `github`, `gitlab`). Required if `issues_url` is set.
+- **issues_regex**: A regex pattern to extract the issue ID from the PR title or description. If omitted, lgtm uses a default regex compatible with conventional commits and common PR formats.
+- **issues_api_key**: API key for the issues service (if different from `git_api_key`).
+
+#### Example `lgtm.toml`
 
 ```toml
 technologies = ["Django", "Python"]
@@ -352,14 +439,14 @@ context = '''
 - We avoid using libraries and rely mostly on the stdlib.
 - We follow the newest syntax available for Python (3.13).
 '''
+
+# Optional Issue/user story integration
+issues_url = "https://github.com/your-org/your-repo/issues"
+issues_source = "github"
+# The options below are optional even if the two above are provided
+issues_regex = "(?:Fixes|Resolves) #(\d+)"
+issues_api_key = "${GITHUB_TOKEN}"
 ```
-
-Alternatively, lgtm also supports [pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) files, you just need to nest the options inside `[tool.lgtm]`.
-
-When it comes to preference for selecting options, lgtm follows this preference order:
-
-  `CLI options` > `lgtm.toml` > `pyproject.toml`
-
 
 ## Contributing
 
@@ -367,7 +454,7 @@ When it comes to preference for selecting options, lgtm follows this preference 
 
 This project uses [`just`](https://github.com/casey/just) recipes to do all the basic operations (testing the package, formatting the code, etc.).
 
-Installation: 
+Installation:
 
 ```sh
 brew install just
