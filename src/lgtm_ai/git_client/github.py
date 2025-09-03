@@ -1,6 +1,7 @@
 import binascii
 import logging
 from functools import lru_cache
+from urllib.parse import urlparse
 
 import github
 import github.ContentFile
@@ -19,7 +20,7 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffError,
     PullRequestMetadataError,
 )
-from lgtm_ai.git_client.schemas import ContextBranch, PRDiff, PRMetadata
+from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from lgtm_ai.git_parser.exceptions import GitDiffParseError
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from pydantic import HttpUrl
@@ -93,7 +94,6 @@ class GitHubClient(GitClient):
             )
         except github.GithubException as err:
             raise PublishReviewError from err
-        logger.info("Review published successfully")
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         """Return a PRMetadata object containing the metadata of the given pull request URL."""
@@ -105,8 +105,18 @@ class GitHubClient(GitClient):
 
         return PRMetadata(title=pr.title or "", description=pr.body or "")
 
-    def get_issue_content(self, issue_url: HttpUrl, issue_id: str) -> None:
-        raise NotImplementedError("GitHub issues are not yet supported")
+    def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        try:
+            repo = _get_repo_from_issues_url(self.client, issues_url)
+            issue = repo.get_issue(int(issue_id))
+        except (github.GithubException, ValueError) as err:
+            logger.error("Failed to retrieve the issue content from GitHub for issue %s: %s", issue_id, err)
+            return None
+
+        return IssueContent(
+            title=issue.title or "",
+            description=issue.body or "",
+        )
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         pr = _get_pr(self.client, pr_url)
@@ -122,7 +132,7 @@ class GitHubClient(GitClient):
             raise PublishGuideError from err
 
     def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
-        repo = _get_repo(self.client, pr_url)
+        repo = _get_repo(self.client, pr_url.repo_path)
         pr = _get_pr(self.client, pr_url)
         try:
             file_contents = repo.get_contents(file_path, ref=pr.head.ref if branch_name == "source" else pr.base.ref)
@@ -161,10 +171,10 @@ class GitHubClient(GitClient):
 
 
 @lru_cache(maxsize=64)
-def _get_repo(client: github.Github, pr_url: PRUrl) -> github.Repository.Repository:
+def _get_repo(client: github.Github, repo_path: str) -> github.Repository.Repository:
     """Return the repository object for the given pull request URL."""
     try:
-        repo = client.get_repo(pr_url.repo_path)
+        repo = client.get_repo(repo_path)
     except github.GithubException as err:
         logger.error("Failed to retrieve the repository")
         raise PullRequestDiffError from err
@@ -175,9 +185,19 @@ def _get_repo(client: github.Github, pr_url: PRUrl) -> github.Repository.Reposit
 def _get_pr(client: github.Github, pr_url: PRUrl) -> github.PullRequest.PullRequest:
     """Return the pull request object for the given pull request URL."""
     try:
-        repo = _get_repo(client, pr_url)
+        repo = _get_repo(client, pr_url.repo_path)
         pr = repo.get_pull(pr_url.pr_number)
     except github.GithubException as err:
         logger.error("Failed to retrieve the pull request")
         raise PullRequestDiffError from err
     return pr
+
+
+def _get_repo_from_issues_url(client: github.Github, issues_url: HttpUrl) -> github.Repository.Repository:
+    """Get the project from the GitHub client using the project path from the issues URL."""
+    parsed = urlparse(str(issues_url))
+    parts = parsed.path.strip("/").split("/")
+    if len(parts) < 3:
+        raise ValueError("Invalid GitHub issues URL")
+    repo_path = f"{parts[0]}/{parts[1]}"
+    return _get_repo(client, repo_path)

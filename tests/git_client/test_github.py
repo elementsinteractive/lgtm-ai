@@ -16,8 +16,9 @@ from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.github import GitHubClient
-from lgtm_ai.git_client.schemas import PRDiff
+from lgtm_ai.git_client.schemas import IssueContent, PRDiff
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
+from pydantic import HttpUrl
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE
 from tests.review.utils import MOCK_USAGE
@@ -346,3 +347,38 @@ def test_publish_guide_successful() -> None:
             commit=mock.ANY,
         )
     ]
+
+
+def test_get_issue_content_successful() -> None:
+    mock_issue = mock.Mock()
+    mock_issue.title = "Test Issue"
+    mock_issue.body = "Issue description"
+    m_repo = mock_repo()
+    m_repo.get_issue.return_value = mock_issue
+    client = mock_github_client(m_repo)
+    issues_url = "https://github.com/foo/bar/issues"
+    result = client.get_issue_content(HttpUrl(issues_url), "1")
+
+    assert result == IssueContent(title="Test Issue", description="Issue description")
+
+
+def test_get_issue_content_missing_title_description() -> None:
+    mock_issue = mock.Mock()
+    mock_issue.title = None
+    mock_issue.body = None
+    m_repo = mock_repo()
+    m_repo.get_issue.return_value = mock_issue
+    client = mock_github_client(m_repo)
+    issues_url = "https://github.com/foo/bar/issues"
+    result = client.get_issue_content(HttpUrl(issues_url), "1")
+
+    assert result == IssueContent(title="", description="")
+
+
+def test_get_issue_content_not_found() -> None:
+    m_repo = mock_repo()
+    m_repo.get_issue.side_effect = github.GithubException(404, "Issue not found")
+    client = mock_github_client(m_repo)
+    issues_url = "https://github.com/foo/bar/issues"
+    result = client.get_issue_content(HttpUrl(issues_url), "1")
+    assert result is None

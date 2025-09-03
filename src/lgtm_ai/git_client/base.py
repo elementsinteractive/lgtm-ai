@@ -19,7 +19,7 @@ class GitClient(Protocol):
         """Get metadata for the PR given its URL."""
 
     def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
-        """Fetch the content of an issue from its URL."""
+        """Fetch the content of an issue from the base URL of the issues page."""
 
     def publish_guide(self, pr_url: PRUrl, guide: ReviewGuide) -> None:
         """Publish a review guide to the PR."""
