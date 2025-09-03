@@ -12,11 +12,12 @@ class PRSource(StrEnum):
 
 
 class IssuesSource(StrEnum):
+    github = "github"
     gitlab = "gitlab"
 
     @property
     def is_git_platform(self) -> bool:
-        return self in {IssuesSource.gitlab}
+        return self in {IssuesSource.gitlab, IssuesSource.github}
 
 
 @dataclass(frozen=True, slots=True)

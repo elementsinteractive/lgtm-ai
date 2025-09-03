@@ -96,7 +96,7 @@ class GitlabClient(GitClient):
             raise PublishGuideError from err
 
     def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
-        project = _get_project_from_url(self.client, pr_url)
+        project = _get_project_from_url(self.client, pr_url.repo_path)
         pr = _get_pr_from_url(self.client, pr_url)
         try:
             file = project.files.get(
@@ -250,21 +250,19 @@ class GitlabClient(GitClient):
 @functools.lru_cache(maxsize=32)
 def _get_pr_from_url(client: gitlab.Gitlab, pr_url: PRUrl) -> gitlab.v4.objects.ProjectMergeRequest:
     logger.debug("Fetching mr from GitLab (cache miss)")
-    project = _get_project_from_url(client, pr_url)
+    project = _get_project_from_url(client, pr_url.repo_path)
     return project.mergerequests.get(pr_url.pr_number)
 
 
 @functools.lru_cache(maxsize=32)
-def _get_project_from_url(client: gitlab.Gitlab, pr_url: PRUrl) -> gitlab.v4.objects.Project:
+def _get_project_from_url(client: gitlab.Gitlab, repo_path: str) -> gitlab.v4.objects.Project:
     """Get the project from the GitLab client using the project path from the PR URL."""
     logger.debug("Fetching project from GitLab (cache miss)")
-    return client.projects.get(pr_url.repo_path)
+    return client.projects.get(repo_path)
 
 
-@functools.lru_cache(maxsize=32)
 def _get_project_from_issues_url(client: gitlab.Gitlab, issues_url: HttpUrl) -> gitlab.v4.objects.Project:
     """Get the project from the GitLab client using the project path from the issues URL."""
-    logger.debug("Fetching project from GitLab (cache miss)")
     parsed = urlparse(str(issues_url))
     project_path, _ = parsed.path.split("/-/issues")
-    return client.projects.get(project_path.strip("/"))
+    return _get_project_from_url(client, project_path.strip("/"))
