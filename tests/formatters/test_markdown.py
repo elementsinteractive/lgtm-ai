@@ -168,7 +168,7 @@ class TestMarkdownFormatter:
         assert self.formatter.format_review_comments_section(review.review_response.comments).split("\n") == expected
 
     def test_format_comments_with_suggestions(self) -> None:
-        formatter = MarkDownFormatter(use_suggestions=True)
+        formatter = MarkDownFormatter(add_ranges_to_suggestions=True)
         review = Review(
             metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
@@ -223,16 +223,20 @@ class TestMarkdownFormatter:
         assert formatter.format_review_comments_section(review.review_response.comments).split("\n") == expected
 
     @pytest.mark.parametrize(
-        ("use_suggestions", "ready_for_replacement"),
+        ("add_ranges_to_suggestions", "ready_for_replacement", "header"),
         [
-            (True, False),  # should not format as suggestion block if not ready
-            (False, True),  # even if ready, should not format as suggestion block if use_suggestions is False
+            (True, False, "python"),  # should not format as suggestion block if not ready
+            (
+                False,
+                True,
+                "suggestion",
+            ),  # even if ready, should not add ranges if the flag is off
         ],
     )
     def test_format_comments_with_suggestions_but_formatted_normally(
-        self, use_suggestions: bool, ready_for_replacement: bool
+        self, add_ranges_to_suggestions: bool, ready_for_replacement: bool, header: str
     ) -> None:
-        formatter = MarkDownFormatter(use_suggestions=use_suggestions)
+        formatter = MarkDownFormatter(add_ranges_to_suggestions=add_ranges_to_suggestions)
         review = Review(
             metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
             review_response=ReviewResponse(
@@ -274,7 +278,7 @@ class TestMarkdownFormatter:
             "",
             "",
             "",
-            "`````python",  # not a suggestion block
+            f"`````{header}",
             "print('Hello World')",
             "`````",
             "",

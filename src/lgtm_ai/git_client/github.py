@@ -1,6 +1,7 @@
 import binascii
 import logging
 from functools import lru_cache
+from typing import Any, Literal, cast
 from urllib.parse import urlparse
 
 import github
@@ -10,7 +11,7 @@ import github.GithubException
 import github.PullRequest
 import github.PullRequestReview
 import github.Repository
-from lgtm_ai.ai.schemas import Review, ReviewGuide
+from lgtm_ai.ai.schemas import CodeSuggestionOffset, Review, ReviewComment, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.base import GitClient
@@ -74,16 +75,8 @@ class GitHubClient(GitClient):
         Publish a main summary comment and then specific line comments.
         """
         pr = _get_pr(self.client, pr_url)
-        # Prepare the list of inline comments
-        comments: list[github.PullRequest.ReviewComment] = []
-        for c in review.review_response.comments:
-            comments.append(
-                {
-                    "path": c.new_path,
-                    "position": c.relative_line_number,
-                    "body": self.formatter.format_review_comment(c),
-                }
-            )
+        comment_builder = CommentBuilder(self.formatter)
+        comments = [comment_builder.generate_comment_payload(c) for c in review.review_response.comments]
         try:
             commit = pr.base.repo.get_commit(pr.head.sha)
             pr.create_review(
@@ -92,8 +85,24 @@ class GitHubClient(GitClient):
                 comments=comments,
                 commit=commit,
             )
-        except github.GithubException as err:
-            raise PublishReviewError from err
+        except github.GithubException:
+            try:
+                # Fallback to single-line comments if multi-line comments fail
+                logger.warning(
+                    "Failed to publish review with multi-line comments, falling back to single-line comments"
+                )
+                comments = [
+                    comment_builder.generate_comment_payload(c, force_single_line=True)
+                    for c in review.review_response.comments
+                ]
+                pr.create_review(
+                    body=self.formatter.format_review_summary_section(review),
+                    event="COMMENT",
+                    comments=comments,
+                    commit=commit,
+                )
+            except github.GithubException as err:
+                raise PublishReviewError from err
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
         """Return a PRMetadata object containing the metadata of the given pull request URL."""
@@ -201,3 +210,82 @@ def _get_repo_from_issues_url(client: github.Github, issues_url: HttpUrl) -> git
         raise ValueError("Invalid GitHub issues URL")
     repo_path = f"{parts[0]}/{parts[1]}"
     return _get_repo(client, repo_path)
+
+
+class CommentBuilder:
+    def __init__(self, formatter: Formatter[str]) -> None:
+        self.formatter = formatter
+
+    def generate_comment_payload(
+        self, comment: ReviewComment, *, force_single_line: bool = False
+    ) -> github.PullRequest.ReviewComment:
+        """Prepare comment data for GitHub API, handling both single-line and multi-line comments."""
+        comment_data: dict[str, Any] = {
+            "path": comment.new_path,
+            "body": self.formatter.format_review_comment(comment),
+        }
+
+        if not force_single_line and comment.suggestion and self._should_create_multiline_comment(comment):
+            # Use the new GitHub API parameters for multi-line comments
+            start_line, end_line = self._calculate_multiline_range(comment)
+            side = self._determine_comment_side(comment)
+            comment_data.update(
+                {
+                    "line": end_line,
+                    "side": side,
+                    "start_line": start_line,
+                    "start_side": side,
+                }
+            )
+        else:
+            # Single-line comment using position (legacy parameter)
+            comment_data["position"] = comment.relative_line_number
+
+        return cast(github.PullRequest.ReviewComment, comment_data)
+
+    def _should_create_multiline_comment(self, comment: ReviewComment) -> bool:
+        """Determine if a comment should be created as multi-line based on suggestion offsets."""
+        if not comment.suggestion or not comment.suggestion.ready_for_replacement:
+            return False
+
+        start_offset = comment.suggestion.start_offset
+        end_offset = comment.suggestion.end_offset
+
+        # Check if the range spans more than one line
+        start_line_offset = self._calculate_line_offset(start_offset)
+        end_line_offset = self._calculate_line_offset(end_offset)
+
+        return start_line_offset != end_line_offset
+
+    def _calculate_multiline_range(self, comment: ReviewComment) -> tuple[int, int]:
+        """Calculate the start and end line numbers for a multi-line comment."""
+        if not comment.suggestion:
+            return comment.line_number, comment.line_number
+
+        base_line = comment.line_number
+        start_line_offset = self._calculate_line_offset(comment.suggestion.start_offset)
+        end_line_offset = self._calculate_line_offset(comment.suggestion.end_offset)
+
+        start_line = base_line + start_line_offset
+        end_line = base_line + end_line_offset
+
+        # Ensure valid line numbers (must be positive)
+        start_line = max(1, start_line)
+        end_line = max(1, end_line)
+
+        # Ensure start_line <= end_line
+        if start_line > end_line:
+            start_line, end_line = end_line, start_line
+
+        return start_line, end_line
+
+    def _calculate_line_offset(self, suggestion_offset: CodeSuggestionOffset) -> int:
+        """Calculate the line offset from a CodeSuggestionOffset."""
+        if suggestion_offset.direction == "-":
+            return -suggestion_offset.offset
+        else:
+            return suggestion_offset.offset
+
+    def _determine_comment_side(self, comment: ReviewComment) -> Literal["LEFT", "RIGHT"]:
+        """Determine the correct side for GitHub API based on line type."""
+        return "RIGHT" if comment.is_comment_on_new_path else "LEFT"

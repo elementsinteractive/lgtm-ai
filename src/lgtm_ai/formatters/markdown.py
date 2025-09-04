@@ -15,8 +15,8 @@ class MarkDownFormatter(Formatter[str]):
     SNIPPET_TEMPLATE: ClassVar[str] = "snippet.md.j2"
     METADATA_TEMPLATE: ClassVar[str] = "metadata.md.j2"
 
-    def __init__(self, use_suggestions: bool = False) -> None:
-        self.use_suggestions = use_suggestions
+    def __init__(self, add_ranges_to_suggestions: bool = False) -> None:
+        self.add_ranges_to_suggestions = add_ranges_to_suggestions
         template_dir = pathlib.Path(__file__).parent / "templates"
         self._template_env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
 
@@ -52,7 +52,7 @@ class MarkDownFormatter(Formatter[str]):
             snippet=snippet,
             comment=comment.comment,
             suggestion=comment.suggestion,
-            use_suggestions=self.use_suggestions,
+            add_ranges_to_suggestions=self.add_ranges_to_suggestions,
             with_footer=with_footer,
             new_path=comment.new_path,
             line_number=comment.line_number,

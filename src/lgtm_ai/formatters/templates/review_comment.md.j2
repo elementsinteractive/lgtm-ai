@@ -9,8 +9,8 @@
 {{ comment | safe }}
 
 {% if suggestion %}
-{% if use_suggestions and suggestion.ready_for_replacement %}
-`````suggestion:{{ suggestion.start_offset.direction}}{{ suggestion.start_offset.offset }}{{ suggestion.end_offset.direction }}{{ suggestion.end_offset.offset }}
+{% if suggestion.ready_for_replacement %}
+`````suggestion{% if add_ranges_to_suggestions %}:{{ suggestion.start_offset.direction}}{{ suggestion.start_offset.offset }}{{ suggestion.end_offset.direction }}{{ suggestion.end_offset.offset }}{% endif %}
 {{ suggestion.snippet | safe }}
 `````
 {% else %}
