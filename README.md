@@ -7,7 +7,8 @@
 ![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=yellow)
 ![Build Status](https://github.com/elementsinteractive/lgtm-ai/actions/workflows/test.yml/badge.svg)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![PyPI version](https://img.shields.io/pypi/v/lgtm-ai)](https://pypi.org/project/lgtm-ai/)
+[![PyPI version](https://img.shields.io/pypi/v/lgtm-ai?logo=python&logoColor=f5f5f5)](https://pypi.org/project/lgtm-ai/)
+[![Docker version](https://img.shields.io/docker/v/elementsinteractive/lgtm-ai?label=DockerHub&logo=docker&logoColor=f5f5f5)](https://hub.docker.com/r/elementsinteractive/lgtm-ai)
 [![License](https://img.shields.io/github/license/elementsinteractive/lgtm-ai)](LICENSE)
 
 ---
