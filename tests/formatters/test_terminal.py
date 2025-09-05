@@ -42,14 +42,13 @@ def test_format_comments_section() -> None:
     ]
 
     formatter = PrettyFormatter()
-    layout = formatter.format_review_comments_section(comments)
-    assert len(layout.children) == 3
-    child_panels = [child._renderable for child in layout.children]
-    assert all(isinstance(child, rich.panel.Panel) for child in child_panels)
-    assert all(cast(rich.panel.Panel, child).title == "test.py:1" for child in child_panels)
+    group = formatter.format_review_comments_section(comments)
+    assert len(group.renderables) == 3
+    assert all(isinstance(child, rich.panel.Panel) for child in group.renderables)
+    assert all(cast(rich.panel.Panel, child).title == "test.py:1" for child in group.renderables)
 
 
 def test_format_comments_section_no_comments() -> None:
     formatter = PrettyFormatter()
-    layout = formatter.format_review_comments_section([])
-    assert len(layout.children) == 0
+    group = formatter.format_review_comments_section([])
+    assert len(group.renderables) == 0

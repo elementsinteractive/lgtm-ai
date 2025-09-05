@@ -12,7 +12,7 @@ from rich.text import Text
 logger = logging.getLogger("lgtm")
 
 
-class PrettyFormatter(Formatter[Panel | Layout]):
+class PrettyFormatter(Formatter[Panel | Layout | Group]):
     def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> Panel:
         if comments:
             logger.warning("Comments are not supported in the terminal formatter summary section")
@@ -26,24 +26,38 @@ class PrettyFormatter(Formatter[Panel | Layout]):
             subtitle=f"Score: {review.review_response.score} {SCORE_MAP[review.review_response.score]}",
         )
 
-    def format_review_comments_section(self, comments: list[ReviewComment]) -> Layout:
+    def format_review_comments_section(self, comments: list[ReviewComment]) -> Group:
         panels = [self.format_review_comment(comment) for comment in comments]
-        layout = Layout()
-        layout.split_column(*panels)
-        return layout
+        return Group(*panels)
 
     def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> Panel:
         content: Text | Group
         if comment.quote_snippet:
-            snippet_panel = Panel(
-                comment.quote_snippet,
-                style="dim",
-                title="Code Snippet",
-                title_align="left",
-                padding=(1, 1),
-            )
-            content = Group(snippet_panel, Text(comment.comment))
-            # TODO: add code suggestions
+            elements: list[Panel | Markdown | Group | Text] = [
+                Panel(
+                    comment.quote_snippet,
+                    style="dim",
+                    title="Code Snippet",
+                    title_align="left",
+                    padding=(1, 1),
+                ),
+                Text(""),
+                Markdown(comment.comment),
+            ]
+            if comment.suggestion:
+                elements.extend(
+                    [
+                        Text(""),
+                        Panel(
+                            comment.suggestion.snippet,
+                            style="dim green",
+                            title="Code Suggestion",
+                            title_align="left",
+                            padding=(1, 1),
+                        ),
+                    ]
+                )
+            content = Group(*elements)
         else:
             content = Text(comment.comment)
 

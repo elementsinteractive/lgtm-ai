@@ -6,7 +6,6 @@ from typing import Any, assert_never, get_args
 
 import click
 import httpx
-import rich
 from lgtm_ai.ai.agent import (
     get_ai_model,
     get_guide_agent_with_settings,
@@ -284,7 +283,8 @@ def _set_logging_level(logger: logging.Logger, verbose: int) -> None:
 def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[Any], Callable[[Any], None]]:
     """Get the formatter and the print method based on the output format."""
     if output_format == OutputFormat.pretty:
-        return PrettyFormatter(), rich.print
+        console = Console()
+        return PrettyFormatter(), console.print
     elif output_format == OutputFormat.markdown:
         return MarkDownFormatter(), print
     elif output_format == OutputFormat.json:
