@@ -7,12 +7,14 @@ from unittest import mock
 
 import click
 import gitlab
+import httpx
 from lgtm_ai.ai.agent import get_ai_model, get_reviewer_agent_with_settings, get_summarizing_agent_with_settings
 from lgtm_ai.ai.schemas import Review, SupportedAIModels, SupportedAIModelsList
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.formatters.markdown import MarkDownFormatter
 from lgtm_ai.git_client.gitlab import GitlabClient
 from lgtm_ai.review import CodeReviewer
+from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.validators import parse_pr_url
 from rich.logging import RichHandler
 
@@ -93,11 +95,15 @@ def perform_review(
     output_dir: str, pr_url: str, pr_name: str, sample: int, model: SupportedAIModels, git_api_key: str, ai_api_key: str
 ) -> None:
     url = parse_pr_url(mock.Mock(), "pr_url", pr_url)
+    git_client = GitlabClient(client=gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(),
         summarizing_agent=get_summarizing_agent_with_settings(),
         model=get_ai_model(model_name=model, api_key=ai_api_key),
-        git_client=GitlabClient(gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter()),
+        git_client=git_client,
+        context_retriever=ContextRetriever(
+            git_client=git_client, issues_client=git_client, httpx_client=httpx.Client(timeout=3)
+        ),
         config=ResolvedConfig(model=model, technologies=("Python", "Django", "FastAPI")),
     )
     review = code_reviewer.review_pull_request(pr_url=url)
