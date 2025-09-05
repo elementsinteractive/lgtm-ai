@@ -14,7 +14,7 @@ from lgtm_ai.ai.agent import (
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat, PRUrl
-from lgtm_ai.base.utils import git_source_supports_suggestions
+from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig, ResolvedConfig
 from lgtm_ai.formatters.base import Formatter
@@ -177,7 +177,9 @@ def review(
         config_file=config,
     ).resolve_config()
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    formatter: Formatter[Any] = MarkDownFormatter(use_suggestions=git_source_supports_suggestions(pr_url.source))
+    formatter: Formatter[Any] = MarkDownFormatter(
+        add_ranges_to_suggestions=git_source_supports_multiline_suggestions(pr_url.source)
+    )
     git_client = get_git_client(source=pr_url.source, token=resolved_config.git_api_key, formatter=formatter)
     issues_client = _get_issues_client(resolved_config, git_client, formatter)
 

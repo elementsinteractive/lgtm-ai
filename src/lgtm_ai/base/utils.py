@@ -14,9 +14,10 @@ def file_matches_any_pattern(file_name: str, patterns: tuple[str, ...]) -> bool:
     return False
 
 
-def git_source_supports_suggestions(source: PRSource) -> bool:
-    """For now, we only support suggestions in GitLab.
+def git_source_supports_multiline_suggestions(source: PRSource) -> bool:
+    """Check if the given git source supports multiline suggestions.
 
-    TODO: https://github.com/elementsinteractive/lgtm-ai/issues/96
+    GitLab does support specifying suggestions that span multiple lines in single-line comments.
+    GitHub requires the comment to be multi-line, and the suggestion does not need special markup with ranges.
     """
     return source == PRSource.gitlab

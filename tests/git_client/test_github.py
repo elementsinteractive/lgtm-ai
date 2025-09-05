@@ -6,6 +6,8 @@ import github
 import pytest
 from github import GithubException as MockGithubException
 from lgtm_ai.ai.schemas import (
+    CodeSuggestion,
+    CodeSuggestionOffset,
     PublishMetadata,
     Review,
     ReviewComment,
@@ -15,7 +17,7 @@ from lgtm_ai.ai.schemas import (
 from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
-from lgtm_ai.git_client.github import GitHubClient
+from lgtm_ai.git_client.github import CommentBuilder, GitHubClient
 from lgtm_ai.git_client.schemas import IssueContent, PRDiff
 from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from pydantic import HttpUrl
@@ -330,6 +332,113 @@ def test_post_review_successful() -> None:
     ]
 
 
+def test_post_review_fallback_to_single_line() -> None:
+    """Test that when multi-line review posting fails, it falls back to single-line comments."""
+    m_pr = mock_pr()
+    m_repo = mock_repo(m_pr)
+    client = mock_github_client(m_repo)
+
+    # Create a review with comments that would generate multi-line suggestions
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    fake_review = Review(
+        pr_diff=PRDiff(id=1, diff=[], changed_files=[], target_branch="main", source_branch="feature"),
+        review_response=ReviewResponse(
+            summary="review summary",
+            raw_score=5,
+            comments=[
+                ReviewComment(
+                    new_path="foo.py",
+                    old_path="foo.py",
+                    line_number=10,
+                    relative_line_number=288,
+                    comment="This should be a multi-line comment",
+                    is_comment_on_new_path=True,
+                    category="Correctness",
+                    severity="LOW",
+                    programming_language="python",
+                    suggestion=suggestion,
+                ),
+                ReviewComment(
+                    new_path="bar.py",
+                    old_path="bar.py",
+                    line_number=20,
+                    relative_line_number=299,
+                    comment="Another comment without suggestion",
+                    is_comment_on_new_path=False,
+                    category="Correctness",
+                    severity="LOW",
+                    programming_language="python",
+                ),
+            ],
+        ),
+        metadata=PublishMetadata(model_name="whatever", usage=MOCK_USAGE),
+    )
+
+    # Configure the mock to fail on first call (multi-line) and succeed on second call (single-line)
+    m_pr.create_review.side_effect = [
+        MockGithubException(422, "Validation failed"),  # First call fails
+        None,  # Second call succeeds
+    ]
+
+    client.publish_review(
+        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        fake_review,
+    )
+
+    # Verify that create_review was called twice
+    assert len(m_pr.create_review.call_args_list) == 2
+
+    # First call should be with multi-line comments
+    first_call = m_pr.create_review.call_args_list[0]
+    assert first_call == mock.call(
+        body="summary section review summary",
+        event="COMMENT",
+        comments=[
+            {
+                "path": "foo.py",
+                "body": "comment This should be a multi-line comment",
+                "line": 12,  # 10 + 2 (end offset)
+                "side": "RIGHT",
+                "start_line": 9,  # 10 - 1 (start offset)
+                "start_side": "RIGHT",
+            },
+            {
+                "path": "bar.py",
+                "body": "comment Another comment without suggestion",
+                "position": 299,  # Single-line comment (no suggestion)
+            },
+        ],
+        commit=mock.ANY,
+    )
+
+    # Second call should be with single-line comments (fallback)
+    second_call = m_pr.create_review.call_args_list[1]
+    assert second_call == mock.call(
+        body="summary section review summary",
+        event="COMMENT",
+        comments=[
+            {
+                "path": "foo.py",
+                "body": "comment This should be a multi-line comment",
+                "position": 288,  # Forced to single-line
+            },
+            {
+                "path": "bar.py",
+                "body": "comment Another comment without suggestion",
+                "position": 299,  # Already single-line
+            },
+        ],
+        commit=mock.ANY,
+    )
+
+
 def test_publish_guide_successful() -> None:
     m_pr = mock_pr()
     m_repo = mock_repo(m_pr)
@@ -382,3 +491,428 @@ def test_get_issue_content_not_found() -> None:
     issues_url = "https://github.com/foo/bar/issues"
     result = client.get_issue_content(HttpUrl(issues_url), "1")
     assert result is None
+
+
+# CommentBuilder tests
+
+
+def test_comment_builder_generate_comment_payload_single_line() -> None:
+    """Test generating a single-line comment payload."""
+    builder = CommentBuilder(MockFormatter())
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="This is a test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+    )
+
+    result = builder.generate_comment_payload(comment)
+
+    expected = {
+        "path": "test.py",
+        "body": "comment This is a test comment",
+        "position": 5,
+    }
+
+    assert result == expected
+
+
+def test_comment_builder_generate_comment_payload_single_line_force() -> None:
+    """Test generating a single-line comment payload when force_single_line is True."""
+    builder = CommentBuilder(MockFormatter())
+
+    # Create a comment with a suggestion that would normally be multi-line
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="This is a test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    result = builder.generate_comment_payload(comment, force_single_line=True)
+
+    expected = {
+        "path": "test.py",
+        "body": "comment This is a test comment",
+        "position": 5,
+    }
+
+    assert result == expected
+
+
+def test_comment_builder_generate_comment_payload_multiline() -> None:
+    """Test generating a multi-line comment payload."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="This is a multi-line comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    result = builder.generate_comment_payload(comment)
+
+    expected = {
+        "path": "test.py",
+        "body": "comment This is a multi-line comment",
+        "line": 12,  # 10 + 2
+        "side": "RIGHT",
+        "start_line": 9,  # 10 - 1
+        "start_side": "RIGHT",
+    }
+
+    assert result == expected
+
+
+def test_comment_builder_generate_comment_payload_multiline_left_side() -> None:
+    """Test generating a multi-line comment payload on the left side (old path)."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=0, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=1, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="This is a multi-line comment on old path",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=False,  # Comment on old path
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    result = builder.generate_comment_payload(comment)
+
+    expected = {
+        "path": "test.py",
+        "body": "comment This is a multi-line comment on old path",
+        "line": 11,  # 10 + 1
+        "side": "LEFT",
+        "start_line": 10,  # 10 + 0
+        "start_side": "LEFT",
+    }
+
+    assert result == expected
+
+
+def test_comment_builder_should_create_multiline_comment_true() -> None:
+    """Test that multi-line comments are created when suggestion spans multiple lines."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    assert builder._should_create_multiline_comment(comment) is True
+
+
+def test_comment_builder_should_create_multiline_comment_false_no_suggestion() -> None:
+    """Test that single-line comments are created when there's no suggestion."""
+    builder = CommentBuilder(MockFormatter())
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+    )
+
+    assert builder._should_create_multiline_comment(comment) is False
+
+
+def test_comment_builder_should_create_multiline_comment_false_not_ready() -> None:
+    """Test that single-line comments are created when suggestion is not ready for replacement."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=False,  # Not ready for replacement
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    assert builder._should_create_multiline_comment(comment) is False
+
+
+def test_comment_builder_should_create_multiline_comment_false_same_line() -> None:
+    """Test that single-line comments are created when suggestion is on the same line."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=0, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=0, direction="-"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    assert builder._should_create_multiline_comment(comment) is False
+
+
+def test_comment_builder_calculate_multiline_range() -> None:
+    """Test calculating the start and end line numbers for multi-line comments."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=2, direction="-"),
+        end_offset=CodeSuggestionOffset(offset=3, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    start_line, end_line = builder._calculate_multiline_range(comment)
+
+    assert start_line == 8  # 10 - 2
+    assert end_line == 13  # 10 + 3
+
+
+def test_comment_builder_calculate_multiline_range_no_suggestion() -> None:
+    """Test calculating range when there's no suggestion (should return same line)."""
+    builder = CommentBuilder(MockFormatter())
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+    )
+
+    start_line, end_line = builder._calculate_multiline_range(comment)
+
+    assert start_line == 10
+    assert end_line == 10
+
+
+def test_comment_builder_calculate_multiline_range_invalid_lines() -> None:
+    """Test that invalid line numbers are corrected to positive values."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=15, direction="-"),  # Would make line negative
+        end_offset=CodeSuggestionOffset(offset=1, direction="+"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=5,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    start_line, end_line = builder._calculate_multiline_range(comment)
+
+    # Both should be adjusted to positive values
+    assert start_line == 1  # max(1, 5 - 15) = 1
+    assert end_line == 6  # 5 + 1
+
+
+def test_comment_builder_calculate_multiline_range_swapped_lines() -> None:
+    """Test that start and end lines are swapped if start > end."""
+    builder = CommentBuilder(MockFormatter())
+
+    suggestion = CodeSuggestion(
+        start_offset=CodeSuggestionOffset(offset=1, direction="+"),
+        end_offset=CodeSuggestionOffset(offset=2, direction="-"),
+        snippet="new code",
+        programming_language="python",
+        ready_for_replacement=True,
+    )
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+        suggestion=suggestion,
+    )
+
+    start_line, end_line = builder._calculate_multiline_range(comment)
+
+    # Lines should be swapped: start was 11, end was 8, so they get swapped
+    assert start_line == 8  # 10 - 2
+    assert end_line == 11  # 10 + 1
+
+
+def test_comment_builder_calculate_line_offset_positive() -> None:
+    """Test calculating line offset for positive direction."""
+    builder = CommentBuilder(MockFormatter())
+
+    offset = CodeSuggestionOffset(offset=3, direction="+")
+    result = builder._calculate_line_offset(offset)
+
+    assert result == 3
+
+
+def test_comment_builder_calculate_line_offset_negative() -> None:
+    """Test calculating line offset for negative direction."""
+    builder = CommentBuilder(MockFormatter())
+
+    offset = CodeSuggestionOffset(offset=2, direction="-")
+    result = builder._calculate_line_offset(offset)
+
+    assert result == -2
+
+
+def test_comment_builder_determine_comment_side_right() -> None:
+    """Test determining comment side for new path."""
+    builder = CommentBuilder(MockFormatter())
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=True,
+        programming_language="python",
+    )
+
+    result = builder._determine_comment_side(comment)
+    assert result == "RIGHT"
+
+
+def test_comment_builder_determine_comment_side_left() -> None:
+    """Test determining comment side for old path."""
+    builder = CommentBuilder(MockFormatter())
+
+    comment = ReviewComment(
+        old_path="test.py",
+        new_path="test.py",
+        comment="Test comment",
+        category="Correctness",
+        severity="LOW",
+        line_number=10,
+        relative_line_number=5,
+        is_comment_on_new_path=False,
+        programming_language="python",
+    )
+
+    result = builder._determine_comment_side(comment)
+    assert result == "LEFT"
