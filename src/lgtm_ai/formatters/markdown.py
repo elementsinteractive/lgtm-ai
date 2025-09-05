@@ -57,6 +57,8 @@ class MarkDownFormatter(Formatter[str]):
             new_path=comment.new_path,
             line_number=comment.line_number,
             relative_line_number=comment.relative_line_number,
+            with_suggestion=bool(comment.suggestion),
+            is_suggestion_ready=comment.suggestion and comment.suggestion.ready_for_replacement,
         )
 
     def format_guide(self, guide: ReviewGuide) -> str:

@@ -10,6 +10,8 @@ class ModifiedLine(BaseModel):
     line_number: int
     relative_line_number: int
     modification_type: Literal["added", "removed"]
+    hunk_start_new: int | None = None
+    hunk_start_old: int | None = None
 
 
 class DiffFileMetadata(BaseModel):
@@ -37,6 +39,8 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
     old_line_num = 0
     new_line_num = 0
     rel_position = -1  # We just don't count the first hunk, but we do count the rest
+    hunk_start_old = None
+    hunk_start_new = None
 
     try:
         for line in lines:
@@ -45,6 +49,8 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
             if hunk_match:
                 old_line_num = int(hunk_match.group(1))
                 new_line_num = int(hunk_match.group(2))
+                hunk_start_new = new_line_num
+                hunk_start_old = old_line_num
                 continue
 
             if line.startswith("+") and not line.startswith("+++"):
@@ -54,6 +60,8 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
                         line_number=new_line_num,
                         relative_line_number=rel_position,
                         modification_type="added",
+                        hunk_start_new=hunk_start_new,
+                        hunk_start_old=hunk_start_old,
                     )
                 )
                 new_line_num += 1
@@ -65,6 +73,8 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
                         line_number=old_line_num,
                         relative_line_number=rel_position,
                         modification_type="removed",
+                        hunk_start_new=hunk_start_new,
+                        hunk_start_old=hunk_start_old,
                     )
                 )
                 old_line_num += 1

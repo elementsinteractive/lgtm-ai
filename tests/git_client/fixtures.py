@@ -23,28 +23,43 @@ PARSED_GIT_DIFF = [
                 line_number=48,
                 relative_line_number=4,
                 modification_type="removed",
+                hunk_start_new=45,
+                hunk_start_old=45,
             ),
             ModifiedLine(
                 line='    {{ run }} ruff check {{ target_dirs }} {{ if report == "true" { "--output-format gitlab > tests/gl-code-quality-report.json" } else { "" } }}',
                 line_number=48,
                 relative_line_number=5,
                 modification_type="added",
+                hunk_start_new=45,
+                hunk_start_old=45,
             ),
         ],
     ),
     DiffResult(
         metadata=DiffFileMetadata(
-            new_file=False, deleted_file=False, renamed_file=False, new_path="pyproject.toml", old_path="pyproject.toml"
+            new_file=False,
+            deleted_file=False,
+            renamed_file=False,
+            new_path="pyproject.toml",
+            old_path="pyproject.toml",
         ),
         modified_lines=[
             ModifiedLine(
-                line="[tool.ruff.per-file-ignores]", line_number=78, relative_line_number=4, modification_type="removed"
+                line="[tool.ruff.per-file-ignores]",
+                line_number=78,
+                relative_line_number=4,
+                modification_type="removed",
+                hunk_start_new=75,
+                hunk_start_old=75,
             ),
             ModifiedLine(
                 line="[tool.ruff.lint.per-file-ignores]",
                 line_number=78,
                 relative_line_number=5,
                 modification_type="added",
+                hunk_start_new=75,
+                hunk_start_old=75,
             ),
         ],
     ),
