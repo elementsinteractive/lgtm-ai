@@ -141,9 +141,10 @@ lgtm-ai can enhance code reviews by including context from linked issues or user
 
 - Provide the following options to the `lgtm review` command:
   - `--issues-url`: The base URL of the issues or user story page.
-  - `--issues-source`: The platform for the issues (e.g., `github`, `gitlab`).
+  - `--issues-source`: The platform for the issues (e.g., `github`, `gitlab`, `jira`).
   - `--issues-regex`: (Optional) A regex pattern to extract the issue ID from the PR title or description.
   - `--issues-api-key`: (Optional) API key for the issues service (if different from `--git-api-key`).
+  - `--issues-user`: (Optional) Username for the issues service (required if source is `jira`).
 
 **Example:**
 ```sh
@@ -161,7 +162,7 @@ lgtm review \
 
 **Notes:**
 
-- Only GitHub and GitLab issues are supported for now.
+- GitHub, GitLab, and [JIRA cloud](https://developer.atlassian.com/cloud/jira/platform/) issues are supported.
 - If `--issues-api-key` is not provided, lgtm will use `--git-api-key` for authentication.
 - If no issue is found, the review will proceed without issue context.
 - lgtm provides a default regex for extracting issue IDs that works with [conventional commits](https://www.conventionalcommits.org). This means you often do not need to specify `--issues-regex` if your PR titles or commit messages follow the conventional commit format (e.g., `feat(#123): add new feature`), or if your PR descriptions contain mentions to issues like: `refs: #123` or `closes: #123`.
@@ -392,6 +393,7 @@ When it comes to preference for selecting options, lgtm follows this preference 
 | issues_source        | Issues Integration   | 🟡 Conditionally required     | Required if `issues_url` is set.                                                 |
 | issues_regex         | Issues Integration   | 🟢 Optional                   | Regex for issue ID extraction. Defaults to conventional commit compatible regex. |
 | issues_api_key       | Issues Integration   | 🟢 Optional                   | API key for issues service (if different from `git_api_key`). Can't be given through config file. Also available through env variable `LGTM_ISSUES_API_KEY`.                         |
+| issues_user       | Issues Integration   | 🟡 Conditionally required    | Username for accessing issues information. Only required for `issues_source=jira` |
 
 </details>
 
@@ -423,9 +425,10 @@ These options are only used when performing reviews through the command `lgtm re
 See [Using Issue/User Story Information section](#using-issueuser-story-information).
 
 - **issues_url**: The base URL of the issues or user story page to fetch additional context for the PR. If set, `issues_source` becomes required.
-- **issues_source**: The platform for the issues (e.g., `github`, `gitlab`). Required if `issues_url` is set.
+- **issues_source**: The platform for the issues (e.g., `github`, `gitlab`, `jira`). Required if `issues_url` is set.
 - **issues_regex**: A regex pattern to extract the issue ID from the PR title or description. If omitted, lgtm uses a default regex compatible with conventional commits and common PR formats.
 - **issues_api_key**: API key for the issues service (if different from `git_api_key`). Can be given as a CLI argument, or as an environment variable (`LGTM_ISSUES_API_KEY`).
+- **issues_user**: Username for accessing the issues service (only necessary for `jira`). Can be given as a CLI argument, or as an environment variable (`LGTM_ISSUES_USER`).
 
 #### Example `lgtm.toml`
 

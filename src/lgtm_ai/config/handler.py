@@ -47,6 +47,7 @@ class PartialConfig(BaseModel):
     git_api_key: str | None = None
     ai_api_key: str | None = None
     issues_api_key: str | None = None
+    issues_user: str | None = None
 
 
 class ResolvedConfig(BaseModel):
@@ -107,6 +108,9 @@ class ResolvedConfig(BaseModel):
     issues_api_key: str | None = Field(default=None, repr=False)
     """API key to interact with the issues service (GitHub, GitLab, Jira, etc.)."""
 
+    issues_user: str | None = Field(default=None, repr=False)
+    """Username to interact with the issues service (only needed for Jira)."""
+
     @model_validator(mode="after")
     def validate_issues_options(self) -> Self:
         all_fields = (self.issues_url, self.issues_source)
@@ -114,10 +118,13 @@ class ResolvedConfig(BaseModel):
             raise MissingRequiredConfigError(
                 "If any `--issues-*` configuration is provided, all issues fields must be provided. Check --help."
             )
-        # TODO: Adapt needed credentials and extra options for JIRA (https://github.com/elementsinteractive/lgtm-ai/issues/94)
         if self.issues_source is not None and not self.issues_source.is_git_platform and not self.issues_api_key:
             raise MissingRequiredConfigError(
                 f"An API key is required to access issues from {self.issues_source.value}. Please provide it via the --issues-api-key option or the LGTM_ISSUES_API_KEY environment variable."
+            )
+        if self.issues_source == IssuesSource.jira and (not self.issues_user or not self.issues_api_key):
+            raise MissingRequiredConfigError(
+                "A username and an api key are required to access issues from Jira. Please provide them via the --issues-user and --issues-api-key options."
             )
 
         return self
@@ -243,6 +250,7 @@ class ConfigHandler:
             issues_source=self.cli_args.issues_source or None,
             issues_regex=self.cli_args.issues_regex or None,
             issues_api_key=self.cli_args.issues_api_key or None,
+            issues_user=self.cli_args.issues_user or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -252,6 +260,7 @@ class ConfigHandler:
                 git_api_key=os.environ.get("LGTM_GIT_API_KEY", None),
                 ai_api_key=os.environ.get("LGTM_AI_API_KEY", None),
                 issues_api_key=os.environ.get("LGTM_ISSUES_API_KEY", None),
+                issues_user=os.environ.get("LGTM_ISSUES_USER", None),
             )
         except ValidationError as err:
             raise InvalidConfigError(source="Environment variables", errors=err.errors()) from None
@@ -295,6 +304,9 @@ class ConfigHandler:
                 issues_source=from_cli.issues_source or from_file.issues_source,
                 issues_api_key=self.resolver.resolve_string_field(
                     "issues_api_key", from_cli=from_cli, from_env=from_env, required=False, default=None
+                ),
+                issues_user=self.resolver.resolve_string_field(
+                    "issues_user", from_cli=from_cli, from_env=from_env, required=False, default=None
                 ),
             )
         except ValidationError as err:

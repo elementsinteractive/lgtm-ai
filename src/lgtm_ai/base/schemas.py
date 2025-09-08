@@ -14,6 +14,7 @@ class PRSource(StrEnum):
 class IssuesSource(StrEnum):
     github = "github"
     gitlab = "gitlab"
+    jira = "jira"
 
     @property
     def is_git_platform(self) -> bool:
