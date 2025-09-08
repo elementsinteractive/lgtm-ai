@@ -56,6 +56,8 @@ class TestJsonFormatter:
                                 "line_number": 2,
                                 "relative_line_number": 1,
                                 "modification_type": "removed",
+                                "hunk_start_new": None,
+                                "hunk_start_old": None,
                             }
                         ],
                     },
@@ -73,6 +75,8 @@ class TestJsonFormatter:
                                 "line_number": 20,
                                 "relative_line_number": 2,
                                 "modification_type": "removed",
+                                "hunk_start_new": None,
+                                "hunk_start_old": None,
                             }
                         ],
                     },
@@ -149,6 +153,8 @@ class TestJsonFormatter:
                                 "line_number": 2,
                                 "relative_line_number": 1,
                                 "modification_type": "removed",
+                                "hunk_start_new": None,
+                                "hunk_start_old": None,
                             }
                         ],
                     },
@@ -166,6 +172,8 @@ class TestJsonFormatter:
                                 "line_number": 20,
                                 "relative_line_number": 2,
                                 "modification_type": "removed",
+                                "hunk_start_new": None,
+                                "hunk_start_old": None,
                             }
                         ],
                     },

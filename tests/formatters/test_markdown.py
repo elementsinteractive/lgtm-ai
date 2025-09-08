@@ -335,6 +335,8 @@ class TestMarkdownFormatter:
             "- **File**: `new_path`",
             "- **Line**: `1`",
             "- **Relative line**: `1`",
+            "- **With suggestion**: `No`",
+            "- **Suggestion ready for replacement**: `No`",
             "</details>",
             "",
         ]
