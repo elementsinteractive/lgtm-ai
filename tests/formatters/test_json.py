@@ -98,6 +98,7 @@ class TestJsonFormatter:
                     "output_audio_tokens": 1,
                     "details": {},
                     "requests": 1,
+                    "tool_calls": 1,
                 },
             },
         }
@@ -203,6 +204,7 @@ class TestJsonFormatter:
                     "output_audio_tokens": 1,
                     "details": {},
                     "requests": 1,
+                    "tool_calls": 1,
                 },
             },
         }
