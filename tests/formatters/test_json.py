@@ -39,52 +39,6 @@ class TestJsonFormatter:
 
         output_json = self.formatter.format_review_summary_section(review)
         assert json.loads(output_json) == {
-            "pr_diff": {
-                "id": 1,
-                "diff": [
-                    {
-                        "metadata": {
-                            "new_file": True,
-                            "deleted_file": False,
-                            "renamed_file": False,
-                            "new_path": "file1.txt",
-                            "old_path": None,
-                        },
-                        "modified_lines": [
-                            {
-                                "line": "contents-of-file1",
-                                "line_number": 2,
-                                "relative_line_number": 1,
-                                "modification_type": "removed",
-                                "hunk_start_new": None,
-                                "hunk_start_old": None,
-                            }
-                        ],
-                    },
-                    {
-                        "metadata": {
-                            "new_file": True,
-                            "deleted_file": False,
-                            "renamed_file": False,
-                            "new_path": "file2.txt",
-                            "old_path": None,
-                        },
-                        "modified_lines": [
-                            {
-                                "line": "contents-of-file2",
-                                "line_number": 20,
-                                "relative_line_number": 2,
-                                "modification_type": "removed",
-                                "hunk_start_new": None,
-                                "hunk_start_old": None,
-                            }
-                        ],
-                    },
-                ],
-                "changed_files": ["file1", "file2"],
-                "target_branch": "main",
-                "source_branch": "feature",
-            },
             "review_response": {"summary": "summary", "comments": [], "raw_score": 5, "score": "LGTM"},
             "metadata": {
                 "model_name": "whatever",
@@ -137,52 +91,6 @@ class TestJsonFormatter:
         output_json = self.formatter.format_guide(guide)
 
         assert json.loads(output_json) == {
-            "pr_diff": {
-                "id": 1,
-                "diff": [
-                    {
-                        "metadata": {
-                            "new_file": True,
-                            "deleted_file": False,
-                            "renamed_file": False,
-                            "new_path": "file1.txt",
-                            "old_path": None,
-                        },
-                        "modified_lines": [
-                            {
-                                "line": "contents-of-file1",
-                                "line_number": 2,
-                                "relative_line_number": 1,
-                                "modification_type": "removed",
-                                "hunk_start_new": None,
-                                "hunk_start_old": None,
-                            }
-                        ],
-                    },
-                    {
-                        "metadata": {
-                            "new_file": True,
-                            "deleted_file": False,
-                            "renamed_file": False,
-                            "new_path": "file2.txt",
-                            "old_path": None,
-                        },
-                        "modified_lines": [
-                            {
-                                "line": "contents-of-file2",
-                                "line_number": 20,
-                                "relative_line_number": 2,
-                                "modification_type": "removed",
-                                "hunk_start_new": None,
-                                "hunk_start_old": None,
-                            }
-                        ],
-                    },
-                ],
-                "changed_files": ["file1", "file2"],
-                "target_branch": "main",
-                "source_branch": "feature",
-            },
             "guide_response": {
                 "summary": "summary",
                 "key_changes": [

@@ -5,7 +5,12 @@ from lgtm_ai.formatters.base import Formatter
 class JsonFormatter(Formatter[str]):
     def format_review_summary_section(self, review: Review, comments: list[ReviewComment] | None = None) -> str:
         """Format the **whole** review as JSON."""
-        return review.model_dump_json(indent=2)
+        return review.model_dump_json(
+            indent=2,
+            exclude={
+                "pr_diff",
+            },
+        )
 
     def format_review_comments_section(self, comments: list[ReviewComment]) -> str:
         """No-op.
@@ -20,4 +25,4 @@ class JsonFormatter(Formatter[str]):
 
     def format_guide(self, guide: ReviewGuide) -> str:
         """Format the review guide as JSON."""
-        return guide.model_dump_json(indent=2)
+        return guide.model_dump_json(indent=2, exclude={"pr_diff"})
