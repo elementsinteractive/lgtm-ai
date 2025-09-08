@@ -1,3 +1,29 @@
+## v0.13.0 (2025-09-08)
+
+### Feat
+
+- **#97**: add code suggestions to GitHub comments (#113)
+
+### Fix
+
+- exclude git diff representation from json output (#118)
+- **#97**: prevent suggestions on GitHub to start outside of diff hunk (#115)
+- **#86**: make terminal formatter comments not truncated, and add suggestions (#114)
+
+### Docs
+
+- more doc adjustments to readme (#111)
+- add issues to readme section and minor adjustments (#110)
+
+### Technical
+
+- bump pytest-cov from 6.2.1 to 6.3.0 in the minor-updates group (#120)
+- bump the patch-updates group with 4 updates (#119)
+- run coverage comment only on PRs (#122)
+- enable dependabot to run pytest-coverage-comment (#121)
+- bump pydantic-ai to v1 (#117)
+- add dockerhub badge (#116)
+
 ## v0.12.0 (2025-09-03)
 
 ### Feat
