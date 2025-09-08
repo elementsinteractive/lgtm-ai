@@ -293,3 +293,19 @@ def test_issues_regex_invalid() -> None:
     )
     with pytest.raises(InvalidOptionsError, match="Invalid regex"):
         handler.resolve_config()
+
+
+@pytest.mark.usefixtures("inject_env_secrets")
+def test_issues_jira_missing_user() -> None:
+    handler = ConfigHandler(
+        cli_args=PartialConfig(
+            issues_url="https://test.atlassian.net/browse/",
+            issues_source="jira",
+            issues_api_key="api-key",
+        ),
+        config_file=None,
+    )
+    with pytest.raises(
+        MissingRequiredConfigError, match="A username and an api key are required to access issues from Jira"
+    ):
+        handler.resolve_config()

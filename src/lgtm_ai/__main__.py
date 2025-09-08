@@ -13,6 +13,7 @@ from lgtm_ai.ai.agent import (
     get_summarizing_agent_with_settings,
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
+from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
 from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
@@ -23,6 +24,7 @@ from lgtm_ai.formatters.markdown import MarkDownFormatter
 from lgtm_ai.formatters.pretty import PrettyFormatter
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.utils import get_git_client
+from lgtm_ai.jira.jira import JiraIssuesClient
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.context import ContextRetriever, IssuesClient
 from lgtm_ai.review.guide import ReviewGuideGenerator
@@ -118,6 +120,10 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     help="The optional API key to the issues service (Jira, GitLab, GitHub, etc.). If using GitHub or GitLab and not provided, `--git-api-key` will be used instead.",
 )
 @click.option(
+    "--issues-user",
+    help="The username to download issues information (only needed for Jira). Required if `--issues-source` is `jira`.",
+)
+@click.option(
     "--technologies",
     multiple=True,
     help="List of technologies the reviewer is an expert in. If not provided, the reviewer will be an expert of all technologies in the given PR. Use it if you want to guide the reviewer to focus on specific technologies.",
@@ -148,6 +154,7 @@ def review(
     issues_regex: str | None,
     issues_source: IssuesSource | None,
     issues_api_key: str | None,
+    issues_user: str | None,
 ) -> None:
     """Review a Pull Request using AI."""
     _set_logging_level(logger, verbose)
@@ -173,6 +180,7 @@ def review(
             issues_regex=issues_regex,
             issues_source=issues_source,
             issues_api_key=issues_api_key,
+            issues_user=issues_user,
         ),
         config_file=config,
     ).resolve_config()
@@ -190,7 +198,7 @@ def review(
             model_name=resolved_config.model, api_key=resolved_config.ai_api_key, model_url=resolved_config.model_url
         ),
         context_retriever=ContextRetriever(
-            git_client=git_client, issues_client=issues_client, httpx_client=httpx.Client(timeout=3)
+            git_client=git_client, issues_client=issues_client, httpx_client=httpx.Client(timeout=DEFAULT_HTTPX_TIMEOUT)
         ),
         git_client=git_client,
         config=resolved_config,
@@ -305,7 +313,7 @@ def _get_issues_client(
         2) Be retrieved from a git platform and not elsewhere (e.g., Jira, Asana, etc.)
         3) Have a specific API key configured
     """
-    issues_client = git_client
+    issues_client: IssuesClient = git_client
     if not resolved_config.issues_url or not resolved_config.issues_source or not resolved_config.issues_regex:
         return issues_client
     if resolved_config.issues_source.is_git_platform:
@@ -313,7 +321,15 @@ def _get_issues_client(
             issues_client = get_git_client(
                 source=resolved_config.issues_source, token=resolved_config.issues_api_key, formatter=formatter
             )
+    elif resolved_config.issues_source == IssuesSource.jira:
+        if not resolved_config.issues_api_key or not resolved_config.issues_user:
+            # This is validated earlier in config handler.
+            raise ValueError("To use Jira as issues source, both `issues_user` and `issues_api_key` must be provided.")
+        issues_client = JiraIssuesClient(
+            issues_user=resolved_config.issues_user,
+            issues_api_key=resolved_config.issues_api_key,
+            httpx_client=httpx.Client(timeout=DEFAULT_HTTPX_TIMEOUT),
+        )
     else:
-        # TODO: implement other issues sources
-        raise NotImplementedError("Only GitHub and GitLab are supported as issues sources for now.")
+        raise NotImplementedError("Unsupported issues source")
     return issues_client

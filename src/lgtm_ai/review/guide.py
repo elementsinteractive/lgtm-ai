@@ -2,6 +2,7 @@ import logging
 
 import httpx
 from lgtm_ai.ai.schemas import GuideResponse, PublishMetadata, ReviewGuide
+from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.git_client.base import GitClient
@@ -29,7 +30,7 @@ class ReviewGuideGenerator:
         self.git_client = git_client
         self.config = config
         self.context_retriever = ContextRetriever(
-            git_client=git_client, issues_client=git_client, httpx_client=httpx.Client(timeout=3)
+            git_client=git_client, issues_client=git_client, httpx_client=httpx.Client(timeout=DEFAULT_HTTPX_TIMEOUT)
         )
 
     def generate_review_guide(self, pr_url: PRUrl) -> ReviewGuide:
