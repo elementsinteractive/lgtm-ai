@@ -187,7 +187,7 @@ def test_get_review_with_issue(context_retriever: ContextRetriever) -> None:
                         context="yet-another-context",
                     ),
                 ),
-                issues_source="gitlab",
+                issues_platform="gitlab",
                 issues_url="https://gitlab.com/example/repo/-/issues/",
             ),
         )
