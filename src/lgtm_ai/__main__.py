@@ -14,7 +14,7 @@ from lgtm_ai.ai.agent import (
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
-from lgtm_ai.base.schemas import IntOrNoLimit, IssuesSource, OutputFormat, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig, ResolvedConfig
@@ -106,8 +106,8 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     help="The URL of the issues page to retrieve additional context from. If not given, issues won't be used for reviews.",
 )
 @click.option(
-    "--issues-source",
-    type=click.Choice([source.value for source in IssuesSource]),
+    "--issues-platform",
+    type=click.Choice([source.value for source in IssuesPlatform]),
     help="The platform of the issues page. If `--issues-url` is given, this is mandatory either through the CLI or config file.",
 )
 @click.option(
@@ -117,11 +117,11 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 )
 @click.option(
     "--issues-api-key",
-    help="The optional API key to the issues service (Jira, GitLab, GitHub, etc.). If using GitHub or GitLab and not provided, `--git-api-key` will be used instead.",
+    help="The optional API key to the issues platform (Jira, GitLab, GitHub, etc.). If using GitHub or GitLab and not provided, `--git-api-key` will be used instead.",
 )
 @click.option(
     "--issues-user",
-    help="The username to download issues information (only needed for Jira). Required if `--issues-source` is `jira`.",
+    help="The username to download issues information (only needed for Jira). Required if `--issues-platform` is `jira`.",
 )
 @click.option(
     "--technologies",
@@ -152,7 +152,7 @@ def review(
     categories: tuple[CommentCategory, ...],
     issues_url: str | None,
     issues_regex: str | None,
-    issues_source: IssuesSource | None,
+    issues_platform: IssuesPlatform | None,
     issues_api_key: str | None,
     issues_user: str | None,
 ) -> None:
@@ -178,7 +178,7 @@ def review(
             ai_input_tokens_limit=ai_input_tokens_limit,
             issues_url=issues_url,
             issues_regex=issues_regex,
-            issues_source=issues_source,
+            issues_platform=issues_platform,
             issues_api_key=issues_api_key,
             issues_user=issues_user,
         ),
@@ -314,14 +314,14 @@ def _get_issues_client(
         3) Have a specific API key configured
     """
     issues_client: IssuesClient = git_client
-    if not resolved_config.issues_url or not resolved_config.issues_source or not resolved_config.issues_regex:
+    if not resolved_config.issues_url or not resolved_config.issues_platform or not resolved_config.issues_regex:
         return issues_client
-    if resolved_config.issues_source.is_git_platform:
+    if resolved_config.issues_platform.is_git_platform:
         if resolved_config.issues_api_key:
             issues_client = get_git_client(
-                source=resolved_config.issues_source, token=resolved_config.issues_api_key, formatter=formatter
+                source=resolved_config.issues_platform, token=resolved_config.issues_api_key, formatter=formatter
             )
-    elif resolved_config.issues_source == IssuesSource.jira:
+    elif resolved_config.issues_platform == IssuesPlatform.jira:
         if not resolved_config.issues_api_key or not resolved_config.issues_user:
             # This is validated earlier in config handler.
             raise ValueError("To use Jira as issues source, both `issues_user` and `issues_api_key` must be provided.")

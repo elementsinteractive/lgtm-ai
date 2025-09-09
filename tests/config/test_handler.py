@@ -267,7 +267,7 @@ def test_issues_configuration_all_present(toml_with_some_issues_configs: str) ->
     config = handler.resolve_config()
 
     assert config.issues_url == HttpUrl("https://gitlab.com/user/repo/-/issues")
-    assert config.issues_source == "gitlab"
+    assert config.issues_platform == "gitlab"
     assert config.issues_regex == "some-regex"
     assert config.issues_api_key == "key"
 
@@ -275,7 +275,7 @@ def test_issues_configuration_all_present(toml_with_some_issues_configs: str) ->
 @pytest.mark.usefixtures("inject_env_secrets")
 def test_issues_regex_uses_default(lgtm_toml_file: str) -> None:
     handler = ConfigHandler(
-        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues", issues_source="gitlab"),
+        cli_args=PartialConfig(issues_url="https://gitlab.com/user/repo/-/issues", issues_platform="gitlab"),
         config_file=lgtm_toml_file,
     )
     config = handler.resolve_config()
@@ -287,7 +287,7 @@ def test_issues_regex_uses_default(lgtm_toml_file: str) -> None:
 def test_issues_regex_invalid() -> None:
     handler = ConfigHandler(
         cli_args=PartialConfig(
-            issues_url="https://gitlab.com/user/repo/-/issues", issues_source="gitlab", issues_regex="*bad-regex"
+            issues_url="https://gitlab.com/user/repo/-/issues", issues_platform="gitlab", issues_regex="*bad-regex"
         ),
         config_file=None,
     )
@@ -300,7 +300,7 @@ def test_issues_jira_missing_user() -> None:
     handler = ConfigHandler(
         cli_args=PartialConfig(
             issues_url="https://test.atlassian.net/browse/",
-            issues_source="jira",
+            issues_platform="jira",
             issues_api_key="api-key",
         ),
         config_file=None,

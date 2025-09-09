@@ -5,7 +5,7 @@ import click
 import pytest
 from click.testing import CliRunner
 from lgtm_ai.__main__ import _set_logging_level, guide, review
-from lgtm_ai.base.schemas import IssuesSource
+from lgtm_ai.base.schemas import IssuesPlatform
 
 
 @pytest.mark.parametrize(
@@ -189,16 +189,16 @@ def test_get_formatter_and_printer(output_format: str, expected_formatter: str, 
 
 
 @pytest.mark.parametrize(
-    ("issues_source", "given_issues_token", "expect_reuse_git_client", "expected_token"),
+    ("issues_platform", "given_issues_token", "expect_reuse_git_client", "expected_token"),
     [
-        (IssuesSource.gitlab, None, True, "git-token"),
-        (IssuesSource.gitlab, "issues-token", False, "issues-token"),
-        (IssuesSource.github, None, True, "git-token"),
-        (IssuesSource.github, "issues-token", False, "issues-token"),
+        (IssuesPlatform.gitlab, None, True, "git-token"),
+        (IssuesPlatform.gitlab, "issues-token", False, "issues-token"),
+        (IssuesPlatform.github, None, True, "git-token"),
+        (IssuesPlatform.github, "issues-token", False, "issues-token"),
     ],
 )
 def test_review_issues_correct_issues_client_according_to_cli(
-    issues_source: IssuesSource, given_issues_token: str | None, expect_reuse_git_client: bool, expected_token: str
+    issues_platform: IssuesPlatform, given_issues_token: str | None, expect_reuse_git_client: bool, expected_token: str
 ) -> None:
     runner = CliRunner()
     extra_cli_args = ["--issues-api-key", given_issues_token] if given_issues_token else []
@@ -219,8 +219,8 @@ def test_review_issues_correct_issues_client_according_to_cli(
                 "git-token",
                 "--issues-url",
                 "https://gitlab.com/user/repo/-/issues",
-                "--issues-source",
-                issues_source.value,
+                "--issues-platform",
+                issues_platform.value,
                 *extra_cli_args,
             ],
             catch_exceptions=False,
