@@ -1,3 +1,17 @@
+## v0.15.0 (2025-09-10)
+
+### Feat
+
+- support `resolves ...` for issues regex (#126)
+
+### Refactor
+
+- pr_url is no longer an option, but an argument (#127)
+
+### Technical
+
+- change `--issues-source` to `--issues-platform` (#125)
+
 ## v0.14.0 (2025-09-08)
 
 ### Feat
