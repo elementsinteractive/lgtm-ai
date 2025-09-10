@@ -14,7 +14,7 @@ from lgtm_ai.ai.agent import (
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
 from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
-from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, OutputFormat, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, LocalRepository, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
 from lgtm_ai.config.handler import ConfigHandler, PartialConfig, ResolvedConfig
@@ -31,7 +31,7 @@ from lgtm_ai.review.guide import ReviewGuideGenerator
 from lgtm_ai.validators import (
     IntOrNoLimitType,
     ModelChoice,
-    parse_pr_url,
+    parse_target,
     validate_model_url,
 )
 from rich.console import Console
@@ -56,7 +56,7 @@ def entry_point() -> None:
 def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Wrap a click command and adds common options for lgtm commands."""
 
-    @click.argument("pr-url", required=True, callback=parse_pr_url)
+    @click.argument("target", required=True, callback=parse_target)
     @click.option(
         "--model",
         type=ModelChoice(SupportedAIModelsList),
@@ -69,7 +69,10 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         default=None,
         callback=validate_model_url,
     )
-    @click.option("--git-api-key", help="The API key to the git service (GitLab, GitHub, etc.)")
+    @click.option(
+        "--git-api-key",
+        help="The API key to the git service (GitLab, GitHub, etc.). Required if the target is a PR URL.",
+    )
     @click.option("--ai-api-key", help="The API key to the AI model service (OpenAI, etc.)")
     @click.option("--config", type=click.STRING, help="Path to the configuration file.")
     @click.option(
@@ -134,8 +137,13 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     type=click.Choice(get_args(CommentCategory)),
     help="List of categories the reviewer should focus on. If not provided, the reviewer will focus on all categories.",
 )
+@click.option(
+    "--compare",
+    default=None,
+    help="If reviewing a local repository, what to compare against (branch, commit, or HEAD for working dir). Default: HEAD",
+)
 def review(
-    pr_url: PRUrl,
+    target: PRUrl | LocalRepository,
     model: SupportedAIModels | None,
     model_url: str | None,
     git_api_key: str | None,
@@ -155,16 +163,26 @@ def review(
     issues_platform: IssuesPlatform | None,
     issues_api_key: str | None,
     issues_user: str | None,
+    compare: str | None,
 ) -> None:
-    """Review a Pull Request using AI.
+    """Review a Pull Request or local repository using AI.
 
-    PR_URL is the URL of the pull request to review.
+    TARGET can be either:
+
+        - A pull request URL (GitHub, GitLab, etc.).
+
+        - A local directory path (use --compare to specify what to compare against).
     """
     _set_logging_level(logger, verbose)
 
+    if compare and not isinstance(target, LocalRepository):
+        logger.warning(
+            "`--compare` option is only used when reviewing a local repository. Ignoring the provided value."
+        )
+
     logger.info("lgtm-ai version: %s", __version__)
-    logger.debug("Parsed PR URL: %s", pr_url)
-    logger.info("Starting review of %s", pr_url.full_url)
+    logger.debug("Parsed PR URL: %s", target)
+    logger.info("Starting review of %s", target.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
             technologies=technologies,
@@ -184,14 +202,16 @@ def review(
             issues_platform=issues_platform,
             issues_api_key=issues_api_key,
             issues_user=issues_user,
+            compare=compare,
         ),
         config_file=config,
-    ).resolve_config()
+    ).resolve_config(target)
+
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
     formatter: Formatter[Any] = MarkDownFormatter(
-        add_ranges_to_suggestions=git_source_supports_multiline_suggestions(pr_url.source)
+        add_ranges_to_suggestions=git_source_supports_multiline_suggestions(target.source)
     )
-    git_client = get_git_client(source=pr_url.source, token=resolved_config.git_api_key, formatter=formatter)
+    git_client = get_git_client(source=target.source, token=resolved_config.git_api_key, formatter=formatter)
     issues_client = _get_issues_client(resolved_config, git_client, formatter)
 
     code_reviewer = CodeReviewer(
@@ -206,7 +226,7 @@ def review(
         git_client=git_client,
         config=resolved_config,
     )
-    review = code_reviewer.review_pull_request(pr_url=pr_url)
+    review = code_reviewer.review_pull_request(target=target)
     logger.info("Review completed, total comments: %d", len(review.review_response.comments))
 
     if not resolved_config.silent:
@@ -216,16 +236,16 @@ def review(
         if review.review_response.comments:
             printer(formatter.format_review_comments_section(review.review_response.comments))
 
-    if resolved_config.publish:
+    if resolved_config.publish and isinstance(target, PRUrl) and git_client:
         logger.info("Publishing review to git service")
-        git_client.publish_review(pr_url=pr_url, review=review)
+        git_client.publish_review(pr_url=target, review=review)
         logger.info("Review published successfully")
 
 
 @entry_point.command()
 @_common_options
 def guide(
-    pr_url: PRUrl,
+    target: PRUrl,
     model: SupportedAIModels | None,
     model_url: str | None,
     git_api_key: str | None,
@@ -241,13 +261,13 @@ def guide(
 ) -> None:
     """Generate a review guide for a Pull Request using AI.
 
-    PR_URL is the URL of the pull request to generate a guide for.
+    TARGET is the URL of the pull request to generate a guide for.
     """
     _set_logging_level(logger, verbose)
 
     logger.info("lgtm-ai version: %s", __version__)
-    logger.debug("Parsed PR URL: %s", pr_url)
-    logger.info("Starting generating guide of %s", pr_url.full_url)
+    logger.debug("Parsed PR URL: %s", target)
+    logger.info("Starting generating guide of %s", target.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
             exclude=exclude,
@@ -262,9 +282,9 @@ def guide(
             ai_input_tokens_limit=ai_input_tokens_limit,
         ),
         config_file=config,
-    ).resolve_config()
+    ).resolve_config(target)
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    git_client = get_git_client(source=pr_url.source, token=resolved_config.git_api_key, formatter=MarkDownFormatter())
+    git_client = get_git_client(source=target.source, token=resolved_config.git_api_key, formatter=MarkDownFormatter())
     review_guide = ReviewGuideGenerator(
         guide_agent=get_guide_agent_with_settings(agent_extra_settings),
         model=get_ai_model(
@@ -273,16 +293,16 @@ def guide(
         git_client=git_client,
         config=resolved_config,
     )
-    guide = review_guide.generate_review_guide(pr_url=pr_url)
+    guide = review_guide.generate_review_guide(pr_url=target)
 
     if not resolved_config.silent:
         logger.info("Printing review to console")
         formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
         printer(formatter.format_guide(guide))
 
-    if resolved_config.publish:
+    if resolved_config.publish and git_client:
         logger.info("Publishing review guide to git service")
-        git_client.publish_guide(pr_url=pr_url, guide=guide)
+        git_client.publish_guide(pr_url=target, guide=guide)
         logger.info("Review Guide published successfully")
 
 
@@ -310,8 +330,8 @@ def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[A
 
 
 def _get_issues_client(
-    resolved_config: ResolvedConfig, git_client: GitClient, formatter: Formatter[Any]
-) -> IssuesClient:
+    resolved_config: ResolvedConfig, git_client: GitClient | None, formatter: Formatter[Any]
+) -> IssuesClient | None:
     """Select a different issues client for retrieving issues.
 
     Will only return a different client if all of the following are true:
@@ -319,7 +339,7 @@ def _get_issues_client(
         2) Be retrieved from a git platform and not elsewhere (e.g., Jira, Asana, etc.)
         3) Have a specific API key configured
     """
-    issues_client: IssuesClient = git_client
+    issues_client: IssuesClient | None = git_client
     if not resolved_config.issues_url or not resolved_config.issues_platform or not resolved_config.issues_regex:
         return issues_client
     if resolved_config.issues_platform.is_git_platform:

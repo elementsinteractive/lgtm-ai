@@ -1,8 +1,9 @@
+import pathlib
 from enum import StrEnum
 from urllib.parse import ParseResult, urlparse
 
 import click
-from lgtm_ai.base.schemas import IntOrNoLimit, PRSource, PRUrl
+from lgtm_ai.base.schemas import IntOrNoLimit, LocalRepository, PRSource, PRUrl
 
 
 class AllowedLocations(StrEnum):
@@ -15,7 +16,7 @@ class AllowedSchemes(StrEnum):
     Http = "http"
 
 
-def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
+def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | LocalRepository:
     """Click callback that transforms a given URL into a dataclass for later use.
 
     It validates it and raises click exceptions if the URL is not valid.
@@ -24,6 +25,17 @@ def parse_pr_url(ctx: click.Context, param: str, value: object) -> PRUrl:
         raise click.BadParameter("The PR URL must be a string")
 
     parsed = urlparse(value)
+    if not parsed.netloc:
+        # Check whether its a directory path
+        try:
+            resolved_path = pathlib.Path(value).resolve(strict=True)  # just to ensure it's a valid path
+            # Check whether it's a git repository
+            if not (resolved_path / ".git").exists():
+                raise click.BadParameter("The local path must be a git repository")
+            return LocalRepository(repo_path=resolved_path)
+        except OSError:
+            raise click.BadParameter("The PR URL must be a valid URL or a valid local path") from None
+
     if parsed.scheme not in AllowedSchemes.__members__.values():
         raise click.BadParameter(
             f"The PR URL must be one of {', '.join([s.value for s in AllowedSchemes.__members__.values()])}"

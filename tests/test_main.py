@@ -73,6 +73,41 @@ def test_review_cli_github(*args: mock.MagicMock) -> None:
 @mock.patch("lgtm_ai.__main__.CodeReviewer")
 @mock.patch("lgtm_ai.__main__.PrettyFormatter")
 @mock.patch("lgtm_ai.__main__.get_git_client")
+def test_review_cli_local(*args: mock.MagicMock) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        review,
+        [
+            "--ai-api-key",
+            "fake-token",
+            ".",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0
+
+
+@mock.patch("lgtm_ai.__main__.CodeReviewer")
+@mock.patch("lgtm_ai.__main__.PrettyFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
+def test_review_cli_local_does_not_exist(*args: mock.MagicMock) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        review,
+        [
+            "--ai-api-key",
+            "fake-token",
+            "./foo/bar/baz",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 2
+    assert "The PR URL must be a valid URL or a valid local path" in result.stderr
+
+
+@mock.patch("lgtm_ai.__main__.CodeReviewer")
+@mock.patch("lgtm_ai.__main__.PrettyFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
 def test_review_cli_with_custom_model(*args: mock.MagicMock) -> None:
     runner = CliRunner()
     result = runner.invoke(

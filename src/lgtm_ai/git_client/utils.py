@@ -7,7 +7,7 @@ from lgtm_ai.git_client.github import GitHubClient
 from lgtm_ai.git_client.gitlab import GitlabClient
 
 
-def get_git_client(source: PRSource | IssuesPlatform, token: str, formatter: Formatter[str]) -> GitClient:
+def get_git_client(source: PRSource | IssuesPlatform, token: str, formatter: Formatter[str]) -> GitClient | None:
     """Return a GitClient instance based on the provided PR URL."""
     git_client: GitClient
 
@@ -15,6 +15,8 @@ def get_git_client(source: PRSource | IssuesPlatform, token: str, formatter: For
         git_client = GitlabClient(gitlab.Gitlab(private_token=token), formatter=formatter)
     elif source == "github":
         git_client = GitHubClient(github.Github(login_or_token=token), formatter=formatter)
+    elif source == "local":
+        return None
     else:
         raise ValueError(f"Unsupported source: {source}")
 

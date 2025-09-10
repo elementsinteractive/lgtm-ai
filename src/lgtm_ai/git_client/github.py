@@ -14,6 +14,8 @@ import github.Repository
 from lgtm_ai.ai.schemas import CodeSuggestionOffset, Review, ReviewComment, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git.exceptions import GitDiffParseError
+from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.exceptions import (
     PublishGuideError,
@@ -22,8 +24,6 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestMetadataError,
 )
 from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
-from lgtm_ai.git_parser.exceptions import GitDiffParseError
-from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from pydantic import HttpUrl
 
 logger = logging.getLogger("lgtm.git")

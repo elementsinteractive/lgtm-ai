@@ -15,7 +15,7 @@ from lgtm_ai.formatters.markdown import MarkDownFormatter
 from lgtm_ai.git_client.gitlab import GitlabClient
 from lgtm_ai.review import CodeReviewer
 from lgtm_ai.review.context import ContextRetriever
-from lgtm_ai.validators import parse_pr_url
+from lgtm_ai.validators import parse_target
 from rich.logging import RichHandler
 
 PRS_FOR_EVALUATION = {
@@ -94,7 +94,7 @@ def get_git_branch() -> str:
 def perform_review(
     output_dir: str, pr_url: str, pr_name: str, sample: int, model: SupportedAIModels, git_api_key: str, ai_api_key: str
 ) -> None:
-    url = parse_pr_url(mock.Mock(), "pr_url", pr_url)
+    url = parse_target(mock.Mock(), "pr_url", pr_url)
     git_client = GitlabClient(client=gitlab.Gitlab(private_token=git_api_key), formatter=MarkDownFormatter())
     code_reviewer = CodeReviewer(
         reviewer_agent=get_reviewer_agent_with_settings(),
@@ -106,7 +106,7 @@ def perform_review(
         ),
         config=ResolvedConfig(model=model, technologies=("Python", "Django", "FastAPI")),
     )
-    review = code_reviewer.review_pull_request(pr_url=url)
+    review = code_reviewer.review_pull_request(target=url)
     write_review_to_dir(model, output_dir, pr_name, sample, review)
 
 
