@@ -127,7 +127,9 @@ class GitlabClient(GitClient):
                     diff_text=cast(str, diff_text),
                 )
             except GitDiffParseError:
-                logger.exception("Failed to parse diff patch, will skip it")
+                logger.exception(
+                    "Failed to parse diff patch for file %s, will skip it", diff.get("new_path", "unknown")
+                )
                 continue
             parsed_diffs.append(parsed)
 

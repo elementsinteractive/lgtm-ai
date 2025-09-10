@@ -41,7 +41,10 @@ def mock_pr(diff: dict[str, Any] | None = None) -> CopyingMock:
     m_pr = CopyingMock(base=mock.Mock(ref="main"), head=mock.Mock(ref="feature"), number=1)
     files = diff["files"] if diff else []
     m_pr.get_files.return_value = [
-        mock.Mock(filename=f["filename"], patch=f["patch"], previous_filename=f["filename"]) for f in files
+        mock.Mock(
+            filename=f["filename"], patch=f["patch"], status=f.get("status", None), previous_filename=f["filename"]
+        )
+        for f in files
     ]
     return m_pr
 
@@ -178,6 +181,37 @@ def test_get_diff_from_url_successful() -> None:
             ),
         ],
         changed_files=["justfile", "pyproject.toml"],
+        target_branch="main",
+        source_branch="feature",
+    )
+
+
+def test_get_diff_from_url_with_renamed_files() -> None:
+    """Ensures that renamed files (which have a None patch) are handled correctly."""
+    diffs_response = {
+        "files": [
+            {
+                "filename": "justfile",
+                "patch": None,
+                "status": "renamed",
+            },
+        ]
+    }
+    m_pr = mock_pr(diffs_response)
+    m_repo = mock_repo(m_pr)
+    client = mock_github_client(m_repo)
+
+    assert client.get_diff_from_url(MockGithubUrl) == PRDiff(
+        id=1,
+        diff=[
+            DiffResult(
+                metadata=DiffFileMetadata(
+                    new_file=False, deleted_file=False, renamed_file=True, new_path="justfile", old_path="justfile"
+                ),
+                modified_lines=[],
+            )
+        ],
+        changed_files=["justfile"],
         target_branch="main",
         source_branch="feature",
     )
