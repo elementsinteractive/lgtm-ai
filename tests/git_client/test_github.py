@@ -16,10 +16,10 @@ from lgtm_ai.ai.schemas import (
 )
 from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from lgtm_ai.git_client.exceptions import PullRequestDiffError
 from lgtm_ai.git_client.github import CommentBuilder, GitHubClient
 from lgtm_ai.git_client.schemas import IssueContent, PRDiff
-from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from pydantic import HttpUrl
 from tests.conftest import CopyingMock
 from tests.git_client.fixtures import FAKE_GUIDE

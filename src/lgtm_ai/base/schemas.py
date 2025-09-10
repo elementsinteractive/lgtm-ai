@@ -1,3 +1,4 @@
+import pathlib
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal
@@ -9,6 +10,7 @@ type IntOrNoLimit = int | Literal["no-limit"]
 class PRSource(StrEnum):
     github = "github"
     gitlab = "gitlab"
+    local = "local"
 
 
 class IssuesPlatform(StrEnum):
@@ -27,6 +29,16 @@ class PRUrl:
     repo_path: str
     pr_number: int
     source: PRSource
+
+
+@dataclass(frozen=True, slots=True)
+class LocalRepository:
+    repo_path: pathlib.Path
+    source: PRSource = PRSource.local
+
+    @property
+    def full_url(self) -> str:
+        return self.repo_path.as_posix()
 
 
 class OutputFormat(StrEnum):

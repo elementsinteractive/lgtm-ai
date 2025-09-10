@@ -12,6 +12,8 @@ import gitlab.v4.objects
 from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
+from lgtm_ai.git.exceptions import GitDiffParseError
+from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from lgtm_ai.git_client.base import GitClient
 from lgtm_ai.git_client.exceptions import (
     InvalidGitAuthError,
@@ -21,8 +23,6 @@ from lgtm_ai.git_client.exceptions import (
     PullRequestDiffNotFoundError,
 )
 from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
-from lgtm_ai.git_parser.exceptions import GitDiffParseError
-from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from pydantic import HttpUrl
 
 logger = logging.getLogger("lgtm.git")
@@ -144,7 +144,6 @@ class GitlabClient(GitClient):
         The AI currently makes mistakes which make gitlab fail to accurately post a comment.
         For example with the line number a comment refers to (whether it's a line on the 'old' file vs the 'new file).
         To avoid blocking the review, we try once with `new_line`, retry with `old_line`, then try to post the comment on the file level and finally return the comments to be posted with the main summary.
-        TODO: Rework the prompt & the ReviewResponse so that the AI can be more accurate in providing the line & file information
 
         Returns:
             list[ReviewComment]: list of comments that could not be created, and therefore should be appended to the review summary

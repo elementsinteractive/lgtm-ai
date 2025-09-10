@@ -6,7 +6,7 @@ from unittest import mock
 import click
 import pytest
 from lgtm_ai.base.schemas import PRSource, PRUrl
-from lgtm_ai.validators import parse_pr_url, validate_model_url
+from lgtm_ai.validators import parse_target, validate_model_url
 
 
 @pytest.mark.parametrize(
@@ -30,12 +30,12 @@ from lgtm_ai.validators import parse_pr_url, validate_model_url
 )
 def test_parse_url(url: str, expectation: AbstractContextManager[Any]) -> None:
     with expectation:
-        parse_pr_url(mock.Mock(), "pr_url", url)
+        parse_target(mock.Mock(), "pr_url", url)
 
 
 def test_parse_url_gitlab_valid() -> None:
     url = "https://gitlab.com/foo/-/merge_requests/1"
-    parsed = parse_pr_url(mock.Mock(), "pr_url", url)
+    parsed = parse_target(mock.Mock(), "pr_url", url)
 
     assert parsed == PRUrl(
         full_url=url,

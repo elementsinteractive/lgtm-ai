@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, Any, ClassVar, Literal, Self, cast, get_args, overload
 
 from lgtm_ai.ai.schemas import AdditionalContext, CommentCategory, SupportedAIModels
-from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, OutputFormat
+from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, LocalRepository, OutputFormat, PRUrl
 from lgtm_ai.config.constants import DEFAULT_AI_MODEL, DEFAULT_INPUT_TOKEN_LIMIT, DEFAULT_ISSUE_REGEX
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
@@ -42,6 +42,7 @@ class PartialConfig(BaseModel):
     issues_url: str | None = None
     issues_regex: str | None = None
     issues_platform: IssuesPlatform | None = None
+    compare: str | None = None
 
     # Secrets
     git_api_key: str | None = None
@@ -98,6 +99,9 @@ class ResolvedConfig(BaseModel):
     issues_platform: IssuesPlatform | None = None
     """The platform of the issues page."""
 
+    compare: str = "HEAD"
+    """If reviewing a local repository, what to compare against (branch, commit, or HEAD for working dir)."""
+
     # Secrets
     git_api_key: str = Field(default="", repr=False)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
@@ -149,13 +153,13 @@ class ConfigHandler:
         self.config_file = config_file
         self.resolver = _ConfigFieldResolver()
 
-    def resolve_config(self) -> ResolvedConfig:
+    def resolve_config(self, target: PRUrl | LocalRepository) -> ResolvedConfig:
         """Get fully resolved configuration for running lgtm."""
         config_from_env = self._parse_env()
         config_from_file = self._parse_config_file()
         config_from_cli = self._parse_cli_args()
         return self._resolve_from_multiple_sources(
-            from_cli=config_from_cli, from_file=config_from_file, from_env=config_from_env
+            from_cli=config_from_cli, from_file=config_from_file, from_env=config_from_env, target=target
         )
 
     def _parse_config_file(self) -> PartialConfig:
@@ -251,6 +255,7 @@ class ConfigHandler:
             issues_regex=self.cli_args.issues_regex or None,
             issues_api_key=self.cli_args.issues_api_key or None,
             issues_user=self.cli_args.issues_user or None,
+            compare=self.cli_args.compare or None,
         )
 
     def _parse_env(self) -> PartialConfig:
@@ -266,10 +271,19 @@ class ConfigHandler:
             raise InvalidConfigError(source="Environment variables", errors=err.errors()) from None
 
     def _resolve_from_multiple_sources(
-        self, *, from_cli: PartialConfig, from_file: PartialConfig, from_env: PartialConfig
+        self,
+        *,
+        from_cli: PartialConfig,
+        from_file: PartialConfig,
+        from_env: PartialConfig,
+        target: PRUrl | LocalRepository,
     ) -> ResolvedConfig:
         """Resolve the config fields given all the config sources."""
         try:
+            if isinstance(target, PRUrl):
+                git_api_key = self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env)
+            else:
+                git_api_key = ""
             resolved = ResolvedConfig(
                 technologies=self.resolver.resolve_tuple_field("technologies", from_cli=from_cli, from_file=from_file),
                 categories=cast(
@@ -292,10 +306,14 @@ class ConfigHandler:
                 output_format=from_cli.output_format or from_file.output_format or OutputFormat.pretty,
                 silent=from_cli.silent or from_file.silent,
                 ai_retries=from_cli.ai_retries or from_file.ai_retries,
-                git_api_key=self.resolver.resolve_string_field("git_api_key", from_cli=from_cli, from_env=from_env),
                 ai_api_key=self.resolver.resolve_string_field(
-                    "ai_api_key", from_cli=from_cli, from_env=from_env, required=False, default=""
+                    "ai_api_key",
+                    from_cli=from_cli,
+                    from_env=from_env,
+                    required=False,
+                    default="",
                 ),
+                git_api_key=git_api_key,
                 ai_input_tokens_limit=_transform_nolimit_to_none(
                     from_cli.ai_input_tokens_limit or from_file.ai_input_tokens_limit or DEFAULT_INPUT_TOKEN_LIMIT
                 ),
@@ -308,6 +326,7 @@ class ConfigHandler:
                 issues_user=self.resolver.resolve_string_field(
                     "issues_user", from_cli=from_cli, from_env=from_env, required=False, default=None
                 ),
+                compare=from_cli.compare or "HEAD",
             )
         except ValidationError as err:
             raise InvalidOptionsError(err) from None
@@ -379,7 +398,7 @@ class _ConfigFieldResolver:
         resolved: str | None = config_in_cli or config_in_file or config_in_env
         if resolved is None:
             if required:
-                raise MissingRequiredConfigError(f"Missing required config field: {field_name}")
+                raise MissingRequiredConfigError(f"Missing required option: {field_name}")
             elif default is not None:
                 logger.debug("No config provided for %s, using default value: %s", field_name, default)
                 return default

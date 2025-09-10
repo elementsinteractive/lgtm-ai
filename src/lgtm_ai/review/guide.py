@@ -22,7 +22,7 @@ class ReviewGuideGenerator:
         *,
         guide_agent: Agent[None, GuideResponse],
         model: Model,
-        git_client: GitClient,
+        git_client: GitClient | None,
         config: ResolvedConfig,
     ) -> None:
         self.guide_agent = guide_agent
@@ -34,6 +34,8 @@ class ReviewGuideGenerator:
         )
 
     def generate_review_guide(self, pr_url: PRUrl) -> ReviewGuide:
+        if not self.git_client:
+            raise ValueError("Git client is not configured, cannot generate review guide")
         pr_diff = self.git_client.get_diff_from_url(pr_url)
         context = self.context_retriever.get_code_context(pr_url, pr_diff)
         metadata = self.git_client.get_pr_metadata(pr_url)

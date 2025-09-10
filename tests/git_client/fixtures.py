@@ -8,8 +8,8 @@ from lgtm_ai.ai.schemas import (
     PublishMetadata,
     ReviewGuide,
 )
+from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from lgtm_ai.git_client.schemas import PRDiff
-from lgtm_ai.git_parser.parser import DiffFileMetadata, DiffResult, ModifiedLine
 from tests.review.utils import MOCK_USAGE
 
 PARSED_GIT_DIFF = [

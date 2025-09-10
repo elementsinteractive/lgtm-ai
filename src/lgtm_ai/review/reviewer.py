@@ -7,10 +7,11 @@ from lgtm_ai.ai.schemas import (
     ReviewResponse,
     SummarizingDeps,
 )
-from lgtm_ai.base.schemas import PRUrl
+from lgtm_ai.base.schemas import LocalRepository, PRUrl
 from lgtm_ai.config.handler import ResolvedConfig
+from lgtm_ai.git.repository import get_diff_from_local_repo
 from lgtm_ai.git_client.base import GitClient
-from lgtm_ai.git_client.schemas import PRDiff
+from lgtm_ai.git_client.schemas import PRDiff, PRMetadata
 from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.exceptions import (
     handle_ai_exceptions,
@@ -42,7 +43,7 @@ class CodeReviewer:
     - Return a Review object containing the PR diff, final review response, and metadata about the review process.
 
     Main workflow:
-    1. Call review_pull_request(pr_url):
+    1. Call review_pull_request(target):
         - Fetch PR metadata and diff.
         - Gather code and additional context, and optionally issue context.
         - Generate a review prompt and run the reviewer agent for the initial review.
@@ -58,7 +59,7 @@ class CodeReviewer:
         summarizing_agent: Agent[SummarizingDeps, ReviewResponse],
         model: Model,
         context_retriever: ContextRetriever,
-        git_client: GitClient,
+        git_client: GitClient | None,
         config: ResolvedConfig,
     ) -> None:
         """
@@ -85,16 +86,26 @@ class CodeReviewer:
         self.config = config
         self.context_retriever = context_retriever
 
-    def review_pull_request(self, pr_url: PRUrl) -> Review:
+    def review_pull_request(self, target: PRUrl | LocalRepository) -> Review:
         """Peform a full review of the given pull request URL and return it."""
         total_usage = RunUsage()
         usage_limits = UsageLimits(input_tokens_limit=self.config.ai_input_tokens_limit)
-        metadata = self.git_client.get_pr_metadata(pr_url)
+
+        if self.git_client and isinstance(target, PRUrl):
+            metadata = self.git_client.get_pr_metadata(target)
+            pr_diff = self.git_client.get_diff_from_url(target)
+        elif isinstance(target, LocalRepository):
+            metadata = PRMetadata(title="Local changes with no PR", description="")
+            pr_diff = get_diff_from_local_repo(target.repo_path, compare=self.config.compare)
+        else:
+            raise ValueError("Invalid pr_url type or git_client not configured")
+
         prompt_generator = PromptGenerator(self.config, metadata)
-        pr_diff = self.git_client.get_diff_from_url(pr_url)
+
         initial_review_response = self._perform_initial_review(
-            pr_url,
+            target,
             pr_diff=pr_diff,
+            pr_metadata=metadata,
             prompt_generator=prompt_generator,
             total_usage=total_usage,
             usage_limits=usage_limits,
@@ -119,15 +130,16 @@ class CodeReviewer:
 
     def _perform_initial_review(
         self,
-        pr_url: PRUrl,
+        pr_url: PRUrl | LocalRepository,
         *,
         pr_diff: PRDiff,
+        pr_metadata: PRMetadata,
         prompt_generator: PromptGenerator,
         total_usage: RunUsage,
         usage_limits: UsageLimits,
     ) -> ReviewResponse:
         """Perform an initial review of the PR with the reviewer agent."""
-        context = self.context_retriever.get_code_context(pr_url=pr_url, pr_diff=pr_diff)
+        context = self.context_retriever.get_code_context(target=pr_url, pr_diff=pr_diff)
         additional_context = self.context_retriever.get_additional_context(
             pr_url=pr_url,
             additional_context=self.config.additional_context,
@@ -137,7 +149,7 @@ class CodeReviewer:
             issue_context = self.context_retriever.get_issues_context(
                 issues_url=self.config.issues_url,
                 issues_regex=self.config.issues_regex,
-                pr_metadata=self.git_client.get_pr_metadata(pr_url),
+                pr_metadata=pr_metadata,
             )
         else:
             issue_context = None

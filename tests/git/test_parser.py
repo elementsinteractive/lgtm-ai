@@ -1,7 +1,7 @@
 import pytest
-from lgtm_ai.git_parser.exceptions import GitDiffParseError
-from lgtm_ai.git_parser.parser import DiffResult, parse_diff_patch
-from tests.git_parser.fixtures import (
+from lgtm_ai.git.exceptions import GitDiffParseError
+from lgtm_ai.git.parser import DiffResult, parse_diff_patch
+from tests.git.fixtures import (
     COMPLEX_DIFF_TEXT,
     DUMMY_METADATA,
     GIT_SHOW,
