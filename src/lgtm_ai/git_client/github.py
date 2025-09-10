@@ -55,9 +55,9 @@ class GitHubClient(GitClient):
                 old_path=getattr(file, "previous_filename", None),
             )
             try:
-                parsed_diff = parse_diff_patch(metadata=metadata, diff_text=file.patch)
+                parsed_diff = parse_diff_patch(metadata=metadata, diff_text=file.patch or "")
             except GitDiffParseError:
-                logger.exception("Failed to parse diff patch, will skip it")
+                logger.exception("Failed to parse diff patch for file %s, will skip it", file.filename)
                 continue
             parsed.append(parsed_diff)
 

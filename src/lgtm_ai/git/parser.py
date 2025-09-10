@@ -32,6 +32,7 @@ class DiffResult(BaseModel):
 def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResult:
     if not isinstance(diff_text, str):
         raise GitDiffParseError("Diff text is not a string")
+
     lines = diff_text.strip().splitlines()
 
     modified_lines = []
