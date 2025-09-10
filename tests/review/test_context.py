@@ -205,6 +205,14 @@ class TestIssueContext:
             ),
             pytest.param(
                 PRMetadata(
+                    title="fix: Bug fix for issue #456",
+                    description="Resolves #456 and relates to PROJ-789.",
+                ),
+                "456",
+                id="number-with-resolves-in-description",
+            ),
+            pytest.param(
+                PRMetadata(
                     title="fix: Bug fix for issue 456",
                     description="Does something. refs #456",
                 ),
