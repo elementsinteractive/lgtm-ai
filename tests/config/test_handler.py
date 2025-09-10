@@ -6,7 +6,6 @@ from lgtm_ai.base.schemas import PRSource, PRUrl
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT, DEFAULT_ISSUE_REGEX
 from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
-    InvalidConfigError,
     InvalidConfigFileError,
     InvalidOptionsError,
     MissingRequiredConfigError,
@@ -90,8 +89,11 @@ def test_resolve_multiple_config_keys(lgtm_toml_file: str) -> None:
 @pytest.mark.usefixtures("clean_env_secrets")
 def test_missing_secrets_raises_error() -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=None)
-    with pytest.raises(MissingRequiredConfigError):
+    with pytest.raises(InvalidOptionsError) as err:
         handler.resolve_config(target)
+
+    assert "git_api_key" in err.value.message
+    assert "ai_api_key" in err.value.message
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
@@ -121,18 +123,22 @@ def test_cli_has_preference_over_env_for_secrets() -> None:
         (False, False, False),
     ],
 )
-def test_boolean_flag_preference(cli: bool, file: bool, expected: bool) -> None:
-    """Contrary to other kinds of fields, boolean flags don't have normal preference order, because they are not set to "false" in the cli.
+def test_boolean_flag_preference(cli: bool, file: bool, expected: bool, tmp_path: Path) -> None:
+    # Only set CLI values when they are True (simulating CLI flags that are either present or not)
+    cli_kwargs: dict[str, bool] = {}
+    if cli:
+        cli_kwargs.update(silent=cli, publish=cli)
+    from_cli = PartialConfig(**cli_kwargs)
 
-    This means that `False` can also act as `None`/`Not Set`.
-    If set to `True` in either the cli or the file, then the config field is also set to `True`.
-    """
-    from_cli = PartialConfig(silent=cli, publish=cli)
-    from_file = PartialConfig(silent=file, publish=file)
+    # Create a temporary config file with the file values
+    config_file = tmp_path / "test.toml"
+    config_file.write_text(f"""
+silent = {str(file).lower()}
+publish = {str(file).lower()}
+""")
 
-    with mock.patch("lgtm_ai.config.handler.ConfigHandler._parse_config_file", return_value=from_file):
-        handler = ConfigHandler(cli_args=from_cli, config_file=mock.Mock())
-        config = handler.resolve_config(target)
+    handler = ConfigHandler(cli_args=from_cli, config_file=str(config_file))
+    config = handler.resolve_config(target)
 
     assert config.silent == expected
     assert config.publish == expected
@@ -189,11 +195,10 @@ def test_no_config_file_at_all_is_ok(tmp_path: Path) -> None:
 @pytest.mark.usefixtures("inject_env_secrets")
 def test_incorrect_config_field_raises(toml_with_invalid_config_field: str) -> None:
     handler = ConfigHandler(cli_args=PartialConfig(), config_file=toml_with_invalid_config_field)
-    with pytest.raises(InvalidConfigError) as exc:
+    with pytest.raises(InvalidOptionsError) as exc:
         handler.resolve_config(target)
 
     error = exc.value
-    assert "Invalid config file" in error.message
     assert "'categories': Input should be 'Correctness', 'Quality', 'Testing' or 'Security'" in error.message
     assert "'technologies': Input should be a valid tuple" in error.message
 

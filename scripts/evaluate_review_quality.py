@@ -104,7 +104,12 @@ def perform_review(
         context_retriever=ContextRetriever(
             git_client=git_client, issues_client=git_client, httpx_client=httpx.Client(timeout=3)
         ),
-        config=ResolvedConfig(model=model, technologies=("Python", "Django", "FastAPI")),
+        config=ResolvedConfig(
+            ai_api_key=ai_api_key,
+            git_api_key=git_api_key,
+            model=model,
+            technologies=("Python", "Django", "FastAPI"),
+        ),
     )
     review = code_reviewer.review_pull_request(target=url)
     write_review_to_dir(model, output_dir, pr_name, sample, review)
