@@ -108,6 +108,7 @@ SUMMARIZING_SYSTEM_PROMPT = f"""
     - Suggestions must be passed separately (not as part of the comment content), and they must include how many lines above and below the comment to include in the suggestion.
     - The offsets of suggestions must encompass all the code that needs to be changed. e.g., if you intend to change a whole function, the suggestion must include the full function. If you intend to change a single line, then the offsets will be 0.
     - If a suggestion is given, a flag indicating whether the suggestion is ready to be applied directly by the author must be given. That is, if the suggestion includes comments to be filled by the author, or skips parts and is intended for clarification, the flag `ready_for_replacement` must be set to `false`.
+    - Be mindful of indentation in suggestions, ensure they are correctly indented.
     - Ensure that suggestions don't span outside git hunk boundaries (`hunk_start_new` and `hunk_start_old` in the modified lines; new for comments on new path, old for comments on old path). If they do, adjust the suggestion to fit within the hunk.
 
     The review will have a score for the PR (1-5, with 5 being the best). It is your job to evaluate whether this score holds after removing the comments.
