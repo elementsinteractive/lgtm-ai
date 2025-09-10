@@ -1,3 +1,19 @@
+## v0.16.0 (2025-09-10)
+
+### Feat
+
+- **#22**: add ability to review local changes without a PR (#129)
+
+### Fix
+
+- ensure guides can only run on remote PR URLs and not local repos (#133)
+- indentations in suggestions (#132)
+- **#130**: handle renamed files correctly on GitHub (#131)
+
+### Refactor
+
+- **#65**: use pydantic-settings to simplify config handling (#134)
+
 ## v0.15.0 (2025-09-10)
 
 ### Feat
