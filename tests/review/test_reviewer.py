@@ -78,6 +78,8 @@ def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
             git_client=MockGitClient(),
             context_retriever=context_retriever,
             config=ResolvedConfig(
+                ai_api_key="",
+                git_api_key="",
                 additional_context=(
                     AdditionalContext(
                         file_url=None,
@@ -89,7 +91,7 @@ def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
                         prompt="Yet another prompt",
                         context="yet-another-context",
                     ),
-                )
+                ),
             ),
         )
         review = code_reviewer.review_pull_request(
@@ -175,6 +177,8 @@ def test_get_review_with_issue(context_retriever: ContextRetriever) -> None:
             git_client=MockGitClient(),
             context_retriever=context_retriever,
             config=ResolvedConfig(
+                ai_api_key="",
+                git_api_key="",
                 additional_context=(
                     AdditionalContext(
                         file_url=None,
@@ -268,7 +272,7 @@ def test_summarizing_message_in_review(context_retriever: ContextRetriever) -> N
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             context_retriever=context_retriever,
-            config=ResolvedConfig(),
+            config=ResolvedConfig(ai_api_key="", git_api_key=""),
         )
         code_reviewer.review_pull_request(
             target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
@@ -320,7 +324,7 @@ def test_get_review_adds_technologies_to_prompt(context_retriever: ContextRetrie
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             context_retriever=context_retriever,
-            config=ResolvedConfig(technologies=("COBOL", "FORTRAN", "ODIN")),
+            config=ResolvedConfig(ai_api_key="", git_api_key="", technologies=("COBOL", "FORTRAN", "ODIN")),
         )
         review = code_reviewer.review_pull_request(
             target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
@@ -354,7 +358,7 @@ def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetrieve
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             context_retriever=context_retriever,
-            config=ResolvedConfig(categories=("Correctness", "Quality")),
+            config=ResolvedConfig(ai_api_key="", git_api_key="", categories=("Correctness", "Quality")),
         )
         review = code_reviewer.review_pull_request(
             target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
@@ -385,7 +389,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
             issues_client=MockGitClient(),
             httpx_client=mock.Mock(),
         ),
-        config=ResolvedConfig(exclude=("*.txt",)),  # we exclude all txt files
+        config=ResolvedConfig(ai_api_key="", git_api_key="", exclude=("*.txt",)),  # we exclude all txt files
     )
     with pytest.raises(NothingToReviewError):
         code_reviewer.review_pull_request(
@@ -411,7 +415,7 @@ def test_file_is_excluded_from_prompt(context_retriever: ContextRetriever) -> No
             model=mock.Mock(spec=OpenAIChatModel, model_name=DEFAULT_AI_MODEL),
             git_client=MockGitClient(),
             context_retriever=context_retriever,
-            config=ResolvedConfig(exclude=("file2.txt",)),
+            config=ResolvedConfig(ai_api_key="", git_api_key="", exclude=("file2.txt",)),
         )
         review = code_reviewer.review_pull_request(
             target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
@@ -449,7 +453,7 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
             issues_client=MockGitClient(),
             httpx_client=mock.Mock(),
         ),
-        config=ResolvedConfig(),
+        config=ResolvedConfig(ai_api_key="", git_api_key=""),
     )
 
     with pytest.raises(expected_error):

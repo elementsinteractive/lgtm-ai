@@ -9,20 +9,6 @@ class ConfigFileNotFoundError(LGTMException): ...
 class InvalidConfigFileError(LGTMException): ...
 
 
-class InvalidConfigError(LGTMException):
-    def __init__(self, source: str, errors: list[ErrorDetails]) -> None:
-        self.source = source
-        self.errors = errors
-        self.message = self._generate_message()
-
-    def __str__(self) -> str:
-        return self.message
-
-    def _generate_message(self) -> str:
-        messages = _extract_errors_from_validation_error(self.errors)
-        return f"Invalid config file '{self.source}':\n" + "\n".join(messages)
-
-
 class InvalidOptionsError(LGTMException):
     """Raised when options (no matter where they come from) are invalid."""
 

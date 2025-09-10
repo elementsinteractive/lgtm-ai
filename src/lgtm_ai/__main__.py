@@ -80,9 +80,19 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         multiple=True,
         help="Exclude files from the review. If not provided, all files in the PR will be reviewed. Uses UNIX-style wildcards.",
     )
-    @click.option("--publish", is_flag=True, help="Publish the review or guide to the git service.")
+    @click.option(
+        "--publish",
+        is_flag=True,
+        default=None,
+        help="Publish the review or guide to the git service. Defaults to False.",
+    )
     @click.option("--output-format", type=click.Choice([format.value for format in OutputFormat]))
-    @click.option("--silent", is_flag=True, help="Do not print the review or guide to the console.")
+    @click.option(
+        "--silent",
+        is_flag=True,
+        default=None,
+        help="Do not print the review or guide to the console. Defaults to False.",
+    )
     @click.option(
         "--ai-retries",
         type=int,
@@ -150,9 +160,9 @@ def review(
     ai_api_key: str | None,
     config: str | None,
     exclude: tuple[str, ...],
-    publish: bool,
+    publish: bool | None,
     output_format: OutputFormat | None,
-    silent: bool,
+    silent: bool | None,
     ai_retries: int | None,
     ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
@@ -185,9 +195,9 @@ def review(
     logger.info("Starting review of %s", target.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
-            technologies=technologies,
-            categories=categories,
-            exclude=exclude,
+            technologies=technologies or None,
+            categories=categories or None,
+            exclude=exclude or None,
             git_api_key=git_api_key,
             ai_api_key=ai_api_key,
             model=model,
@@ -252,9 +262,9 @@ def guide(
     ai_api_key: str | None,
     config: str | None,
     exclude: tuple[str, ...],
-    publish: bool,
+    publish: bool | None,
     output_format: OutputFormat | None,
-    silent: bool,
+    silent: bool | None,
     ai_retries: int | None,
     ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
@@ -270,7 +280,7 @@ def guide(
     logger.info("Starting generating guide of %s", target.full_url)
     resolved_config = ConfigHandler(
         cli_args=PartialConfig(
-            exclude=exclude,
+            exclude=exclude or None,
             git_api_key=git_api_key,
             ai_api_key=ai_api_key,
             model=model,
