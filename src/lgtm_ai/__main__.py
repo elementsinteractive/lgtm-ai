@@ -56,7 +56,7 @@ def entry_point() -> None:
 def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Wrap a click command and adds common options for lgtm commands."""
 
-    @click.option("--pr-url", required=True, help="The URL of the pull request to work on.", callback=parse_pr_url)
+    @click.argument("pr-url", required=True, callback=parse_pr_url)
     @click.option(
         "--model",
         type=ModelChoice(SupportedAIModelsList),
@@ -156,7 +156,10 @@ def review(
     issues_api_key: str | None,
     issues_user: str | None,
 ) -> None:
-    """Review a Pull Request using AI."""
+    """Review a Pull Request using AI.
+
+    PR_URL is the URL of the pull request to review.
+    """
     _set_logging_level(logger, verbose)
 
     logger.info("lgtm-ai version: %s", __version__)
@@ -236,7 +239,10 @@ def guide(
     ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
 ) -> None:
-    """Generate a review guide for a Pull Request using AI."""
+    """Generate a review guide for a Pull Request using AI.
+
+    PR_URL is the URL of the pull request to generate a guide for.
+    """
     _set_logging_level(logger, verbose)
 
     logger.info("lgtm-ai version: %s", __version__)

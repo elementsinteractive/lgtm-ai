@@ -38,14 +38,13 @@ def test_review_cli_gitlab(*args: mock.MagicMock) -> None:
     result = runner.invoke(
         review,
         [
-            "--pr-url",
-            "https://gitlab.com/user/repo/-/merge_requests/1",
             "--ai-api-key",
             "fake-token",
             "--git-api-key",
             "fake-token",
             "--ai-retries",
             "3",
+            "https://gitlab.com/user/repo/-/merge_requests/1",
         ],
     )
 
@@ -60,12 +59,11 @@ def test_review_cli_github(*args: mock.MagicMock) -> None:
     result = runner.invoke(
         review,
         [
-            "--pr-url",
-            "https://github.com/user/repo/pull/1",
             "--ai-api-key",
             "fake-token",
             "--git-api-key",
             "fake-token",
+            "https://github.com/user/repo/pull/1",
         ],
     )
 
@@ -80,14 +78,13 @@ def test_review_cli_with_custom_model(*args: mock.MagicMock) -> None:
     result = runner.invoke(
         review,
         [
-            "--pr-url",
-            "https://github.com/user/repo/pull/1",
             "--git-api-key",
             "fake-token",
             "--model",
             "alpaca",
             "--model-url",
             "http://localhost:1234",
+            "https://github.com/user/repo/pull/1",
         ],
     )
 
@@ -102,12 +99,11 @@ def test_guide_cli_gitlab(*args: mock.MagicMock) -> None:
     result = runner.invoke(
         guide,
         [
-            "--pr-url",
-            "https://gitlab.com/user/repo/-/merge_requests/1",
             "--ai-api-key",
             "fake-token",
             "--git-api-key",
             "fake-token",
+            "https://gitlab.com/user/repo/-/merge_requests/1",
         ],
     )
 
@@ -126,14 +122,13 @@ def test_enforce_model_url_for_unknown_model(cli_command: click.Command) -> None
     result = runner.invoke(
         cli_command,
         [
-            "--pr-url",
-            "https://gitlab.com/user/repo/-/merge_requests/1",
             "--model",
             "unknown-model",
             "--ai-api-key",
             "fake-token",
             "--git-api-key",
             "fake-token",
+            "https://gitlab.com/user/repo/-/merge_requests/1",
         ],
     )
 
@@ -169,14 +164,13 @@ def test_get_formatter_and_printer(output_format: str, expected_formatter: str, 
         result = runner.invoke(
             cli_command,
             [
-                "--pr-url",
-                "https://gitlab.com/user/repo/-/merge_requests/1",
                 "--ai-api-key",
                 "fake-token",
                 "--git-api-key",
                 "fake-token",
                 "--output-format",
                 output_format,
+                "https://gitlab.com/user/repo/-/merge_requests/1",
             ],
             catch_exceptions=False,
         )
@@ -211,8 +205,6 @@ def test_review_issues_correct_issues_client_according_to_cli(
         result = runner.invoke(
             review,
             [
-                "--pr-url",
-                "https://gitlab.com/user/repo/-/merge_requests/1",
                 "--ai-api-key",
                 "fake-token",
                 "--git-api-key",
@@ -222,6 +214,7 @@ def test_review_issues_correct_issues_client_according_to_cli(
                 "--issues-platform",
                 issues_platform.value,
                 *extra_cli_args,
+                "https://gitlab.com/user/repo/-/merge_requests/1",
             ],
             catch_exceptions=False,
         )

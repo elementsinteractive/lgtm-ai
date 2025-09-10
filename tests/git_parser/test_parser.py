@@ -4,6 +4,8 @@ from lgtm_ai.git_parser.parser import DiffResult, parse_diff_patch
 from tests.git_parser.fixtures import (
     COMPLEX_DIFF_TEXT,
     DUMMY_METADATA,
+    GIT_SHOW,
+    PARSED_GIT_SHOW,
     PARSED_REFACTOR_DIFF,
     PARSED_SIMPLE_DIFF,
     REFACTOR_DIFF,
@@ -16,6 +18,7 @@ from tests.git_parser.fixtures import (
     [
         pytest.param(SIMPLE_DIFF, PARSED_SIMPLE_DIFF, id="simple"),
         pytest.param(REFACTOR_DIFF, PARSED_REFACTOR_DIFF, id="refactor"),
+        pytest.param(GIT_SHOW, PARSED_GIT_SHOW, id="git-show"),
     ],
 )
 def test_parse_diff_patch(input_diff: str, expected: DiffResult) -> None:
