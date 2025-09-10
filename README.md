@@ -50,11 +50,11 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
 ### Review
 
 ```sh
- lgtm review --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
-             --ai-api-key $OPENAI_API_KEY \
+ lgtm review --ai-api-key $OPENAI_API_KEY \
              --git-api-key $GITLAB_TOKEN \
              --model gpt-4.1 \
-             --publish
+             --publish \
+             "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
 
 This will generate a **review** like this one:
@@ -67,11 +67,11 @@ This will generate a **review** like this one:
 ### Reviewer Guide
 
 ```sh
- lgtm guide --pr-url "https://gitlab.com/your-repo/-/merge-requests/42" \
-             --ai-api-key $OPENAI_API_KEY \
+ lgtm guide  --ai-api-key $OPENAI_API_KEY \
              --git-api-key $GITLAB_TOKEN \
              --model gpt-4.1 \
-             --publish
+             --publish \
+             "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
 
 This will generate a **reviewer guide** like this one:
@@ -130,7 +130,7 @@ lgtm aims to work with as many services as possible, and that includes remote re
 - [GitLab](https://gitlab.com) (only gitlab.com, not self-hosted)
 - [GitHub](https://github.com)
 
-lgtm will autodetect the url of the pull request passed to `--pr-url`.
+lgtm will autodetect the url of the pull request passed as an argument.
 
 
 ### Using Issue/User Story Information
@@ -149,12 +149,12 @@ lgtm-ai can enhance code reviews by including context from linked issues or user
 **Example:**
 ```sh
 lgtm review \
-  --pr-url "https://github.com/your-org/your-repo/pull/42" \
   --issues-url "https://github.com/your-org/your-repo/issues" \
   --issues-platform github \
   --issues-regex "(?:Fixes|Resolves) #(\d+)" \
   --issues-api-key $GITHUB_TOKEN \
   ...
+  "https://github.com/your-org/your-repo/pull/42"
 ```
 
 - These options can also be set in the `lgtm.toml` configuration file, see more in the [configuration section](#configuration).
@@ -315,10 +315,10 @@ You can run lgtm against a model available at a custom url (say, models running 
 
 ```sh
 lgtm review \
-  --pr-url https://github.com/group/repo/pull/1 \
   --model llama3.2 \
   --model-url http://localhost:11434/v1 \
   ...
+  https://github.com/group/repo/pull/1
 ```
 
 ### CI/CD Integration
@@ -338,7 +338,7 @@ lgtm-review:
    - if: $CI_MERGE_REQUEST_ID
   when: manual
   script:
-    - lgtm review --pr-url ${MR_URL} --git-api-key ${LGTM_GIT_API_KEY} --ai-api-key ${LGTM_AI_API_KEY} -v
+    - lgtm review --git-api-key ${LGTM_GIT_API_KEY} --ai-api-key ${LGTM_AI_API_KEY} -v ${MR_URL}
   variables:
     MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
 ```

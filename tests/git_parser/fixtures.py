@@ -212,3 +212,125 @@ COMPLEX_DIFF_TEXT = '''
 +    else:
 +        assert_never(output_format)
 '''
+
+
+GIT_SHOW = r"""
+diff --git src/lgtm_ai/config/constants.py src/lgtm_ai/config/constants.py
+index 229c1ed..51688bc 100644
+--- src/lgtm_ai/config/constants.py
++++ src/lgtm_ai/config/constants.py
+@@ -2,4 +2,4 @@ from lgtm_ai.ai.schemas import SupportedAIModels
+
+ DEFAULT_AI_MODEL: SupportedAIModels = "gemini-2.0-flash"
+ DEFAULT_INPUT_TOKEN_LIMIT = 500000
+-DEFAULT_ISSUE_REGEX = r"(?:refs?|closes?)[:\s]*((?:#\d+)|(?:#?[A-Z]+-\d+))|(?:fix|feat|docs|style|refactor|perf|test|build|ci)\((?:#(\d+)|#?([A-Z]+-\d+))\)!?:"
++DEFAULT_ISSUE_REGEX = r"(?:refs?|closes?|resolves?)[:\s]*((?:#\d+)|(?:#?[A-Z]+-\d+))|(?:fix|feat|docs|style|refactor|perf|test|build|ci)\((?:#(\d+)|#?([A-Z]+-\d+))\)!?:"
+diff --git tests/review/test_context.py tests/review/test_context.py
+index 69f3efc..b47cb94 100644
+--- tests/review/test_context.py
++++ tests/review/test_context.py
+@@ -203,6 +203,14 @@ class TestIssueContext:
+                 "456",
+                 id="number-with-hash-in-title-and-description",
+             ),
++            pytest.param(
++                PRMetadata(
++                    title="fix: Bug fix for issue #456",
++                    description="Resolves #456 and relates to PROJ-789.",
++                ),
++                "456",
++                id="number-with-resolves-in-description",
++            ),
+             pytest.param(
+                 PRMetadata(
+                     title="fix: Bug fix for issue 456",
+
+"""
+
+PARSED_GIT_SHOW = DiffResult(
+    metadata=DiffFileMetadata(
+        new_file=True, deleted_file=False, renamed_file=False, new_path="example.txt", old_path="example.txt"
+    ),
+    modified_lines=[
+        ModifiedLine(
+            line='DEFAULT_ISSUE_REGEX = r"(?:refs?|closes?)[:\\s]*((?:#\\d+)|(?:#?[A-Z]+-\\d+))|(?:fix|feat|docs|style|refactor|perf|test|build|ci)\\((?:#(\\d+)|#?([A-Z]+-\\d+))\\)!?:"',
+            line_number=5,
+            relative_line_number=8,
+            modification_type="removed",
+            hunk_start_new=2,
+            hunk_start_old=2,
+        ),
+        ModifiedLine(
+            line='DEFAULT_ISSUE_REGEX = r"(?:refs?|closes?|resolves?)[:\\s]*((?:#\\d+)|(?:#?[A-Z]+-\\d+))|(?:fix|feat|docs|style|refactor|perf|test|build|ci)\\((?:#(\\d+)|#?([A-Z]+-\\d+))\\)!?:"',
+            line_number=5,
+            relative_line_number=9,
+            modification_type="added",
+            hunk_start_new=2,
+            hunk_start_old=2,
+        ),
+        ModifiedLine(
+            line="            pytest.param(",
+            line_number=206,
+            relative_line_number=18,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line="                PRMetadata(",
+            line_number=207,
+            relative_line_number=19,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line='                    title="fix: Bug fix for issue #456",',
+            line_number=208,
+            relative_line_number=20,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line='                    description="Resolves #456 and relates to PROJ-789.",',
+            line_number=209,
+            relative_line_number=21,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line="                ),",
+            line_number=210,
+            relative_line_number=22,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line='                "456",',
+            line_number=211,
+            relative_line_number=23,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line='                id="number-with-resolves-in-description",',
+            line_number=212,
+            relative_line_number=24,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+        ModifiedLine(
+            line="            ),",
+            line_number=213,
+            relative_line_number=25,
+            modification_type="added",
+            hunk_start_new=203,
+            hunk_start_old=203,
+        ),
+    ],
+)
