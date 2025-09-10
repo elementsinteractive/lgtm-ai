@@ -132,7 +132,7 @@ class CodeReviewer:
             pr_url=pr_url,
             additional_context=self.config.additional_context,
         )
-        if self.config.issues_source and self.config.issues_url and self.config.issues_regex:
+        if self.config.issues_platform and self.config.issues_url and self.config.issues_regex:
             logger.info("Fetching issue context related to the PR")
             issue_context = self.context_retriever.get_issues_context(
                 issues_url=self.config.issues_url,

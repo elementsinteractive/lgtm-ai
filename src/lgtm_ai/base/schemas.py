@@ -11,14 +11,14 @@ class PRSource(StrEnum):
     gitlab = "gitlab"
 
 
-class IssuesSource(StrEnum):
+class IssuesPlatform(StrEnum):
     github = "github"
     gitlab = "gitlab"
     jira = "jira"
 
     @property
     def is_git_platform(self) -> bool:
-        return self in {IssuesSource.gitlab, IssuesSource.github}
+        return self in {IssuesPlatform.gitlab, IssuesPlatform.github}
 
 
 @dataclass(frozen=True, slots=True)
