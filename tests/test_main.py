@@ -145,6 +145,27 @@ def test_guide_cli_gitlab(*args: mock.MagicMock) -> None:
     assert result.exit_code == 0
 
 
+@mock.patch("lgtm_ai.__main__.ReviewGuideGenerator")
+@mock.patch("lgtm_ai.__main__.PrettyFormatter")
+@mock.patch("lgtm_ai.__main__.get_git_client")
+def test_guide_cli_local_fails(*args: mock.MagicMock) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        guide,
+        [
+            "--ai-api-key",
+            "fake-token",
+            "--git-api-key",
+            "fake-token",
+            ".",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 1
+    assert "Aborted!" in result.stderr
+
+
 @pytest.mark.parametrize(
     "cli_command",
     [

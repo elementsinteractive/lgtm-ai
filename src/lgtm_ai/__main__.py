@@ -245,7 +245,7 @@ def review(
 @entry_point.command()
 @_common_options
 def guide(
-    target: PRUrl,
+    target: PRUrl | LocalRepository,
     model: SupportedAIModels | None,
     model_url: str | None,
     git_api_key: str | None,
@@ -264,6 +264,9 @@ def guide(
     TARGET is the URL of the pull request to generate a guide for.
     """
     _set_logging_level(logger, verbose)
+    if isinstance(target, LocalRepository):
+        logger.error("Review guides can only be generated for Pull Request URLs, not local repositories.")
+        raise click.Abort()
 
     logger.info("lgtm-ai version: %s", __version__)
     logger.debug("Parsed PR URL: %s", target)
