@@ -1,3 +1,13 @@
+## v0.16.1 (2025-09-15)
+
+### Fix
+
+- defer git import to avoid errors if git is not installed (#137)
+
+### Technical
+
+- bump pytest-cov from 6.3.0 to 7.0.0 (#136)
+
 ## v0.16.0 (2025-09-10)
 
 ### Feat
