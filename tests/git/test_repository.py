@@ -68,7 +68,7 @@ class TestGetDiffFromLocalRepo:
         with pytest.raises(GitDiffParseError, match="Cannot read local git repository"):
             get_diff_from_local_repo(invalid_path)
 
-    @mock.patch("lgtm_ai.git.repository.git.Repo")
+    @mock.patch("git.Repo")
     def test_working_directory_changes_default(self, mock_repo_class: mock.Mock) -> None:
         """Test default behavior - working directory changes vs HEAD."""
         mock_repo = mock.Mock()
@@ -83,7 +83,7 @@ class TestGetDiffFromLocalRepo:
         assert result.target_branch == "HEAD"
         assert result.source_branch == "main"
 
-    @mock.patch("lgtm_ai.git.repository.git.Repo")
+    @mock.patch("git.Repo")
     def test_compare_against_branch(self, mock_repo_class: mock.Mock) -> None:
         """Test comparing against a specific branch."""
         mock_repo = mock.Mock()
@@ -101,7 +101,7 @@ class TestGetDiffFromLocalRepo:
         assert result.target_branch == "main"
         assert result.source_branch == "feature"
 
-    @mock.patch("lgtm_ai.git.repository.git.Repo")
+    @mock.patch("git.Repo")
     def test_invalid_compare_reference(self, mock_repo_class: mock.Mock) -> None:
         """Test error handling for invalid branch/commit references."""
         mock_repo = mock.Mock()
@@ -111,7 +111,7 @@ class TestGetDiffFromLocalRepo:
         with pytest.raises(GitDiffParseError, match="Invalid branch/commit: invalid-ref"):
             get_diff_from_local_repo(pathlib.Path("/fake/path"), compare="invalid-ref")
 
-    @mock.patch("lgtm_ai.git.repository.git.Repo")
+    @mock.patch("git.Repo")
     @mock.patch("lgtm_ai.git.repository.parse_diff_patch")
     @mock.patch("lgtm_ai.git.repository._extract_file_metadata")
     @mock.patch("lgtm_ai.git.repository._get_diff_text")
@@ -159,7 +159,7 @@ class TestGetDiffFromLocalRepo:
             ("abc123", "abc123"),
         ],
     )
-    @mock.patch("lgtm_ai.git.repository.git.Repo")
+    @mock.patch("git.Repo")
     def test_compare_parameter_values(self, mock_repo_class: mock.Mock, compare: str, expected_target: str) -> None:
         """Test various values for the compare parameter."""
         mock_repo = mock.Mock()
