@@ -33,6 +33,11 @@ ENV PATH="/venv/bin:${PATH}"
 
 WORKDIR /app
 
+# Install git for reviewing local changes
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy virtualenv and source code from builder
 COPY --from=builder /venv /venv
 COPY . .

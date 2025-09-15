@@ -1,12 +1,13 @@
 import logging
 import pathlib
+import typing
 
-from lgtm_ai.git.exceptions import GitDiffParseError
+from lgtm_ai.git.exceptions import GitDiffParseError, GitNotFoundError
 from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, parse_diff_patch
 from lgtm_ai.git_client.schemas import PRDiff
 
-import git
-from git.diff import Diff
+if typing.TYPE_CHECKING:
+    from git.diff import Diff
 
 logger = logging.getLogger("lgtm")
 
@@ -18,6 +19,13 @@ def get_diff_from_local_repo(git_dir: pathlib.Path, *, compare: str = "HEAD") ->
         git_dir: Path to the git repository
         compare: What to compare against (branch name, commit hash, or "HEAD" for working dir changes)
     """
+    try:
+        import git
+    except ImportError as e:
+        raise GitNotFoundError(
+            "Retrievig local diffs from git repository requires `git` to be available in the system PATH."
+        ) from e
+
     try:
         repo = git.Repo(git_dir)
     except (git.InvalidGitRepositoryError, git.NoSuchPathError) as e:
@@ -73,14 +81,14 @@ def get_file_contents_from_local_repo(git_dir: pathlib.Path, file_name: pathlib.
         return ""
 
 
-def _get_diff_text(diff_item: Diff) -> str:
+def _get_diff_text(diff_item: "Diff") -> str:
     """Extract diff text from a diff item."""
     if diff_item.diff:
         return diff_item.diff.decode("utf-8") if isinstance(diff_item.diff, bytes) else diff_item.diff
     return ""
 
 
-def _extract_file_metadata(diff_item: Diff) -> DiffFileMetadata:
+def _extract_file_metadata(diff_item: "Diff") -> DiffFileMetadata:
     """Extract file metadata from GitPython diff item."""
     new_path = diff_item.b_path or diff_item.a_path or "unknown"
     old_path = diff_item.a_path if diff_item.a_path != diff_item.b_path else None
