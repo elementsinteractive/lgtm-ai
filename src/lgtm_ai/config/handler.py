@@ -11,11 +11,21 @@ from lgtm_ai.config.exceptions import (
     ConfigFileNotFoundError,
     InvalidConfigFileError,
     InvalidOptionsError,
-    MissingRequiredConfigError,
 )
-from lgtm_ai.config.utils import Unique
+from lgtm_ai.config.utils import TupleOrNone, Unique
 from lgtm_ai.config.validators import validate_regex
-from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, HttpUrl, ValidationError, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    Field,
+    HttpUrl,
+    ValidationError,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+from pydantic_core import InitErrorDetails, PydanticCustomError
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -27,7 +37,7 @@ from pydantic_settings import (
 logger = logging.getLogger("lgtm")
 
 
-class PartialConfig(BaseModel):
+class CliOptions(BaseModel):
     """Partial configuration class to hold CLI arguments and config file data.
 
     It has nullable values, indicating that the user has not set that particular option.
@@ -35,10 +45,9 @@ class PartialConfig(BaseModel):
 
     model: SupportedAIModels | None = None
     model_url: str | None = None
-    technologies: tuple[str, ...] | None = None
-    categories: tuple[CommentCategory, ...] | None = None
-    exclude: tuple[str, ...] | None = None
-    additional_context: tuple[AdditionalContext, ...] | None = None
+    technologies: TupleOrNone[str] = None
+    categories: TupleOrNone[CommentCategory] = None
+    exclude: TupleOrNone[str] = None
     publish: bool | None = None
     output_format: OutputFormat | None = None
     silent: bool | None = None
@@ -189,21 +198,37 @@ class ResolvedConfig(
 
     @model_validator(mode="after")
     def validate_issues_options(self) -> Self:
-        all_fields = (self.issues_url, self.issues_platform)
-        if any(field is not None for field in all_fields) and not all(field is not None for field in all_fields):
-            raise MissingRequiredConfigError(
-                "If any `--issues-*` configuration is provided, all issues fields must be provided. Check --help."
-            )
-        if self.issues_platform is not None and not self.issues_platform.is_git_platform and not self.issues_api_key:
-            raise MissingRequiredConfigError(
-                f"An API key is required to access issues from {self.issues_platform.value}. Please provide it via the --issues-api-key option or the LGTM_ISSUES_API_KEY environment variable."
-            )
-        if self.issues_platform == IssuesPlatform.jira and (not self.issues_user or not self.issues_api_key):
-            raise MissingRequiredConfigError(
-                "A username and an api key are required to access issues from Jira. Please provide them via the --issues-user and --issues-api-key options."
+        """Validate that issues_platform and issues_url are provided together."""
+
+        def _get_validation_error(msg: str, loc: str) -> ValidationError:
+            return ValidationError.from_exception_data(
+                "MissingConfigError",
+                [
+                    InitErrorDetails(
+                        type=PydanticCustomError(
+                            "missing_config",
+                            msg,
+                        ),
+                        loc=(loc,),
+                        input=getattr(self, loc),
+                    ),
+                ],
             )
 
+        if bool(self.issues_platform) != bool(self.issues_url):
+            if not self.issues_platform:
+                raise _get_validation_error("issues_platform is required if issues_url is provided.", "issues_platform")
+            else:
+                raise _get_validation_error("issues_url is required if issues_platform is provided.", "issues_url")
         return self
+
+    @field_validator("issues_api_key", "issues_user")
+    @classmethod
+    def validate_jira_requirements(cls, v: str | None, info: ValidationInfo) -> str | None:
+        if info.data.get("issues_platform") == IssuesPlatform.jira and not v:
+            raise ValueError(f"{info.field_name} is required for Jira")
+
+        return v
 
 
 class ConfigHandler:
@@ -217,7 +242,7 @@ class ConfigHandler:
     5. Default values (lowest priority)
     """
 
-    def __init__(self, cli_args: PartialConfig, config_file: str | None = None) -> None:
+    def __init__(self, cli_args: CliOptions, config_file: str | None = None) -> None:
         self.cli_args = cli_args
         self.config_file = config_file
 
