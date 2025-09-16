@@ -12,12 +12,12 @@ from lgtm_ai.ai.agent import (
     get_reviewer_agent_with_settings,
     get_summarizing_agent_with_settings,
 )
-from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModels, SupportedAIModelsList
+from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModelsList
 from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
-from lgtm_ai.base.schemas import IntOrNoLimit, IssuesPlatform, LocalRepository, OutputFormat, PRUrl
+from lgtm_ai.base.schemas import IssuesPlatform, LocalRepository, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
-from lgtm_ai.config.handler import ConfigHandler, PartialConfig, ResolvedConfig
+from lgtm_ai.config.handler import CliOptions, ConfigHandler, ResolvedConfig
 from lgtm_ai.formatters.base import Formatter
 from lgtm_ai.formatters.json import JsonFormatter
 from lgtm_ai.formatters.markdown import MarkDownFormatter
@@ -152,29 +152,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     default=None,
     help="If reviewing a local repository, what to compare against (branch, commit, or HEAD for working dir). Default: HEAD",
 )
-def review(
-    target: PRUrl | LocalRepository,
-    model: SupportedAIModels | None,
-    model_url: str | None,
-    git_api_key: str | None,
-    ai_api_key: str | None,
-    config: str | None,
-    exclude: tuple[str, ...],
-    publish: bool | None,
-    output_format: OutputFormat | None,
-    silent: bool | None,
-    ai_retries: int | None,
-    ai_input_tokens_limit: IntOrNoLimit | None,
-    verbose: int,
-    technologies: tuple[str, ...],
-    categories: tuple[CommentCategory, ...],
-    issues_url: str | None,
-    issues_regex: str | None,
-    issues_platform: IssuesPlatform | None,
-    issues_api_key: str | None,
-    issues_user: str | None,
-    compare: str | None,
-) -> None:
+def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **config_kwargs: object) -> None:
     """Review a Pull Request or local repository using AI.
 
     TARGET can be either:
@@ -184,8 +162,7 @@ def review(
         - A local directory path (use --compare to specify what to compare against).
     """
     _set_logging_level(logger, verbose)
-
-    if compare and not isinstance(target, LocalRepository):
+    if config_kwargs.get("compare") and not isinstance(target, LocalRepository):
         logger.warning(
             "`--compare` option is only used when reviewing a local repository. Ignoring the provided value."
         )
@@ -194,26 +171,7 @@ def review(
     logger.debug("Parsed PR URL: %s", target)
     logger.info("Starting review of %s", target.full_url)
     resolved_config = ConfigHandler(
-        cli_args=PartialConfig(
-            technologies=technologies or None,
-            categories=categories or None,
-            exclude=exclude or None,
-            git_api_key=git_api_key,
-            ai_api_key=ai_api_key,
-            model=model,
-            model_url=model_url,
-            publish=publish,
-            output_format=output_format,
-            silent=silent,
-            ai_retries=ai_retries,
-            ai_input_tokens_limit=ai_input_tokens_limit,
-            issues_url=issues_url,
-            issues_regex=issues_regex,
-            issues_platform=issues_platform,
-            issues_api_key=issues_api_key,
-            issues_user=issues_user,
-            compare=compare,
-        ),
+        cli_args=CliOptions(**config_kwargs),
         config_file=config,
     ).resolve_config(target)
 
@@ -256,18 +214,9 @@ def review(
 @_common_options
 def guide(
     target: PRUrl | LocalRepository,
-    model: SupportedAIModels | None,
-    model_url: str | None,
-    git_api_key: str | None,
-    ai_api_key: str | None,
     config: str | None,
-    exclude: tuple[str, ...],
-    publish: bool | None,
-    output_format: OutputFormat | None,
-    silent: bool | None,
-    ai_retries: int | None,
-    ai_input_tokens_limit: IntOrNoLimit | None,
     verbose: int,
+    **config_kwargs: object,
 ) -> None:
     """Generate a review guide for a Pull Request using AI.
 
@@ -282,18 +231,7 @@ def guide(
     logger.debug("Parsed PR URL: %s", target)
     logger.info("Starting generating guide of %s", target.full_url)
     resolved_config = ConfigHandler(
-        cli_args=PartialConfig(
-            exclude=exclude or None,
-            git_api_key=git_api_key,
-            ai_api_key=ai_api_key,
-            model=model,
-            model_url=model_url,
-            publish=publish,
-            output_format=output_format,
-            silent=silent,
-            ai_retries=ai_retries,
-            ai_input_tokens_limit=ai_input_tokens_limit,
-        ),
+        cli_args=CliOptions(**config_kwargs),
         config_file=config,
     ).resolve_config(target)
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)

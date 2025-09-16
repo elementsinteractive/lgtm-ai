@@ -50,8 +50,6 @@ ruff = "*"
 pytest-cov = "*"
 ipdb = "*"
 commitizen = "*"
-mkdocs-material = "*"
-codespell = "*"
 pre-commit = "*"
 
 [project.scripts]
