@@ -1,3 +1,13 @@
+## v0.16.2 (2025-09-17)
+
+### Fix
+
+- handle non-base64 encodings for github file contents (#139)
+
+### Refactor
+
+- simplify the cli functions and unify pydantic exceptions (#138)
+
 ## v0.16.1 (2025-09-15)
 
 ### Fix
