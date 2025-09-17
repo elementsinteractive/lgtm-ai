@@ -47,6 +47,7 @@ class ContextRetriever:
         context = PRCodeContext(file_contents=[])
         branch: ContextBranch = "source"
         for file_path in pr_diff.changed_files:
+            logger.debug("Fetching content for file %s", file_path)
             if self._git_client and isinstance(target, PRUrl):
                 branch = "source"
                 content = self._git_client.get_file_contents(file_path=file_path, pr_url=target, branch_name=branch)
