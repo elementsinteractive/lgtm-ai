@@ -71,7 +71,7 @@ class GitlabClient(GitClient):
             project = _get_project_from_issues_url(self.client, issues_url)
             issue = project.issues.get(issue_id)
         except (gitlab.exceptions.GitlabError, ValueError):
-            logger.error("Failed to retrieve the issue content from GitLab for issue %s", issue_id)
+            logger.warning("Failed to retrieve the issue content from GitLab for issue %s", issue_id)
             return None
 
         return IssueContent(

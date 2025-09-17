@@ -57,7 +57,10 @@ class GitHubClient(GitClient):
             try:
                 parsed_diff = parse_diff_patch(metadata=metadata, diff_text=file.patch or "")
             except GitDiffParseError:
-                logger.exception("Failed to parse diff patch for file %s, will skip it", file.filename)
+                logger.exception(
+                    "Failed to parse diff patch for file %s, will skip it",
+                    file.filename,
+                )
                 continue
             parsed.append(parsed_diff)
 
@@ -119,7 +122,11 @@ class GitHubClient(GitClient):
             repo = _get_repo_from_issues_url(self.client, issues_url)
             issue = repo.get_issue(int(issue_id))
         except (github.GithubException, ValueError) as err:
-            logger.error("Failed to retrieve the issue content from GitHub for issue %s: %s", issue_id, err)
+            logger.warning(
+                "Failed to retrieve the issue content from GitHub for issue %s: %s",
+                issue_id,
+                err,
+            )
             return None
 
         return IssueContent(
@@ -146,7 +153,7 @@ class GitHubClient(GitClient):
         try:
             file_contents = repo.get_contents(file_path, ref=pr.head.ref if branch_name == "source" else pr.base.ref)
         except github.GithubException as err:
-            logger.error(
+            logger.warning(
                 "Failed to retrieve file %s from GitHub branch %s, error: %s",
                 file_path,
                 branch_name,
@@ -168,9 +175,9 @@ class GitHubClient(GitClient):
                     )
                     return None
                 decoded_chunk_content = decoded_bytes.decode("utf-8")
-            except (binascii.Error, UnicodeDecodeError):
-                logger.error(
-                    "Failed to decode file %s from GitHub sha: %s, ignoring...",
+            except (binascii.Error, UnicodeDecodeError, AssertionError):
+                logger.warning(
+                    "Failed to get decoded content for file %s from branch %s, ignoring...",
                     file_path,
                     branch_name,
                 )
