@@ -112,6 +112,7 @@ class GitlabClient(GitClient):
         except (binascii.Error, UnicodeDecodeError):
             logger.warning("Failed to decode file %s from GitLab sha: %s, ignoring...", file_path, pr.sha)
             return None
+        foo = 1
         return content
 
     def _parse_gitlab_git_diff(self, diffs: list[dict[str, object]]) -> list[DiffResult]:

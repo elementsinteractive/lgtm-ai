@@ -434,6 +434,9 @@ These options are only used when performing reviews through the command `lgtm re
 - **additional_context**: TOML array of extra context to send to the LLM. It supports setting the context directly in the `context` field, passing a relative file path so that lgtm downloads it from the repository, or passing any URL from which to download the context. Each element of the array must contain `prompt`, and either `context` (directly injecting context) or `file_url` (for directing lgtm to download it from there).
 - **compare**: When reviewing local changes (the positional argument to `lgtm` is a valid `git` path), you can choose what to compare against to generate a git diff. You can pass branch names, commits, etc. Default is `HEAD`. Only available as a CLI option.
 
+
+foo
+
 #### Issues Integration options
 
 See [Using Issue/User Story Information section](#using-issueuser-story-information).
