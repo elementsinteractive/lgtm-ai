@@ -9,6 +9,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![PyPI version](https://img.shields.io/pypi/v/lgtm-ai?logo=python&logoColor=f5f5f5)](https://pypi.org/project/lgtm-ai/)
 [![Docker version](https://img.shields.io/docker/v/elementsinteractive/lgtm-ai?label=DockerHub&logo=docker&logoColor=f5f5f5)](https://hub.docker.com/r/elementsinteractive/lgtm-ai)
+[![LGTM AI Code Review Action](https://img.shields.io/badge/GitHub%20Action-LGTM%20AI%20Code%20Review-blue?logo=github&logoColor=white)](https://github.com/marketplace/actions/lgtm-ai-code-review)
 [![License](https://img.shields.io/github/license/elementsinteractive/lgtm-ai)](LICENSE)
 
 ---
@@ -355,11 +356,11 @@ lgtm-review:
     MR_URL: "${CI_PROJECT_URL}/-/merge_requests/${CI_MERGE_REQUEST_IID}"
 ```
 
-For GitHub, you can use the official LGTM AI GitHub Action:
+For GitHub, you can use the official [LGTM AI GitHub Action](https://github.com/marketplace/actions/lgtm-ai-code-review):
 
 ```yaml
 - name: AI Code Review
-  uses: elementsinteractive/lgtm-ai@v1
+  uses: elementsinteractive/lgtm-ai-action@v1.0.0
   with:
     ai-api-key: ${{ secrets.AI_API_KEY }}
     git-api-key: ${{ secrets.GITHUB_TOKEN }}
