@@ -41,7 +41,7 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/merge
 
       - name: Run LGTM Review
-        uses: ./
+        uses: elementsinteractive/lgtm-ai-action@v1.0.0
         with:
           ai-api-key: ${{ secrets.AI_API_TOKEN }}
           git-api-key: ${{ secrets.GITHUB_TOKEN }}
