@@ -1,3 +1,17 @@
+## v1.0.0 (2025-09-18)
+
+### Feat
+
+- release lgtm-ai action to gh marketplace (#142)
+
+### CI
+
+- use lgtm-ai-action from GitHub Marketplace (#140)
+
+### Technical
+
+- bump the minor-updates group with 3 updates (#135)
+
 ## v0.16.2 (2025-09-17)
 
 ### Fix
