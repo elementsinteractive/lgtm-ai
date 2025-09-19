@@ -1,3 +1,9 @@
+## v1.0.1 (2025-09-19)
+
+### Docs
+
+- ensure pypi has correct info (#143)
+
 ## v1.0.0 (2025-09-18)
 
 ### Feat
