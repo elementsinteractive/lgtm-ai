@@ -1,5 +1,6 @@
+
 <p align="center">
-  <img alt="lgtm-logo" width="150" src="./assets/lgtm-large.png">
+  <img alt="lgtm-logo" width="150" src="https://raw.githubusercontent.com/elementsinteractive/lgtm-ai/main/assets/lgtm-large.png">
 </p>
 
 # lgtm-ai
@@ -59,11 +60,12 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
              "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
 
+
 This will generate a **review** like this one:
 
-<img src="./assets/review.png" alt="lgtm-review" height="250"/>
+<img src="https://raw.githubusercontent.com/elementsinteractive/lgtm-ai/main/assets/review.png" alt="lgtm-review" height="250"/>
 <br/>
-<img src="./assets/review-comment.png" alt="lgtm-review-comment" height="250"/>
+<img src="https://raw.githubusercontent.com/elementsinteractive/lgtm-ai/main/assets/review-comment.png" alt="lgtm-review-comment" height="250"/>
 
 
 #### Local Changes
@@ -87,9 +89,10 @@ lgtm review --ai-api-key $OPENAI_API_KEY \
              "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
 
+
 This will generate a **reviewer guide** like this one:
 
-<img src="./assets/reviewer-guide.png" alt="lgtm-review-guide" height="250"/>
+<img src="https://raw.githubusercontent.com/elementsinteractive/lgtm-ai/main/assets/reviewer-guide.png" alt="lgtm-review-guide" height="250"/>
 
 ## Installation
 
