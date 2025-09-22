@@ -51,15 +51,22 @@ def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | Local
                 error_num_msg="The PR URL must contain a valid PR number.",
             )
         case _:
-            # We support for GitLab cloud (.com) and self-hostd (custom domain)
+            # We support for GitLab cloud (.com) and self-hosted (custom domain)
             # TODO: When we support more git providers with custom urls, we need to revisit this and
             # probably add a `--git-platform` option to the CLI.
+            if "/-/merge_requests/" not in parsed.path:
+                raise click.BadParameter(
+                    f"The PR URL host '{parsed.netloc}' is not supported. "
+                    "lgtm-ai currently supports github.com and GitLab (cloud or self-hosted). "
+                    "GitLab merge request URLs must contain '/-/merge_requests/'."
+                )
             return _parse_pr_url(
                 parsed,
                 split_str="/-/merge_requests/",
                 source=PRSource.gitlab,
                 error_url_msg="The PR URL must be a merge request URL.",
                 error_num_msg="The PR URL must contain a valid MR number.",
+            )
             )
 
 

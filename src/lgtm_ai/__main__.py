@@ -291,7 +291,12 @@ def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[A
 def _get_issues_client(
     resolved_config: ResolvedConfig, git_client: GitClient | None, formatter: Formatter[Any]
 ) -> IssuesClient | None:
-    """Select a different issues client for retrieving issues."""
+    """Get the issues client based on the resolved configuration.
+
+    It can be a GitClient for GitHub/GitLab issues, or a Jira client.
+    If issues are not configured with a specific platform, it will fall back 
+    to using the main `git_client`.
+    """
     issues_client: IssuesClient | None = git_client
     if not resolved_config.issues_url or not resolved_config.issues_platform or not resolved_config.issues_regex:
         return issues_client
