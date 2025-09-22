@@ -28,6 +28,7 @@ from tests.review.utils import MOCK_USAGE
 MockGithubUrl = PRUrl(
     full_url="https://github.com/foo/bar/pull/1",
     repo_path="foo/bar",
+    base_url="https://github.com",
     pr_number=1,
     source=PRSource.github,
 )
@@ -234,7 +235,7 @@ def test_get_file_contents_single_file() -> None:
         mock.Mock(decoded_content=b"lorem ipsum dolor sit amet"),
     ]
     content = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         file_path="important.py",
         branch_name="source",
     )
@@ -263,7 +264,7 @@ def test_get_file_contents_single_file_multiple_objects() -> None:
         ]
     ]
     content = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         file_path="important.py",
         branch_name="source",
     )
@@ -303,12 +304,12 @@ def test_get_file_contents_one_file_missing() -> None:
         github.GithubException(status=404, message="Not Found"),  # target branch
     ]
     content_1 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         file_path="important.py",
         branch_name="source",
     )
     content_2 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         file_path="logic.py",
         branch_name="source",
     )
@@ -356,7 +357,7 @@ def test_post_review_successful() -> None:
     )
 
     client.publish_review(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         fake_review,
     )
 
@@ -430,7 +431,7 @@ def test_post_review_fallback_to_single_line() -> None:
     ]
 
     client.publish_review(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
         fake_review,
     )
 
@@ -487,7 +488,8 @@ def test_publish_guide_successful() -> None:
     client = mock_github_client(m_repo)
 
     client.publish_guide(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github), FAKE_GUIDE
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+        FAKE_GUIDE,
     )
 
     assert m_pr.create_review.call_args_list == [

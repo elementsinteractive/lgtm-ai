@@ -14,6 +14,7 @@ from pydantic import HttpUrl
 
 target = PRUrl(
     full_url="https://gitlab.com/user/repo/-/merge_requests/1",
+    base_url="https://gitlab.com",
     repo_path="user/repo",
     pr_number=1,
     source=PRSource.gitlab,

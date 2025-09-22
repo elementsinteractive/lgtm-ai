@@ -13,7 +13,7 @@ from lgtm_ai.validators import parse_target, validate_model_url
     ("url", "expectation"),
     [
         ("foo://bar", pytest.raises(click.exceptions.BadParameter, match="https")),
-        ("https://notsupported.com", pytest.raises(click.exceptions.BadParameter, match="gitlab")),
+        ("https://self-hosted-gitlab.com/foo/-/merge_requests/1", does_not_raise()),
         ("https://gitlab.com/foo/-/bar", pytest.raises(click.exceptions.BadParameter, match="merge request")),
         (
             "https://gitlab.com/foo/-/merge_requests/not-a-number",
@@ -39,9 +39,23 @@ def test_parse_url_gitlab_valid() -> None:
 
     assert parsed == PRUrl(
         full_url=url,
+        base_url="https://gitlab.com",
         repo_path="foo",
         pr_number=1,
         source=PRSource.gitlab,
+    )
+
+
+def test_parse_url_github_valid() -> None:
+    url = "https://github.com/elementsinteractive/sheriff/pull/61"
+    parsed = parse_target(mock.Mock(), "pr_url", url)
+
+    assert parsed == PRUrl(
+        full_url=url,
+        base_url="https://github.com",
+        repo_path="elementsinteractive/sheriff",
+        pr_number=61,
+        source=PRSource.github,
     )
 
 

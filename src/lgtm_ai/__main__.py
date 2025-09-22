@@ -3,6 +3,7 @@ import logging
 from collections.abc import Callable
 from importlib.metadata import version
 from typing import Any, assert_never, get_args
+from urllib.parse import urlparse
 
 import click
 import httpx
@@ -179,7 +180,12 @@ def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **
     formatter: Formatter[Any] = MarkDownFormatter(
         add_ranges_to_suggestions=git_source_supports_multiline_suggestions(target.source)
     )
-    git_client = get_git_client(source=target.source, token=resolved_config.git_api_key, formatter=formatter)
+    git_client = get_git_client(
+        source=target.source,
+        token=resolved_config.git_api_key,
+        formatter=formatter,
+        url=target.base_url if isinstance(target, PRUrl) else None,
+    )
     issues_client = _get_issues_client(resolved_config, git_client, formatter)
 
     code_reviewer = CodeReviewer(
@@ -235,7 +241,9 @@ def guide(
         config_file=config,
     ).resolve_config(target)
     agent_extra_settings = AgentSettings(retries=resolved_config.ai_retries)
-    git_client = get_git_client(source=target.source, token=resolved_config.git_api_key, formatter=MarkDownFormatter())
+    git_client = get_git_client(
+        source=target.source, token=resolved_config.git_api_key, formatter=MarkDownFormatter(), url=target.base_url
+    )
     review_guide = ReviewGuideGenerator(
         guide_agent=get_guide_agent_with_settings(agent_extra_settings),
         model=get_ai_model(
@@ -283,20 +291,18 @@ def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[A
 def _get_issues_client(
     resolved_config: ResolvedConfig, git_client: GitClient | None, formatter: Formatter[Any]
 ) -> IssuesClient | None:
-    """Select a different issues client for retrieving issues.
-
-    Will only return a different client if all of the following are true:
-        1) Be used at all
-        2) Be retrieved from a git platform and not elsewhere (e.g., Jira, Asana, etc.)
-        3) Have a specific API key configured
-    """
+    """Select a different issues client for retrieving issues."""
     issues_client: IssuesClient | None = git_client
     if not resolved_config.issues_url or not resolved_config.issues_platform or not resolved_config.issues_regex:
         return issues_client
     if resolved_config.issues_platform.is_git_platform:
         if resolved_config.issues_api_key:
+            parsed_issues_url = urlparse(str(resolved_config.issues_url))
             issues_client = get_git_client(
-                source=resolved_config.issues_platform, token=resolved_config.issues_api_key, formatter=formatter
+                source=resolved_config.issues_platform,
+                token=resolved_config.issues_api_key,
+                formatter=formatter,
+                url=f"{parsed_issues_url.scheme}://{parsed_issues_url.netloc}",
             )
     elif resolved_config.issues_platform == IssuesPlatform.jira:
         if not resolved_config.issues_api_key or not resolved_config.issues_user:

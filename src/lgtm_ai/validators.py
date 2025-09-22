@@ -42,15 +42,6 @@ def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | Local
         )
 
     match parsed.netloc:
-        case AllowedLocations.Gitlab:
-            return _parse_pr_url(
-                parsed,
-                split_str="/-/merge_requests/",
-                source=PRSource.gitlab,
-                error_url_msg="The PR URL must be a merge request URL.",
-                error_num_msg="The PR URL must contain a valid MR number.",
-            )
-
         case AllowedLocations.Github:
             return _parse_pr_url(
                 parsed,
@@ -59,10 +50,16 @@ def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | Local
                 error_url_msg="The PR URL must be a pull request URL.",
                 error_num_msg="The PR URL must contain a valid PR number.",
             )
-
         case _:
-            raise click.BadParameter(
-                f"The PR URL host must be one of: {', '.join([s.value for s in AllowedLocations.__members__.values()])}"
+            # We support for GitLab cloud (.com) and self-hostd (custom domain)
+            # TODO: When we support more git providers with custom urls, we need to revisit this and
+            # probably add a `--git-platform` option to the CLI.
+            return _parse_pr_url(
+                parsed,
+                split_str="/-/merge_requests/",
+                source=PRSource.gitlab,
+                error_url_msg="The PR URL must be a merge request URL.",
+                error_num_msg="The PR URL must contain a valid MR number.",
             )
 
 
@@ -135,6 +132,7 @@ def _parse_pr_url(
 
     return PRUrl(
         full_url=parsed.geturl(),
+        base_url=f"{parsed.scheme}://{parsed.netloc}",
         repo_path=project_path.strip("/"),
         pr_number=pr_num,
         source=source,
