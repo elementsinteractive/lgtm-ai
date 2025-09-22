@@ -67,7 +67,6 @@ def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | Local
                 error_url_msg="The PR URL must be a merge request URL.",
                 error_num_msg="The PR URL must contain a valid MR number.",
             )
-            )
 
 
 class ModelChoice(click.ParamType):

@@ -14,6 +14,10 @@ from lgtm_ai.validators import parse_target, validate_model_url
     [
         ("foo://bar", pytest.raises(click.exceptions.BadParameter, match="https")),
         ("https://self-hosted-gitlab.com/foo/-/merge_requests/1", does_not_raise()),
+        (
+            "https://custom-url.com/foo/-/not-a-mr",
+            pytest.raises(click.exceptions.BadParameter, match="is not supported"),
+        ),
         ("https://gitlab.com/foo/-/bar", pytest.raises(click.exceptions.BadParameter, match="merge request")),
         (
             "https://gitlab.com/foo/-/merge_requests/not-a-number",

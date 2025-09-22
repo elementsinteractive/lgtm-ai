@@ -294,7 +294,7 @@ def _get_issues_client(
     """Get the issues client based on the resolved configuration.
 
     It can be a GitClient for GitHub/GitLab issues, or a Jira client.
-    If issues are not configured with a specific platform, it will fall back 
+    If issues are not configured with a specific platform, it will fall back
     to using the main `git_client`.
     """
     issues_client: IssuesClient | None = git_client
