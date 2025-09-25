@@ -1,3 +1,13 @@
+## v1.1.0 (2025-09-25)
+
+### Feat
+
+- **#34**: support self-managed GitLab (#145)
+
+### Technical
+
+- bump the patch-updates group with 2 updates (#144)
+
 ## v1.0.1 (2025-09-19)
 
 ### Docs
