@@ -143,7 +143,7 @@ There are three available severities for comments:
 
 lgtm aims to work with as many services as possible, and that includes remote repository providers. At the moment, lgtm supports:
 
-- [GitLab](https://gitlab.com) (only gitlab.com, not self-hosted)
+- [GitLab](https://gitlab.com) (both gitlab.com and [self-managed](https://about.gitlab.com/install/)).
 - [GitHub](https://github.com)
 
 lgtm will autodetect the url of the pull request passed as an argument.

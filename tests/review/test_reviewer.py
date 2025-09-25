@@ -95,7 +95,7 @@ def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
             ),
         )
         review = code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     # We get an actual review object
@@ -196,7 +196,7 @@ def test_get_review_with_issue(context_retriever: ContextRetriever) -> None:
             ),
         )
         review = code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert isinstance(review, Review)
@@ -275,7 +275,7 @@ def test_summarizing_message_in_review(context_retriever: ContextRetriever) -> N
             config=ResolvedConfig(ai_api_key="", git_api_key=""),
         )
         code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     review = {"summary": "a", "comments": [], "raw_score": 1, "score": "Abandon"}
@@ -327,7 +327,7 @@ def test_get_review_adds_technologies_to_prompt(context_retriever: ContextRetrie
             config=ResolvedConfig(ai_api_key="", git_api_key="", technologies=("COBOL", "FORTRAN", "ODIN")),
         )
         review = code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -361,7 +361,7 @@ def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetrieve
             config=ResolvedConfig(ai_api_key="", git_api_key="", categories=("Correctness", "Quality")),
         )
         review = code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -393,7 +393,7 @@ def test_review_fails_if_all_files_are_excluded() -> None:
     )
     with pytest.raises(NothingToReviewError):
         code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
 
@@ -418,7 +418,7 @@ def test_file_is_excluded_from_prompt(context_retriever: ContextRetriever) -> No
             config=ResolvedConfig(ai_api_key="", git_api_key="", exclude=("file2.txt",)),
         )
         review = code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert review
@@ -458,7 +458,7 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
 
     with pytest.raises(expected_error):
         code_reviewer.review_pull_request(
-            target=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
 

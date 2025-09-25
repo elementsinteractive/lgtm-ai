@@ -26,6 +26,7 @@ class IssuesPlatform(StrEnum):
 @dataclass(frozen=True, slots=True)
 class PRUrl:
     full_url: str
+    base_url: str
     repo_path: str
     pr_number: int
     source: PRSource

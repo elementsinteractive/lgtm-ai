@@ -21,7 +21,11 @@ class TestAdditionalContext:
         )
 
         pr_url = PRUrl(
-            full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
+            full_url="https://example.com/repo/pull/1",
+            base_url="https://example.com",
+            repo_path="repo",
+            pr_number=1,
+            source=PRSource.github,
         )
 
         additional_context = context_retriever.get_additional_context(
@@ -50,7 +54,11 @@ class TestAdditionalContext:
         )
 
         pr_url = PRUrl(
-            full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
+            full_url="https://example.com/repo/pull/1",
+            base_url="https://example.com",
+            repo_path="repo",
+            pr_number=1,
+            source=PRSource.github,
         )
 
         additional_context = context_retriever.get_additional_context(
@@ -73,7 +81,11 @@ class TestAdditionalContext:
             git_client=MockGitClient(), issues_client=MockGitClient(), httpx_client=mock.Mock(spec=httpx.Client)
         )
         pr_url = PRUrl(
-            full_url="https://example.com/repo/pull/1", repo_path="repo", pr_number=1, source=PRSource.github
+            full_url="https://example.com/repo/pull/1",
+            base_url="https://example.com",
+            repo_path="repo",
+            pr_number=1,
+            source=PRSource.github,
         )
 
         additional_context = context_retriever.get_additional_context(
@@ -108,7 +120,13 @@ class TestCodeContext:
         )
 
         context = context_retriever.get_code_context(
-            PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.github),
+            PRUrl(
+                full_url="https://foo",
+                base_url="https://example.com",
+                repo_path="path",
+                pr_number=1,
+                source=PRSource.github,
+            ),
             pr_diff=pr_diff,
         )
 
@@ -139,7 +157,13 @@ class TestCodeContext:
         )
 
         context = context_retriever.get_code_context(
-            PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+            PRUrl(
+                full_url="https://foo",
+                base_url="https://example.com",
+                repo_path="path",
+                pr_number=1,
+                source=PRSource.gitlab,
+            ),
             pr_diff=pr_diff,
         )
 

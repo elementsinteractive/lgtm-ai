@@ -24,6 +24,7 @@ from tests.review.utils import MOCK_USAGE
 
 MockGitlabUrl = PRUrl(
     full_url="https://gitlab.com/foo/-/merge_requests/1",
+    base_url="https://gitlab.com",
     repo_path="foo",
     pr_number=1,
     source=PRSource.gitlab,
@@ -328,12 +329,12 @@ def test_get_file_contents_multiple_files() -> None:
     client = mock_gitlab_client(m_project)
 
     contents_1 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         file_path="important.py",
         branch_name="source",
     )
     contents_2 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         file_path="logic.py",
         branch_name="source",
     )
@@ -354,19 +355,19 @@ def test_get_file_contents_one_file_missing() -> None:
     client = mock_gitlab_client(m_project)
 
     missing_1 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         file_path="whatever",
         branch_name="source",
     )
 
     missing_2 = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         file_path="whatever",
         branch_name="target",
     )
 
     contents = client.get_file_contents(
-        PRUrl(full_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
+        PRUrl(full_url="https://foo", base_url="https://foo", repo_path="path", pr_number=1, source=PRSource.gitlab),
         file_path="logic.py",
         branch_name="source",
     )

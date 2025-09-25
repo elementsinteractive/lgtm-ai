@@ -32,7 +32,7 @@ def test_get_guide_from_url_valid() -> None:
             config=ResolvedConfig(ai_api_key="", git_api_key=""),
         )
         guide = guide_generator.generate_review_guide(
-            pr_url=PRUrl(full_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
+            pr_url=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
 
     assert guide == ReviewGuide(
