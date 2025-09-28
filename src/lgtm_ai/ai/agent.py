@@ -12,13 +12,14 @@ from lgtm_ai.ai.schemas import (
     SummarizingDeps,
     SupportedAIModels,
     SupportedAIModelsList,
+    SupportedAnthopicModel,
     SupportedGeminiModel,
 )
 from lgtm_ai.ai.utils import match_model_by_wildcard, select_latest_gemini_model
 from openai.types import ChatModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models import Model
-from pydantic_ai.models.anthropic import AnthropicModel, LatestAnthropicModelNames
+from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.mistral import LatestMistralModelNames, MistralModel
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -39,8 +40,8 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
     def _is_openai_model(model_name: SupportedAIModels) -> TypeGuard[ChatModel]:
         return model_name in get_args(ChatModel)
 
-    def _is_anthropic_model(model_name: SupportedAIModels) -> TypeGuard[LatestAnthropicModelNames]:
-        return model_name in get_args(LatestAnthropicModelNames)
+    def _is_anthropic_model(model_name: SupportedAIModels) -> TypeGuard[SupportedAnthopicModel]:
+        return model_name in get_args(SupportedAnthopicModel)
 
     def _is_mistral_model(model_name: SupportedAIModels) -> TypeGuard[LatestMistralModelNames]:
         return model_name in get_args(LatestMistralModelNames)

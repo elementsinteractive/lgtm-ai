@@ -55,7 +55,7 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
 ```sh
  lgtm review --ai-api-key $OPENAI_API_KEY \
              --git-api-key $GITLAB_TOKEN \
-             --model gpt-4.1 \
+             --model gpt-5 \
              --publish \
              "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
@@ -74,7 +74,7 @@ You can also review local changes without a pull request:
 
 ```sh
 lgtm review --ai-api-key $OPENAI_API_KEY \
-            --model gpt-4.1 \
+            --model gpt-5 \
             --compare main \
             path/to/git/repo
 ```
@@ -84,7 +84,7 @@ lgtm review --ai-api-key $OPENAI_API_KEY \
 ```sh
  lgtm guide  --ai-api-key $OPENAI_API_KEY \
              --git-api-key $GITLAB_TOKEN \
-             --model gpt-4.1 \
+             --model gpt-5 \
              --publish \
              "https://gitlab.com/your-repo/-/merge-requests/42"
 ```
