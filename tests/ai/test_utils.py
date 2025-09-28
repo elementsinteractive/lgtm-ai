@@ -9,6 +9,7 @@ from lgtm_ai.ai.exceptions import (
     MissingAIAPIKey,
     MissingModelUrl,
 )
+from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIChatModel
 
@@ -26,6 +27,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
         ("gpt-4.1", None, "", OpenAIChatModel, pytest.raises(MissingAIAPIKey)),
         # If one provides a known model, but with a custom URL, we create an OpenAIChatModel no matter the model name
         ("gemini-2.5-pro-preview-05-06", "http://i-cloned-gemini.com:123", "", OpenAIChatModel, does_not_raise()),
+        ("claude-sonnet-4-0", None, "fake_api_key", AnthropicModel, does_not_raise()),
     ],
 )
 def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expected_type: Any, expectation: Any) -> None:

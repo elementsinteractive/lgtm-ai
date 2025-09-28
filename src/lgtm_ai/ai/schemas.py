@@ -8,26 +8,8 @@ from uuid import uuid4
 from lgtm_ai.git_client.schemas import PRDiff
 from openai.types import ChatModel
 from pydantic import AfterValidator, BaseModel, Field, computed_field, model_validator
-from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai.models.mistral import LatestMistralModelNames
 from pydantic_ai.usage import RunUsage
-
-
-def _recursive_get_args(tp: object) -> tuple[str, ...]:
-    """Recursively get all the arguments of a typing Literal construct.
-
-    For example, str | Literal["a", "b", Literal["c", "d"]] will return ["a", "b", "c", "d"].
-    """
-    args: list[str] = []
-    for arg in get_args(tp):
-        if get_args(arg):
-            args.extend(_recursive_get_args(arg))
-        else:
-            # Check whether arg is a Literal type
-            if isinstance(arg, str):
-                args.append(arg)
-    return tuple(args)
-
 
 CommentCategory = Literal["Correctness", "Quality", "Testing", "Security"]
 CommentSeverity = Literal["LOW", "MEDIUM", "HIGH"]
@@ -64,19 +46,38 @@ SupportedGeminiModel = Literal[
     "gemini-2.5-flash-preview-05-20",
     "gemini-2.5-pro-preview-06-05",
 ]
+SupportedAnthopicModel = Literal[
+    "claude-3-7-sonnet-latest",
+    "claude-3-7-sonnet-20250219",
+    "claude-3-5-haiku-latest",
+    "claude-3-5-haiku-20241022",
+    "claude-sonnet-4-20250514",
+    "claude-sonnet-4-0",
+    "claude-4-sonnet-20250514",
+    "claude-3-5-sonnet-latest",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-5-sonnet-20240620",
+    "claude-opus-4-0",
+    "claude-opus-4-20250514",
+    "claude-4-opus-20250514",
+    "claude-opus-4-1-20250805",
+    "claude-3-opus-latest",
+    "claude-3-opus-20240229",
+    "claude-3-haiku-20240307",
+]
 
 AnyModel = str
 """Users may use any model name in their local AI server, so we just allow any string."""
 
 SupportedAIModels = (
-    ChatModel | SupportedGeminiModel | LatestAnthropicModelNames | LatestMistralModelNames | DeepSeekModel | AnyModel
+    ChatModel | SupportedGeminiModel | SupportedAnthopicModel | LatestMistralModelNames | DeepSeekModel | AnyModel
 )
 """Type of all supported AI models in lgtm."""
 
 SupportedAIModelsList: Final[tuple[SupportedAIModels, ...]] = (
     get_args(ChatModel)
     + get_args(SupportedGeminiModel)
-    + _recursive_get_args(LatestAnthropicModelNames)
+    + get_args(SupportedAnthopicModel)
     + get_args(LatestMistralModelNames)
     + get_args(DeepSeekModel)
 )  # Keep in sync with SupportedAIModels except for AnyModel
