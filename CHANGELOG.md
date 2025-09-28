@@ -1,3 +1,9 @@
+## v1.1.1 (2025-09-28)
+
+### Fix
+
+- solve bug that prevented selecting anthropic models (#146)
+
 ## v1.1.0 (2025-09-25)
 
 ### Feat
