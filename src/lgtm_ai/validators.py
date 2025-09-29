@@ -16,7 +16,17 @@ class AllowedSchemes(StrEnum):
     Http = "http"
 
 
-def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | LocalRepository:
+class TargetParser:
+    """Generate a click callback that parses the `TARGET` argument."""
+
+    def __init__(self, allow_git_repo: bool) -> None:
+        self.allow_git_repo = allow_git_repo
+
+    def __call__(self, ctx: click.Context, param: str, value: object) -> PRUrl | LocalRepository:
+        return _parse_target(ctx, param, value, allow_git_repo=self.allow_git_repo)
+
+
+def _parse_target(ctx: click.Context, param: str, value: object, *, allow_git_repo: bool) -> PRUrl | LocalRepository:
     """Click callback that transforms a given URL into a dataclass for later use.
 
     It validates it and raises click exceptions if the URL is not valid.
@@ -26,7 +36,9 @@ def parse_target(ctx: click.Context, param: str, value: object) -> PRUrl | Local
 
     parsed = urlparse(value)
     if not parsed.netloc:
-        # Check whether its a directory path
+        if not allow_git_repo:
+            raise click.BadParameter("The PR URL must be a valid URL")
+
         try:
             resolved_path = pathlib.Path(value).resolve(strict=True)  # just to ensure it's a valid path
             # Check whether it's a git repository

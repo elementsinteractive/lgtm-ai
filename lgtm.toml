@@ -5,3 +5,7 @@ model = "gemini-2.5-pro"
 silent = false
 publish = true
 ai_retries = 2
+
+# GitHub issues integration
+issues_platform = "github"
+issues_url = "https://github.com/elementsinteractive/lgtm-ai/issues"

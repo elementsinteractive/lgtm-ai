@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from unittest import mock
 
 import click
@@ -73,7 +74,14 @@ def test_review_cli_github(*args: mock.MagicMock) -> None:
 @mock.patch("lgtm_ai.__main__.CodeReviewer")
 @mock.patch("lgtm_ai.__main__.PrettyFormatter")
 @mock.patch("lgtm_ai.__main__.get_git_client")
-def test_review_cli_local(*args: mock.MagicMock) -> None:
+def test_review_cli_local(
+    m_get_git_client: mock.MagicMock,
+    m_formatter: mock.MagicMock,
+    m_reviewer: mock.MagicMock,
+    tmp_path: Path,
+) -> None:
+    # Create a .git directory to simulate a git repository
+    (tmp_path / ".git").mkdir()
     runner = CliRunner()
     result = runner.invoke(
         review,
@@ -90,14 +98,19 @@ def test_review_cli_local(*args: mock.MagicMock) -> None:
 @mock.patch("lgtm_ai.__main__.CodeReviewer")
 @mock.patch("lgtm_ai.__main__.PrettyFormatter")
 @mock.patch("lgtm_ai.__main__.get_git_client")
-def test_review_cli_local_does_not_exist(*args: mock.MagicMock) -> None:
+def test_review_cli_local_does_not_exist(
+    m_get_git_client: mock.MagicMock,
+    m_formatter: mock.MagicMock,
+    m_reviewer: mock.MagicMock,
+    tmp_path: Path,
+) -> None:
     runner = CliRunner()
     result = runner.invoke(
         review,
         [
             "--ai-api-key",
             "fake-token",
-            "./foo/bar/baz",
+            "./fake",
         ],
         catch_exceptions=False,
     )
@@ -162,8 +175,8 @@ def test_guide_cli_local_fails(*args: mock.MagicMock) -> None:
         catch_exceptions=False,
     )
 
-    assert result.exit_code == 1
-    assert "Aborted!" in result.stderr
+    assert result.exit_code == 2
+    assert "Invalid value for 'TARGET': The PR URL must be a valid URL" in result.stderr
 
 
 @pytest.mark.parametrize(
