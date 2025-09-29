@@ -1,3 +1,13 @@
+## v1.1.2 (2025-09-29)
+
+### Fix
+
+- handling of target for guides, tests using lgtm.toml (#147)
+
+### Technical
+
+- bump ruff from 0.13.1 to 0.13.2 in the patch-updates group (#148)
+
 ## v1.1.1 (2025-09-28)
 
 ### Fix
