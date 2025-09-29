@@ -6,7 +6,7 @@ from unittest import mock
 import click
 import pytest
 from lgtm_ai.base.schemas import PRSource, PRUrl
-from lgtm_ai.validators import parse_target, validate_model_url
+from lgtm_ai.validators import TargetParser, validate_model_url
 
 
 @pytest.mark.parametrize(
@@ -34,12 +34,17 @@ from lgtm_ai.validators import parse_target, validate_model_url
 )
 def test_parse_url(url: str, expectation: AbstractContextManager[Any]) -> None:
     with expectation:
-        parse_target(mock.Mock(), "pr_url", url)
+        TargetParser(allow_git_repo=True)(mock.Mock(), "pr_url", url)
+
+
+def test_parse_url_does_not_accept_git_repo() -> None:
+    with pytest.raises(click.exceptions.BadParameter, match="The PR URL must be a valid URL"):
+        TargetParser(allow_git_repo=False)(mock.Mock(), "pr_url", "./foo/bar/baz")
 
 
 def test_parse_url_gitlab_valid() -> None:
     url = "https://gitlab.com/foo/-/merge_requests/1"
-    parsed = parse_target(mock.Mock(), "pr_url", url)
+    parsed = TargetParser(allow_git_repo=True)(mock.Mock(), "pr_url", url)
 
     assert parsed == PRUrl(
         full_url=url,
@@ -52,7 +57,7 @@ def test_parse_url_gitlab_valid() -> None:
 
 def test_parse_url_github_valid() -> None:
     url = "https://github.com/elementsinteractive/sheriff/pull/61"
-    parsed = parse_target(mock.Mock(), "pr_url", url)
+    parsed = TargetParser(allow_git_repo=True)(mock.Mock(), "pr_url", url)
 
     assert parsed == PRUrl(
         full_url=url,

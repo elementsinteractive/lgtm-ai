@@ -1,8 +1,21 @@
+from collections.abc import Iterator
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def mock_current_working_directory(tmp_path: Path) -> Iterator[None]:
+    """Mock the current working directory for config handling in all tests.
+
+    This is done so that the `lgtm.toml` file of `lgtm` is not used in tests.
+    """
+    with mock.patch("lgtm_ai.config.handler.os.getcwd", return_value=str(tmp_path)):
+        yield
 
 
 class CopyingMock(MagicMock):

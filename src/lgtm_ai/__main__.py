@@ -32,7 +32,7 @@ from lgtm_ai.review.guide import ReviewGuideGenerator
 from lgtm_ai.validators import (
     IntOrNoLimitType,
     ModelChoice,
-    parse_target,
+    TargetParser,
     validate_model_url,
 )
 from rich.console import Console
@@ -57,7 +57,6 @@ def entry_point() -> None:
 def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Wrap a click command and adds common options for lgtm commands."""
 
-    @click.argument("target", required=True, callback=parse_target)
     @click.option(
         "--model",
         type=ModelChoice(SupportedAIModelsList),
@@ -112,6 +111,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     return wrapper
 
 
+@click.argument("target", required=True, callback=TargetParser(allow_git_repo=True))
 @entry_point.command()
 @_common_options
 @click.option(
@@ -216,6 +216,7 @@ def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **
         logger.info("Review published successfully")
 
 
+@click.argument("target", required=True, callback=TargetParser(allow_git_repo=False))
 @entry_point.command()
 @_common_options
 def guide(
