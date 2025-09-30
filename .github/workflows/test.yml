@@ -20,6 +20,7 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"]
         runs-on: [ubuntu-latest]
+        mcp-extra: [true, false]
 
     steps:
       - uses: actions/checkout@v4
@@ -45,12 +46,17 @@ jobs:
           path: |
             ~/.cache/pypoetry
             ~/.virtualenvs
-          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{matrix.mcp-extra}}-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             poetry-${{ runner.os }}-${{ matrix.python-version }}-
 
       - name: Install dependencies
+        if: matrix.mcp-extra == false
         run: poetry install
+
+      - name: Install all extras
+        if: matrix.mcp-extra == true
+        run: poetry install --all-extras
 
       - name: Test with pytest
         run: |
@@ -58,10 +64,9 @@ jobs:
 
       - name: Coverage comment
         uses: MishaKav/pytest-coverage-comment@main
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.13' && matrix.mcp-extra == true
         with:
           pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml
-          unique-id-for-comment: ${{ matrix.python-version }}
-          title: Coverage for Python ${{ matrix.python-version }}
+          title: Coverage Report
           report-only-changed-files: true
