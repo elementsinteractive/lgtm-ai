@@ -1,6 +1,7 @@
 import logging
 import os
 import tomllib
+import warnings
 from pathlib import Path
 from typing import Annotated, Any, Self, get_args, override
 
@@ -256,7 +257,9 @@ class ConfigHandler:
                 cli_args.git_api_key = ""
 
             settings_cls = self._create_dynamic_settings_class(self.config_file)
-            resolved = settings_cls(**cli_args.model_dump(exclude_none=True))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                resolved = settings_cls(**cli_args.model_dump(exclude_none=True))
         except tomllib.TOMLDecodeError:
             raise InvalidConfigFileError("TOML file is invalid") from None
         except ValidationError as err:
