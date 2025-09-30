@@ -29,6 +29,9 @@ class DiffResult(BaseModel):
     modified_lines: list[ModifiedLine]
 
 
+_HUNK_REGEX = re.compile(r"^@@ -(\d+),?\d* \+(\d+),?\d* @@")
+
+
 def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResult:
     if not isinstance(diff_text, str):
         raise GitDiffParseError("Diff text is not a string")
@@ -45,7 +48,7 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
 
     try:
         for line in lines:
-            hunk_match = re.match(r"^@@ -(\d+),?\d* \+(\d+),?\d* @@", line)
+            hunk_match = _HUNK_REGEX.match(line)
             rel_position += 1
             if hunk_match:
                 old_line_num = int(hunk_match.group(1))
