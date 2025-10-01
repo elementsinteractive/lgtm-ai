@@ -6,7 +6,8 @@ import click
 import pytest
 from click.testing import CliRunner
 from lgtm_ai.__main__ import _set_logging_level, guide, review
-from lgtm_ai.base.schemas import IssuesPlatform
+from lgtm_ai.base.exceptions import NothingToReviewError
+from lgtm_ai.base.schemas import IssuesPlatform, OutputFormat
 
 
 @pytest.mark.parametrize(
@@ -295,3 +296,69 @@ def test_review_issues_correct_issues_client_according_to_cli(
         # We expect the second call to be for the issues client
         # and to use the given issues token
         assert m_get_git_client.call_args_list[1].kwargs["token"] == expected_token
+
+
+@pytest.mark.parametrize(
+    ("format", "expected_output"),
+    [
+        ("pretty", "No files to review"),
+        ("markdown", "No files to review"),
+        ("json", '"review_response": null'),
+    ],
+)
+def test_review_no_files(format: OutputFormat, expected_output: str) -> None:
+    runner = CliRunner()
+    with (
+        mock.patch("lgtm_ai.__main__.get_git_client"),
+        mock.patch("lgtm_ai.__main__.CodeReviewer.review", side_effect=NothingToReviewError),
+    ):
+        result = runner.invoke(
+            review,
+            [
+                "--ai-api-key",
+                "fake-token",
+                "--git-api-key",
+                "fake-token",
+                "--ai-retries",
+                "3",
+                "https://gitlab.com/user/repo/-/merge_requests/1",
+                "--output-format",
+                format,
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert expected_output in result.output
+
+
+@pytest.mark.parametrize(
+    ("format", "expected_output"),
+    [
+        ("pretty", "No files to generate a guide for"),
+        ("markdown", "No files to generate a guide for"),
+        ("json", '"guide_response": null'),
+    ],
+)
+def test_guide_no_files(format: OutputFormat, expected_output: str) -> None:
+    runner = CliRunner()
+    with (
+        mock.patch("lgtm_ai.__main__.get_git_client"),
+        mock.patch("lgtm_ai.__main__.ReviewGuideGenerator.generate_review_guide", side_effect=NothingToReviewError),
+    ):
+        result = runner.invoke(
+            guide,
+            [
+                "--ai-api-key",
+                "fake-token",
+                "--git-api-key",
+                "fake-token",
+                "--ai-retries",
+                "3",
+                "https://gitlab.com/user/repo/-/merge_requests/1",
+                "--output-format",
+                format,
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert expected_output in result.output

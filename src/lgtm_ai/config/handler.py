@@ -69,14 +69,9 @@ class CliOptions(BaseModel):
 class ResolvedConfig(
     BaseSettings,
 ):
-    """Resolved configuration class to hold the final configuration.
+    """Resolved configuration class to hold the final configuration used throghought the cli app.
 
-    All intrinsic values are non-nullable and have appropriate defaults. Optional settings passed toward pydantic-ai Agents are nullable, as they have their own defaults in the library.
-
-    This class uses Pydantic Settings to automatically load configuration from multiple sources:
-    1. CLI arguments (highest priority)
-    2. Configuration files (lgtm.toml, pyproject.toml)
-    3. Environment variables (lowest priority)
+    It will hold the merged configuration from all sources (CLI args, config files, env vars, defaults).
     """
 
     model_config = SettingsConfigDict(
@@ -135,6 +130,7 @@ class ResolvedConfig(
     """If reviewing a local repository, what to compare against (branch, commit, or HEAD for working dir)."""
 
     # Secrets - these will be loaded from environment variables with LGTM_ prefix
+    # They are not displayed on logs or reprs.
     git_api_key: str = Field(repr=False)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
 
@@ -270,7 +266,7 @@ class ConfigHandler:
 
     @classmethod
     def _create_dynamic_settings_class(cls, config_file_path: str | None) -> type[ResolvedConfig]:
-        """Dynamically create a ResolvedConfig subclass with custom settings sources if needed."""
+        """Dynamically create a ResolvedConfig subclass that uses a custom config file path if given."""
 
         class DynamicResolvedConfig(ResolvedConfig):
             @override
@@ -284,6 +280,7 @@ class ConfigHandler:
                 file_secret_settings: PydanticBaseSettingsSource,
             ) -> tuple[PydanticBaseSettingsSource, ...]:
                 if not config_file_path:
+                    # No custom config file path provided, use default behavior
                     return super().settings_customise_sources(
                         settings_cls,
                         init_settings,

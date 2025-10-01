@@ -17,6 +17,10 @@ class JiraIssuesClient:
         self._httpx_client = httpx_client
 
     def get_issue_content(self, issues_url: HttpUrl, issue_id: str) -> IssueContent | None:
+        """Fetch the content of an issue from the base URL of the issues page.
+
+        Returns None if the issue cannot be fetched or parsed.
+        """
         api_url = f"https://{issues_url.host}/rest/api/{self.API_VERSION}/issue/{issue_id}"
 
         try:

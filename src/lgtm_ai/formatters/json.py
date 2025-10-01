@@ -1,3 +1,5 @@
+import json
+
 from lgtm_ai.ai.schemas import Review, ReviewComment, ReviewGuide
 from lgtm_ai.formatters.base import Formatter
 
@@ -26,3 +28,9 @@ class JsonFormatter(Formatter[str]):
     def format_guide(self, guide: ReviewGuide) -> str:
         """Format the review guide as JSON."""
         return guide.model_dump_json(indent=2, exclude={"pr_diff"})
+
+    def empty_review_message(self) -> str:
+        return json.dumps({"review_response": None, "metadata": None}, indent=2)
+
+    def empty_guide_message(self) -> str:
+        return json.dumps({"guide_response": None, "metadata": None}, indent=2)

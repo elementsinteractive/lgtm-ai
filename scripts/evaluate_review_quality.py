@@ -111,7 +111,7 @@ def perform_review(
             technologies=("Python", "Django", "FastAPI"),
         ),
     )
-    review = code_reviewer.review_pull_request(target=url)
+    review = code_reviewer.review(target=url)
     write_review_to_dir(model, output_dir, pr_name, sample, review)
 
 

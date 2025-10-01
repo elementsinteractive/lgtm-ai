@@ -90,6 +90,12 @@ class MockFormatter(Formatter[str]):
     def format_guide(self, guide: ReviewGuide) -> str:
         return "guide section"
 
+    def empty_review_message(self) -> str:
+        return "No review"
+
+    def empty_guide_message(self) -> str:
+        return "No guide"
+
 
 def test_project_not_found_error() -> None:
     m_client = mock.Mock()

@@ -230,7 +230,7 @@ class GitlabClient(GitClient):
             except gitlab.exceptions.GitlabError:
                 comment_create_success = False
                 logger.debug(
-                    "Failed to post the comment anywhere specific, it will go to general decription (hopefully)"
+                    "Failed to post the comment anywhere specific, it will go to general description (hopefully)"
                 )
 
         return comment_create_success

@@ -49,7 +49,7 @@ async def test_lgtm_review_tool(temp_git_repo: Path) -> None:
     from lgtm_ai.mcp.__main__ import mcp
 
     async with Client(mcp) as client:
-        with mock.patch("lgtm_ai.review.CodeReviewer.review_pull_request", return_value=MOCK_REVIEW) as mock_review:
+        with mock.patch("lgtm_ai.review.CodeReviewer.review", return_value=MOCK_REVIEW) as mock_review:
             result = await client.call_tool("lgtm-review", {"repo_path": str(temp_git_repo)})
 
     assert mock_review.call_count == 1

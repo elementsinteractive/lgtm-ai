@@ -13,7 +13,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models import Model
 from pydantic_ai.usage import UsageLimits
 
-logger = logging.getLogger("lgtm.ai")
+logger = logging.getLogger("lgtm")
 
 
 class ReviewGuideGenerator:
