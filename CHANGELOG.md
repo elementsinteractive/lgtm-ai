@@ -1,3 +1,18 @@
+## v1.2.0 (2025-10-01)
+
+### Feat
+
+- **#150**: add mcp server with extra `lgtm-ai[mcp]` (#151)
+- add support for claude sonnet 4.5 (#152)
+
+### Fix
+
+- don't exit with code 1 when there is nothing to review (#154)
+
+### Perf
+
+- compile regex for git diffs once (#149)
+
 ## v1.1.2 (2025-09-29)
 
 ### Fix
