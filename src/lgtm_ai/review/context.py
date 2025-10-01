@@ -126,7 +126,7 @@ class ContextRetriever:
     ) -> IssueContent | None:
         """Retrieve the contents of the issue/user story linked to the PR, if any."""
         if not self._issues_client:
-            logger.warning("Issues client is not configured, cannot retrieve issue context")
+            logger.info("Issues client is not configured, won't retrieve issue context")
             return None
         issue_code = self._extract_issue_code_from_metadata(pr_metadata, issues_regex)
         if not issue_code:
