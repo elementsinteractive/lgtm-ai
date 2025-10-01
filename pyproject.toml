@@ -44,6 +44,12 @@ dependencies = [
     "pydantic-settings (>=2.10.1,<3.0.0)",
 ]
 
+[project.optional-dependencies]
+mcp = [
+    "nest-asyncio (>=1.6.0,<2.0.0)",
+    "fastmcp (>=2.12.4,<3.0.0)",
+]    
+
 [project.urls]
 Homepage = "https://github.com/elementsinteractive/lgtm-ai"
 Source = "https://github.com/elementsinteractive/lgtm-ai"
@@ -59,9 +65,11 @@ pytest-cov = "*"
 ipdb = "*"
 commitizen = "*"
 pre-commit = "*"
+pytest-asyncio = "^1.2.0"
 
 [project.scripts]
-lgtm = "lgtm_ai.__main__:entry_point"
+lgtm = "lgtm_ai.__main__:cli"
+lgtm-mcp = "lgtm_ai.mcp.__main__:cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -135,6 +143,12 @@ strict = true          # strict type checking.
 warn_no_return = false # allow functions without explicit return.
 pretty = true          # show error messages in a readable format.
 plugins = ['pydantic.mypy']
+
+[[tool.mypy.overrides]]
+module = [
+    "nest_asyncio",
+]
+ignore_missing_imports = true
 
 [tool.twyn]
 allowlist = [

@@ -50,7 +50,7 @@ logger = logging.getLogger("lgtm")
 
 @click.group()
 @click.version_option(__version__, "--version")
-def entry_point() -> None:
+def cli() -> None:
     pass
 
 
@@ -112,7 +112,7 @@ def _common_options[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 
 @click.argument("target", required=True, callback=TargetParser(allow_git_repo=True))
-@entry_point.command()
+@cli.command()
 @_common_options
 @click.option(
     "--issues-url",
@@ -217,7 +217,7 @@ def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **
 
 
 @click.argument("target", required=True, callback=TargetParser(allow_git_repo=False))
-@entry_point.command()
+@cli.command()
 @_common_options
 def guide(
     target: PRUrl | LocalRepository,

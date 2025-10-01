@@ -17,11 +17,15 @@ help:
     just --list --unsorted
 
 # Generate the virtual environment.
-venv:
+venv with-extras="false":
     @if ! {{ venv-exists }}; \
     then \
     POETRY_VIRTUALENVS_IN_PROJECT=1 poetry env use {{ python_version }}; \
-    poetry install; \
+    if [ "{{ with-extras }}" = "true" ]; then \
+        POETRY_VIRTUALENVS_IN_PROJECT=1 poetry install --all-extras; \
+    else \
+        POETRY_VIRTUALENVS_IN_PROJECT=1 poetry install; \
+    fi \
     fi
 
 # Cleans all artifacts generated while running this project, including the virtualenv.
@@ -36,7 +40,7 @@ test *test-args='': venv
 
 # Runs all tests including coverage report.
 test-all: venv
-    {{ run }} pytest --junitxml=pytest.xml --cov-report=xml:coverage.xml
+    {{ run }} pytest -v --junitxml=pytest.xml --cov-report=xml:coverage.xml
 
 # Format all code in the project.
 format *files=target_dirs: venv

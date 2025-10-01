@@ -40,7 +40,7 @@ jobs:
             poetry-${{ runner.os }}
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-extras
 
       - name: Lint
         run: |
