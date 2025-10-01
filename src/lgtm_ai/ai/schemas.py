@@ -64,6 +64,7 @@ SupportedAnthopicModel = Literal[
     "claude-3-opus-latest",
     "claude-3-opus-20240229",
     "claude-3-haiku-20240307",
+    "claude-sonnet-4-5",
 ]
 
 AnyModel = str
