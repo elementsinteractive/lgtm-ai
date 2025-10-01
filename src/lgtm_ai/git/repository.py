@@ -36,10 +36,12 @@ def get_diff_from_local_repo(git_dir: pathlib.Path, *, compare: str = "HEAD") ->
     # Get diff based on compare parameter
     if compare == "HEAD":
         # Working directory changes (git diff)
+        logger.info("Comparing working directory changes against HEAD")
         diff_index = repo.head.commit.diff(None, create_patch=True)
         target_branch = "HEAD"
     else:
         # Compare current branch against specified compare (git diff compare..HEAD)
+        logger.info("Comparing HEAD of %s against %s", current_branch, compare)
         try:
             compare_commit = repo.commit(compare)
             diff_index = compare_commit.diff(repo.head.commit, create_patch=True)

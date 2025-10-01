@@ -144,7 +144,7 @@ class CodeReviewer:
             additional_context=self.config.additional_context,
         )
         if self.config.issues_platform and self.config.issues_url and self.config.issues_regex:
-            logger.info("Fetching issue context related to the PR")
+            logger.info("Fetching issue context related if possible")
             issue_context = self.context_retriever.get_issues_context(
                 issues_url=self.config.issues_url,
                 issues_regex=self.config.issues_regex,
@@ -159,7 +159,7 @@ class CodeReviewer:
             additional_context=additional_context,
             issue_context=issue_context,
         )
-        logger.info("Running Reviewer agent on the PR diff")
+        logger.info("Reviewer Agent is performing the initial review")
         with handle_ai_exceptions():
             raw_res = self.reviewer_agent.run_sync(
                 model=self.model,
@@ -175,7 +175,7 @@ class CodeReviewer:
             "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
         )
         initial_usage = raw_res.usage()
-        logger.info(
+        logger.debug(
             f"Initial review usage summary: {initial_usage.requests=} {initial_usage.input_tokens=} {initial_usage.output_tokens=} {initial_usage.total_tokens=}"
         )
         return raw_res.output
@@ -190,7 +190,7 @@ class CodeReviewer:
         usage_limits: UsageLimits,
     ) -> tuple[ReviewResponse, RunUsage]:
         """Summarize the initial review with the summarizing agent."""
-        logger.info("Running AI model to summarize the review")
+        logger.info("Summarizing Agent is refining the initial review")
         summary_prompt = prompt_generator.generate_summarizing_prompt(
             pr_diff=pr_diff, raw_review=initial_review_response
         )

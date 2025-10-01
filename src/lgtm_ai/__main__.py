@@ -212,7 +212,7 @@ def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **
 
     logger.info("Review completed, total comments: %d", len(review.review_response.comments))
     if not resolved_config.silent:
-        logger.info("Printing review to console")
+        logger.debug("Printing review to console")
         printer(formatter.format_review_summary_section(review))
         if review.review_response.comments:
             printer(formatter.format_review_comments_section(review.review_response.comments))
@@ -287,7 +287,7 @@ def _set_logging_level(logger: logging.Logger, verbose: int) -> None:
         logger.setLevel(logging.INFO)
     else:
         logger.setLevel(logging.DEBUG)
-    logger.info("Logging level set to %s", logging.getLevelName(logger.level))
+    logger.debug("Logging level set to %s", logging.getLevelName(logger.level))
 
 
 def _get_formatter_and_printer(output_format: OutputFormat) -> tuple[Formatter[Any], Callable[[Any], None]]:
