@@ -75,6 +75,12 @@ class MarkDownFormatter(Formatter[str]):
             metadata=metadata,
         )
 
+    def empty_review_message(self) -> str:
+        return "> ⚠️ No files to review (all files excluded by provided configuration)."
+
+    def empty_guide_message(self) -> str:
+        return "> ⚠️ No files to generate a guide for (all files excluded by provided configuration)."
+
     def _format_snippet(self, comment: ReviewComment) -> str:
         template = self._template_env.get_template(self.SNIPPET_TEMPLATE)
         return template.render(language=comment.programming_language.lower(), snippet=comment.quote_snippet)

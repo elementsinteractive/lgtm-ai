@@ -30,3 +30,9 @@ class Formatter(Protocol[_T]):
     def format_review_comment(self, comment: ReviewComment, *, with_footer: bool = True) -> _T: ...
 
     def format_guide(self, guide: ReviewGuide) -> _T: ...
+
+    def empty_review_message(self) -> str:
+        """Message to display when nothing was reviewed."""
+
+    def empty_guide_message(self) -> str:
+        """Message to display when no guide was generated."""

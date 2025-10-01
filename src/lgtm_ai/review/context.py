@@ -16,7 +16,7 @@ from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMe
 from lgtm_ai.review.schemas import PRCodeContext
 from pydantic import HttpUrl
 
-logger = logging.getLogger("lgtm.ai")
+logger = logging.getLogger("lgtm")
 
 
 class IssuesClient(Protocol):

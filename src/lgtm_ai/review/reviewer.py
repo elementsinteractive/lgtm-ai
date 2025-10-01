@@ -43,7 +43,6 @@ class CodeReviewer:
     - Return a Review object containing the PR diff, final review response, and metadata about the review process.
 
     Main workflow:
-    1. Call review_pull_request(target):
         - Fetch PR metadata and diff.
         - Gather code and additional context, and optionally issue context.
         - Generate a review prompt and run the reviewer agent for the initial review.
@@ -86,8 +85,8 @@ class CodeReviewer:
         self.config = config
         self.context_retriever = context_retriever
 
-    def review_pull_request(self, target: PRUrl | LocalRepository) -> Review:
-        """Peform a full review of the given pull request URL and return it."""
+    def review(self, target: PRUrl | LocalRepository) -> Review:
+        """Perform a full review of the given pull request URL or local git repository and return it."""
         total_usage = RunUsage()
         usage_limits = UsageLimits(input_tokens_limit=self.config.ai_input_tokens_limit)
 

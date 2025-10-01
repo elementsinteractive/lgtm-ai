@@ -45,7 +45,7 @@ def get_lgtm_review(
     compare: Annotated[
         str,
         Field(
-            description="What to compare. Defaults to 'HEAD', which will review uncommited changes. To compare against another branch, pass the branch name (e.g., `main`)."
+            description="What to compare. Defaults to 'HEAD', which will review uncommitted changes. To compare against another branch, pass the branch name (e.g., `main`)."
         ),
     ] = "HEAD",
 ) -> ReviewOutput:
@@ -77,7 +77,7 @@ def get_lgtm_review(
         git_client=None,
         config=resolved_config,
     )
-    review = code_reviewer.review_pull_request(target=target)
+    review = code_reviewer.review(target=target)
 
     return ReviewOutput.model_validate(review)
 

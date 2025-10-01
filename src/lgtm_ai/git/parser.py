@@ -33,6 +33,7 @@ _HUNK_REGEX = re.compile(r"^@@ -(\d+),?\d* \+(\d+),?\d* @@")
 
 
 def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResult:
+    """Parse a unified diff patch and return the modified lines with their metadata."""
     if not isinstance(diff_text, str):
         raise GitDiffParseError("Diff text is not a string")
 

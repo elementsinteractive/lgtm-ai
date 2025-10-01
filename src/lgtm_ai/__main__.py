@@ -15,6 +15,7 @@ from lgtm_ai.ai.agent import (
 )
 from lgtm_ai.ai.schemas import AgentSettings, CommentCategory, SupportedAIModelsList
 from lgtm_ai.base.constants import DEFAULT_HTTPX_TIMEOUT
+from lgtm_ai.base.exceptions import NothingToReviewError
 from lgtm_ai.base.schemas import IssuesPlatform, LocalRepository, OutputFormat, PRUrl
 from lgtm_ai.base.utils import git_source_supports_multiline_suggestions
 from lgtm_ai.config.constants import DEFAULT_INPUT_TOKEN_LIMIT
@@ -200,12 +201,18 @@ def review(target: PRUrl | LocalRepository, config: str | None, verbose: int, **
         git_client=git_client,
         config=resolved_config,
     )
-    review = code_reviewer.review_pull_request(target=target)
-    logger.info("Review completed, total comments: %d", len(review.review_response.comments))
 
+    formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
+    try:
+        review = code_reviewer.review(target=target)
+    except NothingToReviewError:
+        if not resolved_config.silent:
+            printer(formatter.empty_review_message())
+        return
+
+    logger.info("Review completed, total comments: %d", len(review.review_response.comments))
     if not resolved_config.silent:
         logger.info("Printing review to console")
-        formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
         printer(formatter.format_review_summary_section(review))
         if review.review_response.comments:
             printer(formatter.format_review_comments_section(review.review_response.comments))
@@ -253,11 +260,18 @@ def guide(
         git_client=git_client,
         config=resolved_config,
     )
-    guide = review_guide.generate_review_guide(pr_url=target)
+
+    formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
+
+    try:
+        guide = review_guide.generate_review_guide(pr_url=target)
+    except NothingToReviewError:
+        if not resolved_config.silent:
+            printer(formatter.empty_guide_message())
+        return
 
     if not resolved_config.silent:
         logger.info("Printing review to console")
-        formatter, printer = _get_formatter_and_printer(resolved_config.output_format)
         printer(formatter.format_guide(guide))
 
     if resolved_config.publish and git_client:
