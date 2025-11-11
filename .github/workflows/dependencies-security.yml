@@ -17,9 +17,12 @@ jobs:
         run: /osv-scanner --skip-git --format table --config .osv-scanner.toml -r .
   twyn:
     runs-on: ubuntu-latest
-    container:
-      image: docker.io/elementsinteractive/twyn:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Twyn against our dependencies
-        run: twyn run -vv
+        uses: elementsinteractive/twyn-action@v1
+        id: app-token
+        with:
+          publish: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version: v6
