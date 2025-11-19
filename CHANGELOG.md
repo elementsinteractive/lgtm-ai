@@ -1,3 +1,25 @@
+## v1.3.0 (2025-11-19)
+
+### Feat
+
+- **#168**: add support for gemini 3 pro preview (#169)
+
+### Refactor
+
+- Update supported Gemini models (#166)
+
+### CI
+
+- use twyn action (#167)
+
+### Technical
+
+- bump ruff from 0.14.1 to 0.14.2 in the patch-updates group (#160)
+- bump ruff from 0.14.0 to 0.14.1 in the patch-updates group (#159)
+- bump authlib from 1.6.4 to 1.6.5 (#158)
+- bump ruff from 0.13.3 to 0.14.0 (#157)
+- bump ruff from 0.13.2 to 0.13.3 in the patch-updates group (#156)
+
 ## v1.2.1 (2025-10-01)
 
 ### Technical
