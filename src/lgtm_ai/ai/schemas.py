@@ -28,6 +28,7 @@ DeepSeekModel = Literal[
 SupportedGeminiModel = Literal[
     # pydantic-ai does not keep track of all Gemini models available, so we add the ones we want to support explicitly.
     "gemini-2.5-pro",
+    "gemini-3-pro-preview",
     "gemini-2.5-flash",
     "gemini-2.5-flash-preview-09-25",
     "gemini-2.5-flash-lite",
