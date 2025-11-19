@@ -27,7 +27,7 @@ def test_get_guide_from_url_valid() -> None:
     ):
         guide_generator = ReviewGuideGenerator(
             guide_agent=test_agent,
-            model=mock.Mock(spec=OpenAIChatModel, model_name="gemini-2.0-flash"),
+            model=mock.Mock(spec=OpenAIChatModel, model_name="gemini-2.5-flash"),
             git_client=MockGitClient(),
             config=ResolvedConfig(ai_api_key="", git_api_key=""),
         )
@@ -49,5 +49,5 @@ def test_get_guide_from_url_valid() -> None:
             checklist=[GuideChecklistItem(description="a")],
             references=[GuideReference(title="a", url="a")],
         ),
-        metadata=PublishMetadata(model_name="gemini-2.0-flash", usage=guide.metadata.usage),
+        metadata=PublishMetadata(model_name="gemini-2.5-flash", usage=guide.metadata.usage),
     )

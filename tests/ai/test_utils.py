@@ -18,7 +18,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
     ("model", "model_url", "ai_api_key", "expected_type", "expectation"),
     [
         ("gpt-4", None, "fake_api_key", OpenAIChatModel, does_not_raise()),
-        ("gemini-1.5-flash", None, "fake_api_key", GoogleModel, does_not_raise()),
+        ("gemini-2.5-flash", None, "fake_api_key", GoogleModel, does_not_raise()),
         ("does-not-exist", None, "fake_api_key", None, pytest.raises(MissingModelUrl)),
         ("does-not-exist", "http://localhost:1234", "fake_api_key", OpenAIChatModel, does_not_raise()),
         # We allow custom models with a URL but no API key
@@ -41,10 +41,9 @@ def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expect
     ("model", "expected_model_name", "expectation"),
     [
         # Normal matches
-        ("gemini-2.5-flash-*", "gemini-2.5-flash-preview-05-20", does_not_raise()),
-        ("gemini-2.5-pro-preview-*", "gemini-2.5-pro-preview-06-05", does_not_raise()),
+        ("gemini-2.5-flash-preview-*", "gemini-2.5-flash-preview-09-25", does_not_raise()),
         # Exact match
-        ("gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-preview-06-05", does_not_raise()),
+        ("gemini-2.5-flash-preview-09-25", "gemini-2.5-flash-preview-09-25", does_not_raise()),
         # No wildcard results in no attempt to actually match
         ("gemini-2.5-pro-preview-", "gemini-2.5-pro-preview-06-05", pytest.raises(MissingModelUrl)),
         # Multiple matches that we cannot narrow down by date
