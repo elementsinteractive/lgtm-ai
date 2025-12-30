@@ -195,7 +195,7 @@ This is the full list of supported models:
 |-------------|---------------------------------|-------------------------------------------------------------------------------|
 | **OpenAI**  | `gpt-5`, `gpt-4.1`, `gpt-4o-mini`, `o1-preview` | [Generate API key](https://platform.openai.com/api-keys) |
 | **Google Gemini** | `gemini-2.5-pro`, `gemini-2.5-flash` | [Get API key](https://aistudio.google.com/apikey) |
-| **Anthropic (Claude)** | `claude-sonnet-4-5`, `claude-3-opus-latest` | [Anthropic Console](https://console.anthropic.com/dashboard) |
+| **Anthropic (Claude)** | `claude-opus-4-5`, `claude-sonnet-4-5`, `claude-haiku-4-5` | [Anthropic Console](https://console.anthropic.com/dashboard) |
 | **Mistral** | `mistral-large-latest`, `mistral-small`, `codestral-latest` | [Mistral Platform](https://console.mistral.ai/api-keys) |
 | **DeepSeek** | `deepseek-chat`, `deepseek-reasoner` | [DeepSeek Platform](https://platform.deepseek.com/usage) |
 | **Local / Custom** | Any OpenAI-compatible model (e.g. `llama3`) | Run with `--model-url http://localhost:11434/v1` |
@@ -277,7 +277,10 @@ These are the main supported models, though the CLI may support additional ones 
 
 | Model name |
 | ---------------------------- |
+| claude-opus-4-5 |
 | claude-sonnet-4-5 |
+| claude-haiku-4-5 |
+| claude-opus-4-1-20250805 |
 | claude-sonnet-4-0 |
 | claude-3-7-sonnet-latest |
 | claude-3-5-sonnet-latest |
