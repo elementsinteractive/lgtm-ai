@@ -1,3 +1,12 @@
+## v1.3.1 (2026-01-01)
+
+### Technical
+
+- bump pygithub from 2.7.0 to 2.8.1 (#162)
+- bump click from 8.2.1 to 8.3.0 (#163)
+- bump pydantic from 2.11.7 to 2.12.3 (#164)
+- bump pydantic-settings from 2.10.1 to 2.11.0 (#165)
+
 ## v1.3.0 (2025-11-19)
 
 ### Feat
