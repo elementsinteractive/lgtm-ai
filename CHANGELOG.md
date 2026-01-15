@@ -1,3 +1,9 @@
+## v1.4.1 (2026-01-15)
+
+### Fix
+
+- bump cffi to fix dockerfile building without compilation (#180)
+
 ## v1.4.0 (2026-01-15)
 
 ### Feat

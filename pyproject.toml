@@ -1,6 +1,6 @@
 [project]
 name = "lgtm-ai"
-version = "1.4.0"
+version = "1.4.1"
 description = "Your AI-powered code review companion"
 authors = [ 
     {name = "Sergio Castillo Lara", email = "s.cast.lara@gmail.com"},
@@ -172,7 +172,7 @@ exclude_lines = [
 [tool.commitizen]
 version_files = ["pyproject.toml:^version"]
 name = "cz_customize"
-version = "1.4.0"
+version = "1.4.1"
 tag_format = "v$version"
 
 [tool.commitizen.customize]
