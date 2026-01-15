@@ -1,3 +1,13 @@
+## v1.4.0 (2026-01-15)
+
+### Feat
+
+- support python 3.14 (#179)
+
+### Technical
+
+- bump the patch-updates group across 1 directory with 3 updates (#175)
+
 ## v1.3.1 (2026-01-01)
 
 ### Technical
