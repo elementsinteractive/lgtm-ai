@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.14"] # we test only the lowest and highest supported versions
         runs-on: [ubuntu-latest]
         mcp-extra: [true, false]
 
@@ -64,7 +64,8 @@ jobs:
 
       - name: Coverage comment
         uses: MishaKav/pytest-coverage-comment@main
-        if: github.event_name == 'pull_request' && matrix.python-version == '3.13' && matrix.mcp-extra == true
+        continue-on-error: true
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.14' && matrix.mcp-extra == true
         with:
           pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml

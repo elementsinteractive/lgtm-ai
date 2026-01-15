@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.13-slim
+ARG PYTHON_VERSION=3.14-slim
 
 # ===== Stage 1: Builder =====
 FROM python:${PYTHON_VERSION} AS builder
