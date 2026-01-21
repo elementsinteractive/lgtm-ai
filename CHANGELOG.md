@@ -1,3 +1,11 @@
+## v1.4.2 (2026-01-21)
+
+### Technical
+
+- bump dependencies (#183)
+- bump urllib3 from 2.5.0 to 2.6.3 (#176)
+- bump authlib from 1.6.5 to 1.6.6 (#178)
+
 ## v1.4.1 (2026-01-15)
 
 ### Fix
