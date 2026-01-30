@@ -1,3 +1,10 @@
+## v1.4.3 (2026-01-30)
+
+### Technical
+
+- bump python-multipart from 0.0.21 to 0.0.22 (#185)
+- bump the patch-updates group with 3 updates (#184)
+
 ## v1.4.2 (2026-01-21)
 
 ### Technical
