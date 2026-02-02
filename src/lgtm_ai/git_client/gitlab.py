@@ -21,6 +21,7 @@ from lgtm_ai.git_client.exceptions import (
     PublishReviewError,
     PullRequestDiffError,
     PullRequestDiffNotFoundError,
+    PullRequestMetadataError,
 )
 from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMetadata
 from pydantic import HttpUrl
@@ -60,7 +61,11 @@ class GitlabClient(GitClient):
         )
 
     def get_pr_metadata(self, pr_url: PRUrl) -> PRMetadata:
-        pr = _get_pr_from_url(self.client, pr_url)
+        try:
+            pr = _get_pr_from_url(self.client, pr_url)
+        except gitlab.exceptions.GitlabError as err:
+            logger.error("Failed to retrieve the metadata of the pull request")
+            raise PullRequestMetadataError from err
         return PRMetadata(
             title=pr.title or "",
             description=pr.description or "",
@@ -97,8 +102,8 @@ class GitlabClient(GitClient):
 
     def get_file_contents(self, pr_url: PRUrl, file_path: str, branch_name: ContextBranch) -> str | None:
         project = _get_project_from_url(self.client, pr_url.repo_path)
-        pr = _get_pr_from_url(self.client, pr_url)
         try:
+            pr = _get_pr_from_url(self.client, pr_url)
             file = project.files.get(
                 file_path=file_path,
                 ref=pr.sha if branch_name == "source" else pr.target_branch,
