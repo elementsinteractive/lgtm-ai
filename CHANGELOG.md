@@ -1,3 +1,17 @@
+## v1.4.4 (2026-02-04)
+
+### Fix
+
+- map gitlab error when retrieving pr metadata correctly (#187)
+
+### Docs
+
+- change supported python version badge in readme (#188)
+
+### Technical
+
+- bump commitizen from 4.12.1 to 4.13.0 (#186)
+
 ## v1.4.3 (2026-01-30)
 
 ### Technical
