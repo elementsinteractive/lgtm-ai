@@ -76,6 +76,7 @@ async def test_lgtm_review_tool(temp_git_repo: Path) -> None:
                 "requests": 0,
                 "tool_calls": 0,
             },
+            "config": None,
         },
     }
 

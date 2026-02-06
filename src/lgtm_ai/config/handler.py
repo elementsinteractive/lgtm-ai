@@ -131,16 +131,16 @@ class ResolvedConfig(
 
     # Secrets - these will be loaded from environment variables with LGTM_ prefix
     # They are not displayed on logs or reprs.
-    git_api_key: str = Field(repr=False)
+    git_api_key: str = Field(repr=False, exclude=True)
     """API key to interact with the git service (GitLab, GitHub, etc.)."""
 
-    ai_api_key: str = Field(repr=False)
+    ai_api_key: str = Field(repr=False, exclude=True)
     """API key to interact with the AI model service (OpenAI, etc.)."""
 
-    issues_api_key: str | None = Field(default=None, repr=False)
+    issues_api_key: str | None = Field(default=None, repr=False, exclude=True)
     """API key to interact with the issues platform (GitHub, GitLab, Jira, etc.)."""
 
-    issues_user: str | None = Field(default=None, repr=False)
+    issues_user: str | None = Field(default=None, repr=False, exclude=True)
     """Username to interact with the issues platform (only needed for Jira)."""
 
     @classmethod

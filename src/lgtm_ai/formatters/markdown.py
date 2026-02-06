@@ -92,4 +92,5 @@ class MarkDownFormatter(Formatter[str]):
             model_name=metadata.model_name,
             created_at=metadata.created_at,
             usage=metadata.usage,
+            config=metadata.config,
         )

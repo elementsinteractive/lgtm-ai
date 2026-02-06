@@ -62,6 +62,22 @@ def context_retriever() -> ContextRetriever:
 def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
     test_agent = get_reviewer_agent_with_settings()
     test_summary_agent = get_summarizing_agent_with_settings()
+    config = ResolvedConfig(
+        ai_api_key="",
+        git_api_key="",
+        additional_context=(
+            AdditionalContext(
+                file_url=None,
+                prompt="These are the development guidelines for the project. Please follow them.",
+                context="contents-of-dev-guidelines",
+            ),
+            AdditionalContext(
+                file_url=None,
+                prompt="Yet another prompt",
+                context="yet-another-context",
+            ),
+        ),
+    )
     with (
         test_agent.override(
             model=TestModel(),
@@ -108,7 +124,11 @@ def test_get_review_from_url_valid(context_retriever: ContextRetriever) -> None:
             source_branch="feature",
         ),
         review_response=ReviewResponse(summary="a", raw_score=1),
-        metadata=PublishMetadata(model_name=DEFAULT_AI_MODEL, usage=review.metadata.usage),
+        metadata=PublishMetadata(
+            model_name=DEFAULT_AI_MODEL,
+            usage=review.metadata.usage,
+            config=config.model_dump(),
+        ),
     )
 
     # There are messages with the correct prompts to the AI agent

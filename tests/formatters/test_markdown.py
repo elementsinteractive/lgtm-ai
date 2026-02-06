@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 from lgtm_ai.ai.schemas import (
+    AdditionalContext,
     CodeSuggestion,
     CodeSuggestionOffset,
     GuideChecklistItem,
@@ -14,6 +15,7 @@ from lgtm_ai.ai.schemas import (
     ReviewGuide,
     ReviewResponse,
 )
+from lgtm_ai.config.handler import ResolvedConfig
 from lgtm_ai.formatters.markdown import MarkDownFormatter
 from lgtm_ai.git_client.schemas import PRDiff
 from tests.review.utils import MOCK_USAGE
@@ -29,6 +31,7 @@ class TestMarkdownFormatter:
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
                 usage=MOCK_USAGE,
+                config=None,
                 spec=PublishMetadata,
             ),
             review_response=ReviewResponse(
@@ -64,6 +67,7 @@ class TestMarkdownFormatter:
             "- **Total tokens**: `300`",
             "",
             "</details>",
+            "",
             "",
             "",
             "> See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.",
@@ -367,6 +371,7 @@ class TestMarkdownFormatter:
                 model_name="whatever",
                 created_at="2025-05-15T09:43:01.654374+00:00",
                 usage=MOCK_USAGE,
+                config=None,
                 spec=PublishMetadata,
             ),
         )
@@ -416,10 +421,90 @@ class TestMarkdownFormatter:
             "</details>",
             "",
             "",
+            "",
             "> See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.",
             "",
             "</details>",
             "",
             "",
+            "",
+        ]
+
+    def test_format_metadata_with_config(self) -> None:
+        config = ResolvedConfig(
+            git_api_key="secret",
+            ai_api_key="secret",
+            issues_user="secret",
+            issues_api_key="secret",
+            issues_url="https://your-repo.com/issues",
+            technologies=("python", "javascript"),
+            issues_regex=r"ISSUE-\d+",
+            issues_platform="github",
+            additional_context=(AdditionalContext(file_url="https://foo.com", prompt="a prompt"),),
+        )
+        review = Review(
+            metadata=mock.Mock(
+                uuid="fb64cb958fcf49219545912156e0a4a0",
+                model_name="whatever",
+                created_at="2025-05-15T09:43:01.654374+00:00",
+                usage=MOCK_USAGE,
+                config=config.model_dump(),
+                spec=PublishMetadata,
+            ),
+            review_response=ReviewResponse(
+                raw_score=5,
+                summary="summary",
+            ),
+            pr_diff=mock.Mock(spec=PRDiff),
+        )
+
+        comment = self.formatter.format_review_summary_section(review).split("\n")
+        config_comment = comment[comment.index("<details><summary>Configuration</summary>") :]
+        assert "git_api_key" not in config_comment
+        assert "ai_api_key" not in config_comment
+        assert "issues_user" not in config_comment
+        assert "issues_api_key" not in config_comment
+
+        assert config_comment == [
+            "<details><summary>Configuration</summary>",
+            "",
+            "",
+            "- **model**: `gemini-2.5-flash`",
+            "",
+            "- **model_url**: `None`",
+            "",
+            "- **technologies**: `('python', 'javascript')`",
+            "",
+            "- **categories**: `('Correctness', 'Quality', 'Testing', 'Security')`",
+            "",
+            "- **exclude**: `()`",
+            "",
+            "- **additional_context**: `({'file_url': 'https://foo.com', 'prompt': 'a prompt', 'context': None},)`",
+            "",
+            "- **publish**: `False`",
+            "",
+            "- **output_format**: `pretty`",
+            "",
+            "- **silent**: `False`",
+            "",
+            "- **ai_retries**: `None`",
+            "",
+            "- **ai_input_tokens_limit**: `500000`",
+            "",
+            "- **issues_url**: `https://your-repo.com/issues`",
+            "",
+            "- **issues_regex**: `ISSUE-\\d+`",
+            "",
+            "- **issues_platform**: `github`",
+            "",
+            "- **compare**: `HEAD`",
+            "",
+            "",
+            "</details>",
+            "",
+            "",
+            "> See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.",
+            "",
+            "</details>",
             "",
         ]

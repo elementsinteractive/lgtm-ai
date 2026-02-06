@@ -14,6 +14,16 @@
 
 </details>
 
+{% if config %}
+
+<details><summary>Configuration</summary>
+
+{% for key, value in config.items() %}
+- **{{ key }}**: `{{ value | safe }}`
+{% endfor %}
+
+</details>
+{% endif %}
 
 > See the [📚 lgtm-ai repository](https://github.com/elementsinteractive/lgtm-ai) for more information about lgtm.
 
