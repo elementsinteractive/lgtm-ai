@@ -1,3 +1,9 @@
+## v1.5.0 (2026-02-06)
+
+### Feat
+
+- add configuration to the more information section of review summary (#189)
+
 ## v1.4.4 (2026-02-04)
 
 ### Fix
