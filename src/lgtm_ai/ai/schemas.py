@@ -188,6 +188,7 @@ class GuideResponse(BaseModel):
 class PublishMetadata(BaseModel):
     model_name: str
     usage: RunUsage
+    config: dict[str, object] | None = None
 
     @cached_property
     def created_at(self) -> str:

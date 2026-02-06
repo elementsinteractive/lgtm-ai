@@ -22,6 +22,7 @@ from tests.review.utils import MOCK_DIFF, MockGitClient
 
 def test_get_guide_from_url_valid() -> None:
     test_agent = get_guide_agent_with_settings()
+    config = ResolvedConfig(ai_api_key="", git_api_key="")
     with test_agent.override(
         model=TestModel(),
     ):
@@ -29,7 +30,7 @@ def test_get_guide_from_url_valid() -> None:
             guide_agent=test_agent,
             model=mock.Mock(spec=OpenAIChatModel, model_name="gemini-2.5-flash"),
             git_client=MockGitClient(),
-            config=ResolvedConfig(ai_api_key="", git_api_key=""),
+            config=config,
         )
         guide = guide_generator.generate_review_guide(
             pr_url=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
@@ -49,5 +50,9 @@ def test_get_guide_from_url_valid() -> None:
             checklist=[GuideChecklistItem(description="a")],
             references=[GuideReference(title="a", url="a")],
         ),
-        metadata=PublishMetadata(model_name="gemini-2.5-flash", usage=guide.metadata.usage),
+        metadata=PublishMetadata(
+            model_name="gemini-2.5-flash",
+            usage=guide.metadata.usage,
+            config=config.model_dump(),
+        ),
     )

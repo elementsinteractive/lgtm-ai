@@ -124,7 +124,9 @@ class CodeReviewer:
         return Review(
             pr_diff=pr_diff,
             review_response=final_review,
-            metadata=PublishMetadata(model_name=self.model.model_name, usage=final_usage),
+            metadata=PublishMetadata(
+                model_name=self.model.model_name, usage=final_usage, config=self.config.model_dump()
+            ),
         )
 
     def _perform_initial_review(
