@@ -391,11 +391,15 @@ def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetrieve
     assert requests
     first_request = requests[0]
     assert len(first_request.parts) == 4
+
+    content = first_request.parts[2].content
+    assert isinstance(content, str)
+
     # These two categories are in the prompt
-    assert "Correctness" in first_request.parts[2].content
-    assert "Quality" in first_request.parts[2].content
+    assert "Correctness" in content
+    assert "Quality" in content
     # This one is not
-    assert "Testing" not in first_request.parts[2].content
+    assert "Testing" not in content
 
 
 def test_review_fails_if_all_files_are_excluded() -> None:
