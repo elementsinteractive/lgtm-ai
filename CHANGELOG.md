@@ -1,3 +1,9 @@
+## v1.5.1 (2026-02-09)
+
+### Technical
+
+- bump most dependencies (#192)
+
 ## v1.5.0 (2026-02-06)
 
 ### Feat
