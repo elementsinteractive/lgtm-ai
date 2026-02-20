@@ -9,6 +9,8 @@ from lgtm_ai.ai.exceptions import (
     MissingAIAPIKey,
     MissingModelUrl,
 )
+from lgtm_ai.ai.schemas import SupportedGeminiModel
+from lgtm_ai.ai.utils import select_latest_gemini_model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -60,3 +62,33 @@ def test_get_ai_model_with_wildcard(model: str, expected_model_name: str, expect
     with expectation:
         ai_model = get_ai_model(model, "fake", model_url=None)
         assert ai_model.model_name == expected_model_name
+
+
+@pytest.mark.parametrize(
+    ("matches", "expected", "expectation"),
+    [
+        (["gemini-2.5-flash-preview-09-25"], "gemini-2.5-flash-preview-09-25", does_not_raise()),
+        (
+            ["gemini-2.5-flash-preview-09-25", "gemini-2.5-flash-preview-08-01"],
+            "gemini-2.5-flash-preview-09-25",
+            does_not_raise(),
+        ),
+        (
+            ["gemini-2.5-flash-preview-09-25", "gemini-2.5-pro-preview-06-05"],
+            "gemini-2.5-flash-preview-09-25",
+            does_not_raise(),
+        ),
+        (
+            ["gemini-2.5-flash-preview-09-25", "gemini-2.5-flash-preview-latest"],
+            None,
+            pytest.raises(InvalidGeminiWildcard),
+        ),
+        ([], None, pytest.raises(InvalidGeminiWildcard)),
+        (["gemini-2.5-not-a-date", "gemini-2.5-also-not-a-date"], None, pytest.raises(InvalidGeminiWildcard)),
+        (["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro"], "gemini-2.5-pro", does_not_raise()),
+    ],
+)
+def test_select_latest_gemini_model(matches: list[str], expected: SupportedGeminiModel, expectation: Any) -> None:
+    with expectation:
+        result = select_latest_gemini_model(matches)  # type: ignore
+        assert result == expected

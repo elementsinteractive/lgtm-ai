@@ -23,6 +23,9 @@ def match_model_by_wildcard[T](model_name: str, model_list: tuple[T, ...]) -> li
 
 
 def select_latest_gemini_model(matches: list[SupportedGeminiModel]) -> SupportedGeminiModel:
+    if not matches:
+        raise InvalidGeminiWildcard(matches)
+
     if len(matches) == 1:
         return matches[0]
 

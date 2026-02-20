@@ -60,7 +60,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          just test-all
+          just test-all ${{ matrix.mcp-extra == false && '--no-cov' || '' }}
 
       - name: Coverage comment
         uses: MishaKav/pytest-coverage-comment@main
