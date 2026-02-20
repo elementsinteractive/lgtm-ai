@@ -1,5 +1,5 @@
-
 # VARIABLE DEFINITIONS
+
 venv := ".venv"
 bin := venv + "/bin"
 python_version := "python3.14"
@@ -8,6 +8,7 @@ target_dirs := "src tests scripts"
 image := "docker.io/elementsinteractive/lgtm-ai"
 
 # SENTINELS
+
 venv-exists := path_exists(venv)
 
 # RECIPES
@@ -34,13 +35,14 @@ clean:
     @rm -rf {{ venv }}
 
 alias t := test
+
 # Runs the tests with the specified arguments (any path or pytest argument).
 test *test-args='': venv
     {{ run }} pytest {{ test-args }} --no-cov
 
 # Runs all tests including coverage report.
-test-all: venv
-    {{ run }} pytest -v --junitxml=pytest.xml --cov-report=xml:coverage.xml
+test-all *test-args='': venv
+    {{ run }} pytest -v --junitxml=pytest.xml --cov-report=xml:coverage.xml {{ test-args }}
 
 # Format all code in the project.
 format *files=target_dirs: venv
@@ -63,10 +65,9 @@ lint-commit: venv
 
 # Runs docker build
 build:
-	docker build -t lgtm-ai .
+    docker build -t lgtm-ai .
 
 # Pushes the docker image to the registry
 push version: build
-	docker image tag lgtm-ai {{ image }}:{{ version }}
-	docker image push {{ image }}:{{ version }}
-
+    docker image tag lgtm-ai {{ image }}:{{ version }}
+    docker image push {{ image }}:{{ version }}
