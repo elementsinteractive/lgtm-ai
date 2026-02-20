@@ -1,3 +1,14 @@
+## v1.5.2 (2026-02-20)
+
+### Docs
+
+- update @sdn4z as a contributor (#194)
+- add @jjshanks as a contributor (#193)
+
+### Technical
+
+- bump all dependencies and skip coverage without all extras installed (#198)
+
 ## v1.5.1 (2026-02-09)
 
 ### Technical
