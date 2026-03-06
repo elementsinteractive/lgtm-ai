@@ -1,3 +1,9 @@
+## v1.5.3 (2026-03-06)
+
+### Fix
+
+- remove no longer relevant fallback comments for gitlab, and change order (#200)
+
 ## v1.5.2 (2026-02-20)
 
 ### Docs
