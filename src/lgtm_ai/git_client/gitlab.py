@@ -88,8 +88,13 @@ class GitlabClient(GitClient):
         logger.info("Publishing review to GitLab")
         try:
             pr = _get_pr_from_url(self.client, pr_url)
+            self._post_review_summary(pr, review)
             failed_comments = self._post_review_comments(pr, review)
-            self._post_review_summary(pr, review, failed_comments)
+            logger.warning(
+                "Some comments could not be posted to GitLab; total: %d, failed: %d",
+                len(review.review_response.comments),
+                len(failed_comments),
+            )
         except gitlab.exceptions.GitlabError as err:
             raise PublishReviewError from err
 
@@ -140,10 +145,8 @@ class GitlabClient(GitClient):
 
         return parsed_diffs
 
-    def _post_review_summary(
-        self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review, failed_comments: list[ReviewComment]
-    ) -> None:
-        pr.notes.create({"body": self.formatter.format_review_summary_section(review, failed_comments)})
+    def _post_review_summary(self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review) -> None:
+        pr.notes.create({"body": self.formatter.format_review_summary_section(review)})
 
     def _post_review_comments(self, pr: gitlab.v4.objects.ProjectMergeRequest, review: Review) -> list[ReviewComment]:
         """Post comments on the file & filenumber they refer to.
