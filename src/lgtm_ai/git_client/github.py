@@ -5,12 +5,6 @@ from typing import Any, Literal, cast
 from urllib.parse import urlparse
 
 import github
-import github.ContentFile
-import github.File
-import github.GithubException
-import github.PullRequest
-import github.PullRequestReview
-import github.Repository
 from lgtm_ai.ai.schemas import CodeSuggestionOffset, Review, ReviewComment, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.formatters.base import Formatter
