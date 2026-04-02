@@ -1,3 +1,15 @@
+## v1.5.4 (2026-04-02)
+
+### CI
+
+- remove dependencies-security step (#201)
+
+### Technical
+
+- bump packages, fix mcp, and make it stable (#203)
+- bump requests from 2.32.5 to 2.33.0 (#202)
+- bump the patch-updates group with 2 updates (#199)
+
 ## v1.5.3 (2026-03-06)
 
 ### Fix
