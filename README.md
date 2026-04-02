@@ -23,6 +23,9 @@ lgtm-ai is your AI-powered code review companion. It generates code reviews usin
     - [Local Changes](#local-changes)
   - [Reviewer Guide](#reviewer-guide)
 - [Installation](#installation)
+- [Model Context Protocol (MCP)](#model-context-protocol-mcp)
+  - [Setup](#setup)
+  - [Usage](#usage)
 - [How it works](#how-it-works)
   - [Review scores and comment categories](#review-scores-and-comment-categories)
   - [Supported Code Repository Services](#supported-code-repository-services)
@@ -106,7 +109,42 @@ Or you can use the official Docker image:
 docker pull elementsinteractive/lgtm-ai
 ```
 
-## How it works
+### Model Context Protocol (MCP)
+
+Use lgtm-ai as an MCP server with Claude Desktop, VS Code Copilot, or other MCP-compatible tools.
+
+**Installation:**
+
+```sh
+pip install lgtm-ai[mcp]
+```
+
+**Setup example for VS Code** (Add to `.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "lgtm-review": {
+      "type": "stdio",
+      "command": ".venv/bin/lgtm-mcp",
+      "env": {
+        "LGTM_AI_API_KEY": "${input:LGTM_AI_API_KEY}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "LGTM_AI_API_KEY",
+      "type": "promptString",
+      "description": "Your LGTM AI API key. This will be securely stored and never checked into source control."
+    }
+  ]
+}
+```
+
+The `lgtm-review` tool accepts a `repo_path` (required) and optional `compare` branch. Configuration follows the same priority as the CLI: config files in the current directory, then environment variables with the `LGTM_` prefix. See [Configuration](#configuration) for all options.
+
+## How lgtm works
 
 lgtm reads the given pull request and feeds it to several AI agents to generate a code review or a reviewer guide. The philosophy of lgtm is to keep the models out of the picture and totally configurable, so that you can choose which model to use based on pricing, security, data privacy, or whatever is important to you.
 
@@ -163,6 +201,7 @@ lgtm-ai can enhance code reviews by including context from linked issues or user
   - `--issues-user`: (Optional) Username for the issues platform (required if source is `jira`).
 
 **Example:**
+
 ```sh
 lgtm review \
   --issues-url "https://github.com/your-org/your-repo/issues" \

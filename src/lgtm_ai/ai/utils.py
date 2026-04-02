@@ -1,5 +1,3 @@
-from typing import cast
-
 from lgtm_ai.ai.exceptions import InvalidGeminiWildcard, InvalidModelWildCard
 from lgtm_ai.ai.schemas import SupportedGeminiModel
 
@@ -7,7 +5,7 @@ from lgtm_ai.ai.schemas import SupportedGeminiModel
 def match_model_by_wildcard[T](model_name: str, model_list: tuple[T, ...]) -> list[T] | None:
     """Match a model name against a list of models with wildcard support."""
     if model_name in model_list:
-        return [cast(T, model_name)]
+        return [model_name]
 
     if model_name.count("*") > 1 or ("*" in model_name and not model_name.endswith("*")):
         raise InvalidModelWildCard(model_name)
