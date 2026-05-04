@@ -30,14 +30,14 @@ files = [
 
 [[package]]
 name = "anthropic"
-version = "0.88.0"
+version = "0.97.0"
 description = "The official Python library for the anthropic API"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "anthropic-0.88.0-py3-none-any.whl", hash = "sha256:71898b32332bc75d9739bc10095288d40a29605da6d00da2fe832b1aa036552f"},
-    {file = "anthropic-0.88.0.tar.gz", hash = "sha256:f4c7f6863d08c869913516f08d658fe53caaf8bcc4fbea3218df343d2a876c58"},
+    {file = "anthropic-0.97.0-py3-none-any.whl", hash = "sha256:8a1a472dfabcfc0c52ff6a3eecf724ac7e07107a2f6e2367be55ceb42f5d5613"},
+    {file = "anthropic-0.97.0.tar.gz", hash = "sha256:021e79fd8e21e90ad94dc5ba2bbbd8b1599f424f5b1fab6c06204009cab764be"},
 ]
 
 [package.dependencies]
@@ -2447,43 +2447,43 @@ timezone = ["tzdata ; python_version >= \"3.9\" and platform_system == \"Windows
 
 [[package]]
 name = "pydantic-ai-slim"
-version = "1.77.0"
+version = "1.89.1"
 description = "Agent Framework / shim to use Pydantic with LLMs, slim package"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pydantic_ai_slim-1.77.0-py3-none-any.whl", hash = "sha256:110c516935de384f1beddc36fda04e8df36cdf5bee3a5bfd0da562726182e52b"},
-    {file = "pydantic_ai_slim-1.77.0.tar.gz", hash = "sha256:a6e7006a4b048193d45b6ba816d301271e3f5ef1cdc4f9fb340617f382c6ce0d"},
+    {file = "pydantic_ai_slim-1.89.1-py3-none-any.whl", hash = "sha256:9e7d615a0a3e48993d067901e596e85708e9c8d1f6bef96c20c340385028d465"},
+    {file = "pydantic_ai_slim-1.89.1.tar.gz", hash = "sha256:3ed967bff8dec992a907c1d1dabab2034a5f4aee75289de22e88b2ef9def8da6"},
 ]
 
 [package.dependencies]
-anthropic = {version = ">=0.80.0", optional = true, markers = "extra == \"anthropic\""}
+anthropic = {version = ">=0.96.0", optional = true, markers = "extra == \"anthropic\""}
 genai-prices = ">=0.0.48"
-google-genai = {version = ">=1.66.0", optional = true, markers = "extra == \"google\""}
+google-genai = {version = ">=1.70.0", optional = true, markers = "extra == \"google\""}
 griffelib = ">=2.0"
 httpx = ">=0.27"
 mistralai = {version = ">=2.0.0", optional = true, markers = "extra == \"mistral\""}
 openai = {version = ">=2.29.0", optional = true, markers = "extra == \"openai\""}
 opentelemetry-api = ">=1.28.0"
 pydantic = ">=2.12"
-pydantic-graph = "1.77.0"
+pydantic-graph = "1.89.1"
 tiktoken = {version = ">=0.12.0", optional = true, markers = "extra == \"openai\""}
 typing-inspection = ">=0.4.0"
 
 [package.extras]
 a2a = ["fasta2a (>=0.4.1)"]
 ag-ui = ["ag-ui-protocol (>=0.1.10)", "starlette (>=0.45.3)"]
-anthropic = ["anthropic (>=0.80.0)"]
-bedrock = ["boto3 (>=1.42.14)"]
+anthropic = ["anthropic (>=0.96.0)"]
+bedrock = ["boto3 (>=1.42.63)"]
 cli = ["argcomplete (>=3.5.0)", "prompt-toolkit (>=3)", "pyperclip (>=1.9.0)", "pyyaml (>=6.0.2)", "rich (>=13)"]
 cohere = ["cohere (>=5.20.6) ; platform_system != \"Emscripten\""]
 dbos = ["dbos (>=2.10.0)"]
 duckduckgo = ["ddgs (>=9.0.0)"]
-evals = ["pydantic-evals (==1.77.0)"]
+evals = ["pydantic-evals (==1.89.1)"]
 exa = ["exa-py (>=2.0.0)"]
-fastmcp = ["fastmcp (>=2.14.0)"]
-google = ["google-genai (>=1.66.0)"]
+fastmcp = ["fastmcp (>=3.2.4)"]
+google = ["google-genai (>=1.70.0)"]
 groq = ["groq (>=0.25.0)"]
 huggingface = ["huggingface-hub (>=1.3.4,<2.0.0)"]
 logfire = ["logfire[httpx] (>=4.16.0)"]
@@ -2645,14 +2645,14 @@ typing-extensions = ">=4.14.1"
 
 [[package]]
 name = "pydantic-graph"
-version = "1.77.0"
+version = "1.89.1"
 description = "Graph and state machine library"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pydantic_graph-1.77.0-py3-none-any.whl", hash = "sha256:063803e87aec901919c2073ccf3fdd6e4fff84e8b05dbfbe8a6c1af63dd12c05"},
-    {file = "pydantic_graph-1.77.0.tar.gz", hash = "sha256:ba75dbdf221cd7e366e5c5d250f4d9f3138e05400ea52d3f36330772d989deee"},
+    {file = "pydantic_graph-1.89.1-py3-none-any.whl", hash = "sha256:2ebce28573e81de9924c2ff68f90f949ccd96bbc2e8dc6cf4bb96208b34fbec0"},
+    {file = "pydantic_graph-1.89.1.tar.gz", hash = "sha256:99b8ae10fd10400208ee469355969e2dc253a600c3f667a5e790874064846e85"},
 ]
 
 [package.dependencies]
@@ -4158,4 +4158,4 @@ mcp = ["fastmcp"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "9dd93e303d840e91c4ed0c56acc136a14b1178cabc29e400025cbe0100943931"
+content-hash = "2c8dd387ea0665c61e2a97f49a15e8851d2a6e42eed1caced73a0acecc3be1fa"
