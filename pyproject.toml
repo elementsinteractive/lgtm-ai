@@ -34,7 +34,7 @@ classifiers = [
 
 dependencies = [
     "click>=8.3.3,<9.0.0",
-    "pydantic>=2.10.3,<3.0.0",
+    "pydantic>=2.13.3,<3.0.0",
     "pydantic-ai-slim[anthropic,google,mistral,openai] (>=1.89.1,<2.0.0)",
     "python-gitlab>=5.1.0,<6.0.0",
     "rich>=13.9.4,<14.0.0",
