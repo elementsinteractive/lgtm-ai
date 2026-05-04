@@ -1,3 +1,13 @@
+## v1.5.5 (2026-05-04)
+
+### Technical
+
+- bump pydantic from 2.12.5 to 2.13.3 (#207)
+- bump pydantic-ai-slim from 1.77.0 to 1.89.1 (#208)
+- bump the patch-updates group across 1 directory with 7 updates (#210)
+- bump the patch-updates group with 2 updates (#204)
+- bump pydantic-ai-slim from 1.76.0 to 1.77.0 (#205)
+
 ## v1.5.4 (2026-04-02)
 
 ### CI
