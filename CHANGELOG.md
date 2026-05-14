@@ -1,3 +1,14 @@
+## v1.5.6 (2026-05-14)
+
+### Technical
+
+- bump the patch-updates group across 1 directory with 3 updates (#217)
+- bump pre-commit from 4.5.1 to 4.6.0 (#212)
+- bump commitizen from 4.13.9 to 4.15.1 (#214)
+- bump pydantic-settings from 2.13.1 to 2.14.1 (#215)
+- bump urllib3 from 2.6.3 to 2.7.0 (#216)
+- bump pydantic-ai-slim from 1.89.1 to 1.93.0 (#213)
+
 ## v1.5.5 (2026-05-04)
 
 ### Technical
