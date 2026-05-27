@@ -47,7 +47,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = [
-    "fastmcp (>=3.2.4,<4.0.0)",
+    "fastmcp (>=3.3.1,<4.0.0)",
 ]    
 
 [project.urls]
