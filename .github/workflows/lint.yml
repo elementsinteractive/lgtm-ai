@@ -46,6 +46,10 @@ jobs:
         run: |
           just lint
 
+      - name: Check skill prompts are up to date
+        run: |
+          just check-skill-prompts
+
   lint-commit:
     runs-on: ubuntu-latest
     name: "Lint commit message"

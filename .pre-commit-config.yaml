@@ -19,6 +19,13 @@ repos:
         entry: "poetry check --lock"
         language: system
         pass_filenames: false
+      - id: build-skill-prompts
+        name: Keep skill prompts up to date
+        entry: "just build-skill-prompts"
+        language: system
+        pass_filenames: false
+        stages:
+          - "pre-commit"
       - id: format-code
         name: Format Code
         entry: "just format"
