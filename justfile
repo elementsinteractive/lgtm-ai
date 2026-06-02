@@ -67,6 +67,14 @@ lint-commit: venv
 build:
     docker build -t lgtm-ai .
 
+# Injects the lgtm-ai prompts inline into the Claude plugin agent file.
+build-plugin-prompts: venv
+    {{ run }} python scripts/build_skill_prompts.py
+
+# Checks that the inlined prompts in the Claude plugin agent file are up to date. Fails if they differ.
+check-plugin-prompts: venv
+    {{ run }} python scripts/build_skill_prompts.py --check
+
 # Pushes the docker image to the registry
 push version: build
     docker image tag lgtm-ai {{ image }}:{{ version }}
