@@ -16,7 +16,7 @@ from pathlib import Path
 
 from lgtm_ai.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 
-PLUGIN_AGENT_FILE = Path(__file__).parent.parent / "plugins" / "lgtm-review" / "agents" / "lgtm-reviewer.md"
+PLUGIN_AGENT_FILE = Path(__file__).parent.parent / "plugins" / "lgtm-review" / "skills" / "lgtm-review" / "SKILL.md"
 
 # Replaces <diff-format> in the reviewer prompt.
 # The skill uses raw `git diff` output; lgtm-cli converts it to JSON first.

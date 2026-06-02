@@ -1,14 +1,24 @@
 ---
-name: "lgtm-reviewer"
-description: "Performs an lgtm-ai two-stage code review on the current git repository. Trigger this when asked to review changes, review a branch, or when the user says 'lgtm review'."
-allowedTools:
-  - Bash
-  - Agent
-  - Read
+name: lgtm-review
+description: 'Perform an lgtm-ai two-stage code review on the current git repository. Use when: user asks for a code review, says "lgtm", "review my changes", "review this branch", "review against main", "review my PR".'
+argument-hint: 'Optional: base ref to compare against (e.g. "main", "HEAD~3"). Defaults to HEAD for uncommitted changes.'
 ---
+
 # LGTM-AI Code Review Orchestrator
 
-You are the main coordinator for the two-stage `lgtm-ai` code review. Your environment is isolated from the main chat context.
+Performs a two-stage AI code review identical to the `lgtm` CLI:
+
+1. **Reviewer** — initial pass generating comments with severity and category
+2. **Summarizer** — refinement pass filtering noise, merging duplicates, adjusting score
+
+Both stages run as **separate subagents** with isolated context, exactly as in the lgtm pipeline.
+
+> **CRITICAL — subagent isolation:** Each subagent's `prompt` must contain ONLY:
+> 1. The contents of the relevant prompt file (see Steps 2 and 3)
+> 2. The input message for that stage
+>
+> Do NOT include this SKILL.md, any other stage's prompt, or any orchestration instructions in a subagent prompt. The system prompt files are in the same directory as this file.
+
 
 ## Arguments Handling
 The user may optionally provide a base ref to compare against (e.g., "main", "HEAD~3", "origin/develop"). Check the user's initial prompt for this. If no base ref is specified, default to `HEAD` (for uncommitted changes).
