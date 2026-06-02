@@ -1,3 +1,14 @@
+## v1.6.0 (2026-06-02)
+
+### Feat
+
+- add a skill (#223)
+
+### Technical
+
+- bump mypy from 1.20.2 to 2.1.0 (#220)
+- bump pydantic-ai-slim from 1.93.0 to 1.97.0 (#222)
+
 ## v1.5.6 (2026-05-14)
 
 ### Technical
