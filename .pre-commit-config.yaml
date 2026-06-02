@@ -19,9 +19,9 @@ repos:
         entry: "poetry check --lock"
         language: system
         pass_filenames: false
-      - id: build-skill-prompts
-        name: Keep skill prompts up to date
-        entry: "just build-skill-prompts"
+      - id: build-plugin-prompts
+        name: Keep plugin prompts up to date
+        entry: "just build-plugin-prompts"
         language: system
         pass_filenames: false
         stages:

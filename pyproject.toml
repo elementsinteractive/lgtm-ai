@@ -169,7 +169,10 @@ exclude_lines = [
 
 
 [tool.commitizen]
-version_files = ["pyproject.toml:^version"]
+version_files = [
+    "pyproject.toml:^version",
+    "plugins/lgtm-review/.claude-plugin/plugin.json:version",
+]
 name = "cz_customize"
 version = "1.5.6"
 tag_format = "v$version"

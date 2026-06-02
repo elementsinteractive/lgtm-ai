@@ -46,9 +46,9 @@ jobs:
         run: |
           just lint
 
-      - name: Check skill prompts are up to date
+      - name: Check plugin prompts are up to date
         run: |
-          just check-skill-prompts
+          just check-plugin-prompts
 
   lint-commit:
     runs-on: ubuntu-latest

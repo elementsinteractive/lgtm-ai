@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Build the lgtm-review skill prompt files from the Python source prompts.
+"""Inject lgtm-ai prompts inline into the Claude plugin agent file.
 
-Ensures the skill prompts stay in sync with lgtm-cli as the Python prompts evolve.
+Ensures the inlined prompts stay in sync with lgtm-cli as the Python prompts evolve.
 
 Usage:
-    poetry run python scripts/build_skill_prompts.py
+    poetry run python scripts/build_skill_prompts.py          # update in place
+    poetry run python scripts/build_skill_prompts.py --check  # fail if out of date
     # or via just:
-    just build-skill-prompts
+    just build-plugin-prompts
 """
 
 import re
+import sys
 from pathlib import Path
 
 from lgtm_ai.ai.prompts import REVIEWER_SYSTEM_PROMPT, SUMMARIZING_SYSTEM_PROMPT
 
-SKILL_DIR = Path(__file__).parent.parent / ".agents" / "skills" / "lgtm-review"
+PLUGIN_AGENT_FILE = Path(__file__).parent.parent / "plugins" / "lgtm-review" / "agents" / "lgtm-reviewer.md"
 
 # Replaces <diff-format> in the reviewer prompt.
 # The skill uses raw `git diff` output; lgtm-cli converts it to JSON first.
@@ -82,6 +84,13 @@ def _replace_xml_block(text: str, tag: str, replacement: str) -> str:
     return re.sub(rf"<{tag}>.*?</{tag}>", replacement, text, flags=re.DOTALL)
 
 
+def _inject_into_sentinel(text: str, sentinel: str, content: str) -> str:
+    """Replace content between <!-- BEGIN:sentinel --> and <!-- END:sentinel --> markers."""
+    pattern = rf"(<!-- BEGIN:{re.escape(sentinel)} -->).*?(<!-- END:{re.escape(sentinel)} -->)"
+    replacement = rf"\1\n{content}\n\2"
+    return re.sub(pattern, replacement, text, flags=re.DOTALL)
+
+
 def build_reviewer_prompt() -> str:
     prompt = REVIEWER_SYSTEM_PROMPT.strip()
     prompt = _replace_xml_block(prompt, "diff-format", _UNIFIED_DIFF_DESCRIPTION)
@@ -95,16 +104,25 @@ def build_summarizer_prompt() -> str:
 
 
 def main() -> None:
-    SKILL_DIR.mkdir(parents=True, exist_ok=True)
+    check_only = "--check" in sys.argv
 
-    reviewer_file = SKILL_DIR / "reviewer-prompt.md"
-    summarizer_file = SKILL_DIR / "summarizer-prompt.md"
+    reviewer_prompt = build_reviewer_prompt()
+    summarizer_prompt = build_summarizer_prompt()
 
-    reviewer_file.write_text(build_reviewer_prompt())
-    summarizer_file.write_text(build_summarizer_prompt())
+    original = PLUGIN_AGENT_FILE.read_text()
+    updated = _inject_into_sentinel(original, "reviewer-prompt", reviewer_prompt)
+    updated = _inject_into_sentinel(updated, "summarizer-prompt", summarizer_prompt)
 
-    print(f"Written: {reviewer_file}")
-    print(f"Written: {summarizer_file}")
+    if check_only:
+        if original != updated:
+            print(
+                f"ERROR: {PLUGIN_AGENT_FILE} is out of date. Run 'just build-plugin-prompts' to fix.", file=sys.stderr
+            )
+            sys.exit(1)
+        print(f"OK: {PLUGIN_AGENT_FILE}")
+    else:
+        PLUGIN_AGENT_FILE.write_text(updated)
+        print(f"Updated: {PLUGIN_AGENT_FILE}")
 
 
 if __name__ == "__main__":
