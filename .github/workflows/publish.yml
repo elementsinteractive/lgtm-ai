@@ -17,7 +17,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Checkout
         uses: actions/setup-python@v4
         with:
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: push_to_docker_hub
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Release
         uses: softprops/action-gh-release@v2
         with:

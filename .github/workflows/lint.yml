@@ -12,7 +12,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python 3.14
         uses: actions/setup-python@v4
         with:
@@ -55,7 +55,7 @@ jobs:
     name: "Lint commit message"
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install commitizen
         run: |
           python -m pip install --upgrade pip

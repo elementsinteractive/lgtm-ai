@@ -10,7 +10,7 @@ jobs:
     container:
       image: returntocorp/semgrep:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Semgrep
         run: |
           semgrep scan --config auto
