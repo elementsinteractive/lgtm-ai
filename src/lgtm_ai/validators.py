@@ -1,5 +1,6 @@
 import pathlib
 from enum import StrEnum
+from typing import Literal
 from urllib.parse import ParseResult, urlparse
 
 import click
@@ -81,7 +82,7 @@ def _parse_target(ctx: click.Context, param: str, value: object, *, allow_git_re
             )
 
 
-class ModelChoice(click.ParamType):
+class ModelChoice(click.ParamType[str]):
     """Custom click parameter type for selecting AI models.
 
     lgtm accepts a variety of AI models, and we show them in the usage of the CLI.
@@ -104,7 +105,7 @@ class ModelChoice(click.ParamType):
         return self.choices
 
 
-class IntOrNoLimitType(click.ParamType):
+class IntOrNoLimitType(click.ParamType[int | Literal["no-limit"]]):
     name = "int-or-no-limit"
 
     def convert(self, value: str, param: click.Parameter | None, ctx: click.Context | None) -> IntOrNoLimit:

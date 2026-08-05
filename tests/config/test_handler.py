@@ -92,8 +92,8 @@ def test_missing_secrets_raises_error() -> None:
     with pytest.raises(InvalidOptionsError) as err:
         handler.resolve_config(target)
 
-    assert "git_api_key" in err.value.message
-    assert "ai_api_key" in err.value.message
+    assert "git_api_key" in str(err.value)
+    assert "ai_api_key" in str(err.value)
 
 
 @pytest.mark.usefixtures("inject_env_secrets")
@@ -199,8 +199,8 @@ def test_incorrect_config_field_raises(toml_with_invalid_config_field: str) -> N
         handler.resolve_config(target)
 
     error = exc.value
-    assert "'categories': Input should be 'Correctness', 'Quality', 'Testing' or 'Security'" in error.message
-    assert "'technologies': Input should be a valid tuple" in error.message
+    assert "'categories': Input should be 'Correctness', 'Quality', 'Testing' or 'Security'" in str(error)
+    assert "'technologies': Input should be a valid tuple" in str(error)
 
 
 @pytest.mark.usefixtures("inject_env_secrets")

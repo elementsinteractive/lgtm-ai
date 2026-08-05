@@ -14,10 +14,10 @@ class InvalidOptionsError(LGTMException):
 
     def __init__(self, err: ValidationError) -> None:
         self.err = err
-        self.message = self._generate_message()
+        self._message = self._generate_message()
 
     def __str__(self) -> str:
-        return self.message
+        return self._message
 
     def _generate_message(self) -> str:
         messages = _extract_errors_from_validation_error(self.err)
