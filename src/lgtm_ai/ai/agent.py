@@ -50,6 +50,8 @@ def get_ai_model(model_name: SupportedAIModels | str, api_key: str, model_url: s
         return model_name in get_args(DeepSeekModel)
 
     if model_url:
+        if not api_key:
+            raise MissingAIAPIKey(model_name=model_name)
         logger.info("Using model '%s' via custom OpenAI-compatible endpoint: %s", model_name, model_url)
         return OpenAIChatModel(model_name=model_name, provider=OpenAIProvider(api_key=api_key, base_url=model_url))
 

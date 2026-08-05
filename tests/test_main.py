@@ -129,6 +129,8 @@ def test_review_cli_with_custom_model(*args: mock.MagicMock) -> None:
         [
             "--git-api-key",
             "fake-token",
+            "--ai-api-key",
+            "fake-token",
             "--model",
             "alpaca",
             "--model-url",

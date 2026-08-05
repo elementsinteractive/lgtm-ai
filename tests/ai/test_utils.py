@@ -23,12 +23,18 @@ from pydantic_ai.models.openai import OpenAIChatModel
         ("gemini-2.5-flash", None, "fake_api_key", GoogleModel, does_not_raise()),
         ("does-not-exist", None, "fake_api_key", None, pytest.raises(MissingModelUrl)),
         ("does-not-exist", "http://localhost:1234", "fake_api_key", OpenAIChatModel, does_not_raise()),
-        # We allow custom models with a URL but no API key
-        ("does-not-exist", "http://localhost:1234", "", OpenAIChatModel, does_not_raise()),
+        # We don't allow custom models with a URL but no API key (this used to be allowed before, but now OpenAI requires it)
+        ("does-not-exist", "http://localhost:1234", "", OpenAIChatModel, pytest.raises(MissingAIAPIKey)),
         # We don't allow known models without an API key
         ("gpt-4.1", None, "", OpenAIChatModel, pytest.raises(MissingAIAPIKey)),
         # If one provides a known model, but with a custom URL, we create an OpenAIChatModel no matter the model name
-        ("gemini-2.5-pro-preview-05-06", "http://i-cloned-gemini.com:123", "", OpenAIChatModel, does_not_raise()),
+        (
+            "gemini-2.5-pro-preview-05-06",
+            "http://i-cloned-gemini.com:123",
+            "fake_api_key",
+            OpenAIChatModel,
+            does_not_raise(),
+        ),
         ("claude-sonnet-4-0", None, "fake_api_key", AnthropicModel, does_not_raise()),
     ],
 )
