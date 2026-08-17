@@ -2613,14 +2613,14 @@ timezone = ["tzdata ; python_version >= \"3.9\" and platform_system == \"Windows
 
 [[package]]
 name = "pydantic-ai-slim"
-version = "1.107.1"
+version = "1.107.5"
 description = "Agent Framework / shim to use Pydantic with LLMs, slim package"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pydantic_ai_slim-1.107.1-py3-none-any.whl", hash = "sha256:8eade1c9a1bbdf19c06b4fba9424980b0f446ef2756d2559cc819971ec35cc8f"},
-    {file = "pydantic_ai_slim-1.107.1.tar.gz", hash = "sha256:c4c86aae407e62ea720e8911627219f34f60668dc4c35fdead5ad026efdd00fc"},
+    {file = "pydantic_ai_slim-1.107.5-py3-none-any.whl", hash = "sha256:7073175e0d4348314aa710531d75ce9a9ad0eeee0208a226aea8fc2f4373be38"},
+    {file = "pydantic_ai_slim-1.107.5.tar.gz", hash = "sha256:fff0eb3aa45cd1cf082e5f67fbdf829049ae87b39ddc554f6092360b0c8681ff"},
 ]
 
 [package.dependencies]
@@ -2633,7 +2633,7 @@ mistralai = {version = ">=2.0.0,<2.4.6 || >2.4.6", optional = true, markers = "e
 openai = {version = ">=2.29.0", optional = true, markers = "extra == \"openai\""}
 opentelemetry-api = ">=1.28.0"
 pydantic = ">=2.12"
-pydantic-graph = "1.107.1"
+pydantic-graph = "1.107.5"
 tiktoken = {version = ">=0.12.0", optional = true, markers = "extra == \"openai\""}
 typing-inspection = ">=0.4.0"
 
@@ -2646,7 +2646,7 @@ cli = ["argcomplete (>=3.5.0)", "prompt-toolkit (>=3)", "pyperclip (>=1.9.0)", "
 cohere = ["cohere (>=5.20.6) ; platform_system != \"Emscripten\""]
 dbos = ["dbos (>=2.10.0)"]
 duckduckgo = ["ddgs (>=9.0.0)"]
-evals = ["pydantic-evals (==1.107.1)"]
+evals = ["pydantic-evals (==1.107.5)"]
 exa = ["exa-py (>=2.0.0)"]
 fastmcp = ["fastmcp (>=3.3.0)"]
 google = ["google-genai (>=1.70.0)"]
@@ -2810,14 +2810,14 @@ typing-extensions = ">=4.14.1"
 
 [[package]]
 name = "pydantic-graph"
-version = "1.107.1"
+version = "1.107.5"
 description = "Graph and state machine library"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pydantic_graph-1.107.1-py3-none-any.whl", hash = "sha256:b5893249b7fc1dc2e60dfc40a08ccd4cc0d1dd6e05aeeee2a50392c5663eac60"},
-    {file = "pydantic_graph-1.107.1.tar.gz", hash = "sha256:c83b255a67b1e64e460749a61195309738f42895ad5b93da2140d6bff76b14f1"},
+    {file = "pydantic_graph-1.107.5-py3-none-any.whl", hash = "sha256:39ae9dee918d65b7f2e5de49fc141d9548b66531c3da36c5ca3dda4a10c5e655"},
+    {file = "pydantic_graph-1.107.5.tar.gz", hash = "sha256:92d28c1b662425117d3f3936fede1ad838cf52507adcfa5da854a90b4fa52104"},
 ]
 
 [package.dependencies]
@@ -4377,4 +4377,4 @@ mcp = ["fastmcp"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "46a6e563213d2c912a7d6911bea69700c3505b3d867dbad11d0b28060a40c8ee"
+content-hash = "c4b46626b12548be28827d30dd5f3063d2f72ce3d8cc0f8cbd7597e3ee4d5d60"
