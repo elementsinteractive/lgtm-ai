@@ -204,5 +204,5 @@ class CodeReviewer:
                 usage=total_usage,
                 usage_limits=usage_limits,
             )
-        usage = final_res.usage()
+        usage = final_res.usage
         return final_res.output, usage
