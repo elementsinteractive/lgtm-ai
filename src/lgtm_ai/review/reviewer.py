@@ -176,7 +176,7 @@ class CodeReviewer:
         logger.debug(
             "Initial review score: %d; Number of comments: %d", raw_res.output.raw_score, len(raw_res.output.comments)
         )
-        initial_usage = raw_res.usage()
+        initial_usage = raw_res.usage
         logger.debug(
             f"Initial review usage summary: {initial_usage.requests=} {initial_usage.input_tokens=} {initial_usage.output_tokens=} {initial_usage.total_tokens=}"
         )
@@ -204,5 +204,5 @@ class CodeReviewer:
                 usage=total_usage,
                 usage_limits=usage_limits,
             )
-        usage = final_res.usage()
+        usage = final_res.usage
         return final_res.output, usage

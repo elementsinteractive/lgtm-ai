@@ -29,7 +29,7 @@ from pydantic_ai import (
     capture_run_messages,
     models,
 )
-from pydantic_ai.messages import ModelMessage, ModelRequest
+from pydantic_ai.messages import ModelMessage, ModelRequest, SystemPromptPart
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RunUsage
@@ -277,7 +277,7 @@ def test_summarizing_message_in_review(context_retriever: ContextRetriever) -> N
     test_summarizing_agent = get_summarizing_agent_with_settings()
     test_agent.run_sync.return_value = mock.Mock(
         output=ReviewResponse(summary="a", raw_score=1),
-        usage=lambda: RunUsage(requests=1, input_tokens=1041, output_tokens=6),
+        usage=RunUsage(requests=1, input_tokens=1041, output_tokens=6),
     )
 
     with (
@@ -357,7 +357,9 @@ def test_get_review_adds_technologies_to_prompt(context_retriever: ContextRetrie
     assert requests
     first_request = requests[0]
     assert len(first_request.parts) == 4
-    assert first_request.parts[1].content == 'You are an expert in "COBOL", "FORTRAN", "ODIN".'
+    technologies_part = first_request.parts[1]
+    assert isinstance(technologies_part, SystemPromptPart)
+    assert technologies_part.content == 'You are an expert in "COBOL", "FORTRAN", "ODIN".'
 
 
 def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetriever) -> None:
@@ -392,7 +394,9 @@ def test_get_review_adds_categories_to_prompt(context_retriever: ContextRetrieve
     first_request = requests[0]
     assert len(first_request.parts) == 4
 
-    content = first_request.parts[2].content
+    categories_part = first_request.parts[2]
+    assert isinstance(categories_part, SystemPromptPart)
+    content = categories_part.content
     assert isinstance(content, str)
 
     # These two categories are in the prompt

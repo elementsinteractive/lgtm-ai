@@ -1,5 +1,3 @@
-from unittest import mock
-
 from lgtm_ai.ai.schemas import Review, ReviewGuide
 from lgtm_ai.base.schemas import PRUrl
 from lgtm_ai.git.parser import DiffFileMetadata, DiffResult, ModifiedLine
@@ -8,9 +6,7 @@ from lgtm_ai.git_client.schemas import ContextBranch, IssueContent, PRDiff, PRMe
 from pydantic import HttpUrl
 from pydantic_ai.usage import RunUsage
 
-MOCK_USAGE = mock.MagicMock(
-    requests=1, input_tokens=200, output_tokens=100, total_tokens=300, details={}, spec=RunUsage
-)
+MOCK_USAGE = RunUsage(requests=1, input_tokens=200, output_tokens=100)
 
 MOCK_DIFF = [
     DiffResult(
