@@ -1,3 +1,12 @@
+## v1.6.1 (2026-09-30)
+
+### Technical
+
+- bump pydantic-ai slim (#243)
+- bump pydantic-ai-slim from 1.107.1 to 1.107.5 (#236)
+- bump the patch-updates group across 1 directory with 4 updates (#237)
+- support new models and housekeeping dependencies (#234)
+
 ## v1.6.0 (2026-06-02)
 
 ### Feat
