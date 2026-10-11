@@ -88,3 +88,26 @@ def test_parse_diff_hunk_starts_set_correctly() -> None:
         assert line.hunk_start_new == expected_new, (
             f"Expected hunk_start_new {expected_new}, got {line.hunk_start_new} for line: {content}"
         )
+
+
+def test_parse_diff_no_newline_marker_does_not_shift_line_numbers() -> None:
+    """The "No newline at end of file" marker is not a line of either file and must not shift line numbers."""
+    diff = "\n".join(
+        [
+            "@@ -1,3 +1,4 @@",
+            " a = 1",
+            " b = 2",
+            "-c = 3",
+            "\\ No newline at end of file",
+            "+c = 30",
+            "+d = 4",
+        ]
+    )
+
+    parsed = parse_diff_patch(DUMMY_METADATA, diff)
+
+    assert [(line.line, line.modification_type, line.line_number) for line in parsed.modified_lines] == [
+        ("c = 3", "removed", 3),
+        ("c = 30", "added", 3),
+        ("d = 4", "added", 4),
+    ]
