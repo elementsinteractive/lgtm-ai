@@ -145,7 +145,8 @@ def _parse_pr_url(
         raise click.BadParameter(error_url_msg) from None
 
     try:
-        pr_num = int(pr_part.split("/")[-1])
+        # The number is the first segment: URLs may end with "/" or a tab such as "/files", "/commits" or "/diffs"
+        pr_num = int(pr_part.split("/")[0])
     except (ValueError, IndexError):
         raise click.BadParameter(error_num_msg) from None
 
