@@ -84,6 +84,10 @@ def parse_diff_patch(metadata: DiffFileMetadata, diff_text: object) -> DiffResul
                 )
                 old_line_num += 1
 
+            elif line.startswith("\\"):
+                # "\ No newline at end of file" is a marker, not a line of either file
+                continue
+
             else:
                 old_line_num += 1
                 new_line_num += 1
