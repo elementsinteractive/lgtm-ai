@@ -1,3 +1,20 @@
+## v1.6.2 (2026-10-11)
+
+### Fix
+
+- do not count "No newline at end of file" markers as diff lines (#247)
+- accept PR/MR URLs with a trailing slash or a tab path (#248)
+
+### Docs
+
+- add @memx13 as a contributor (#250)
+
+### Technical
+
+- bump pyjwt from 2.13.0 to 2.14.0 (#244)
+- bump the patch-updates group across 1 directory with 2 updates (#245)
+- bump the minor-updates group across 1 directory with 7 updates (#246)
+
 ## v1.6.1 (2026-09-30)
 
 ### Technical
