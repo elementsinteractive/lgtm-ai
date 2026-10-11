@@ -69,6 +69,24 @@ def test_parse_url_github_valid() -> None:
 
 
 @pytest.mark.parametrize(
+    ("url", "repo_path", "pr_number"),
+    [
+        ("https://github.com/elementsinteractive/sheriff/pull/61/", "elementsinteractive/sheriff", 61),
+        ("https://github.com/elementsinteractive/sheriff/pull/61/files", "elementsinteractive/sheriff", 61),
+        ("https://github.com/elementsinteractive/sheriff/pull/61/commits", "elementsinteractive/sheriff", 61),
+        ("https://gitlab.com/foo/bar/-/merge_requests/7/", "foo/bar", 7),
+        ("https://gitlab.com/foo/bar/-/merge_requests/7/diffs", "foo/bar", 7),
+    ],
+)
+def test_parse_url_with_trailing_slash_or_tab(url: str, repo_path: str, pr_number: int) -> None:
+    parsed = TargetParser(allow_git_repo=True)(mock.Mock(), "pr_url", url)
+
+    assert isinstance(parsed, PRUrl)
+    assert parsed.repo_path == repo_path
+    assert parsed.pr_number == pr_number
+
+
+@pytest.mark.parametrize(
     ("url", "expectation"),
     [
         ("http://localhost:1234", does_not_raise()),
