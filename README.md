@@ -635,6 +635,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/sdn4z"><img src="https://avatars.githubusercontent.com/u/13658011?v=4?s=50" width="50px;" alt="Daniel"/><br /><sub><b>Daniel</b></sub></a><br /><a href="#ideas-sdn4z" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/elementsinteractive/lgtm-ai/commits?author=sdn4z" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Rooni"><img src="https://avatars.githubusercontent.com/u/916242?v=4?s=50" width="50px;" alt="Rooni"/><br /><sub><b>Rooni</b></sub></a><br /><a href="https://github.com/elementsinteractive/lgtm-ai/commits?author=Rooni" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.jjshanks.net/"><img src="https://avatars.githubusercontent.com/u/62661?v=4?s=50" width="50px;" alt="Joshua Shanks"/><br /><sub><b>Joshua Shanks</b></sub></a><br /><a href="https://github.com/elementsinteractive/lgtm-ai/commits?author=jjshanks" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/memx13"><img src="https://avatars.githubusercontent.com/u/138289033?v=4?s=50" width="50px;" alt="Mehmet Emin Mağnısalıoğlu"/><br /><sub><b>Mehmet Emin Mağnısalıoğlu</b></sub></a><br /><a href="https://github.com/elementsinteractive/lgtm-ai/commits?author=memx13" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
