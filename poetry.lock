@@ -2158,19 +2158,19 @@ files = [
 
 [[package]]
 name = "mistralai"
-version = "2.10.1"
+version = "3.2.0"
 description = "Python Client SDK for the Mistral AI API."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "mistralai-2.10.1-py3-none-any.whl", hash = "sha256:443b306392ae1e86edaec39dbafcf79deb735799a00abef4611531004e22b1b2"},
-    {file = "mistralai-2.10.1.tar.gz", hash = "sha256:43b61643ba4f120463e5faf7305a6f40eb29f8e3a21321893969e56c20ed3fbc"},
+    {file = "mistralai-3.2.0-py3-none-any.whl", hash = "sha256:66c1cd32e886b2bc55f67d61cdba6d8c2c38e68720a6b6d69bb3fe7b10034779"},
+    {file = "mistralai-3.2.0.tar.gz", hash = "sha256:b3f2139bde538fe8ed4a19e2adb624fd46dfd175b609231c0836bba21d738730"},
 ]
 
 [package.dependencies]
 eval-type-backport = ">=0.2.0"
-httpx = ">=0.28.1"
+httpx2 = ">=2.13.0"
 jsonpath-python = ">=1.0.6"
 opentelemetry-api = ">=1.33.1,<2.0.0"
 opentelemetry-semantic-conventions = ">=0.60b1"
@@ -2179,12 +2179,13 @@ python-dateutil = ">=2.8.2"
 typing-inspection = ">=0.4.0"
 
 [package.extras]
-agents = ["authlib (>=1.5.2,<2.0)", "griffe (>=1.7.3,<2.0)", "mcp (>=1.0,<2.0)"]
+agents = ["authlib (>=1.8.0,<2.0)", "griffe (>=1.7.3,<2.0)", "mcp (>=2.2.0,<3.0)"]
 gcp = ["google-auth (>=2.27.0)", "requests (>=2.32.3)"]
+mcp = ["mcp (>=2.2.0,<3.0)"]
 realtime = ["websockets (>=13.0)"]
 telemetry = ["opentelemetry-exporter-otlp-proto-http (>=1.33.1,<2.0.0)", "opentelemetry-sdk (>=1.33.1,<2.0.0)"]
 workflow-payload-compression = ["msgpack (>=1.1.0,<2.0.0)", "zstandard (>=0.25.0,<0.26)"]
-workflow-payload-encryption = ["cryptography (>=41.0.0,<47.0.0)"]
+workflow-payload-encryption = ["cryptography (>=50.0.0,<51.0.0)"]
 workflow-payload-offloading = ["aioboto3 (>=12.4.0,<13.0.0)", "azure-identity (>=1.25.0,<2.0.0)", "azure-storage-blob[aio] (>=12.28.0,<13.0.0)", "gcloud-aio-storage (>=9.3.0,<10.0.0)"]
 workflow-payload-offloading-azure = ["azure-identity (>=1.25.0,<2.0.0)", "azure-storage-blob[aio] (>=12.28.0,<13.0.0)"]
 workflow-payload-offloading-gcs = ["gcloud-aio-storage (>=9.3.0,<10.0.0)"]
@@ -2695,43 +2696,45 @@ timezone = ["tzdata ; platform_system == \"Windows\""]
 
 [[package]]
 name = "pydantic-ai-slim"
-version = "2.57.0"
+version = "2.66.0"
 description = "AI Agent Framework, the Pydantic way, slim package"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "pydantic_ai_slim-2.57.0-py3-none-any.whl", hash = "sha256:a07d732e09df8d51f22bd3be2ad45ab644721a904809a2481146bf5d7bb47c67"},
-    {file = "pydantic_ai_slim-2.57.0.tar.gz", hash = "sha256:2c5c150bcd097e6a1e267ea13e7f279a0b504d46b346a4e00b61e1996ad05372"},
+    {file = "pydantic_ai_slim-2.66.0-py3-none-any.whl", hash = "sha256:c47bbd0abe6f51e5400308a53b4f7e3409a582b1459140c381e3d4701a205608"},
+    {file = "pydantic_ai_slim-2.66.0.tar.gz", hash = "sha256:78968fa75086ddae9039bdaa3939e9510f15a40d5f1f58fb3ded04386f9292f2"},
 ]
 
 [package.dependencies]
-anthropic = {version = ">=1.12.1", optional = true, markers = "extra == \"anthropic\""}
+anthropic = {version = ">=1.15.0", optional = true, markers = "extra == \"anthropic\""}
 anyio = ">=4.7.0"
 genai-prices = ">=0.1.13"
 google-genai = {version = ">=2.30.0", optional = true, markers = "extra == \"google\""}
 griffelib = ">=2.0"
 httpx2 = ">=2.7"
-mistralai = {version = ">=2.9.2", optional = true, markers = "extra == \"mistral\""}
-openai = {version = ">=3.26.0", optional = true, markers = "extra == \"openai\""}
+mistralai = {version = ">=3.1.0", optional = true, markers = "extra == \"mistral\""}
+openai = {version = ">=3.31.0", optional = true, markers = "extra == \"openai\""}
 opentelemetry-api = ">=1.28.0"
 pydantic = ">=2.12"
-pydantic-graph = "2.57.0"
+pydantic-graph = "2.66.0"
 tiktoken = {version = ">=0.12.0", optional = true, markers = "extra == \"openai\""}
 typing-inspection = ">=0.4.0"
 
 [package.extras]
-ag-ui = ["ag-ui-protocol (>=0.1.10,<1)", "starlette (>=0.46.2)"]
-anthropic = ["anthropic (>=1.12.1)"]
+ag-ui = ["ag-ui-protocol (>=0.1.10)", "starlette (>=0.46.2)"]
+anthropic = ["anthropic (>=1.15.0)"]
 bedrock = ["boto3 (>=1.42.63)"]
-bedrock-mantle = ["botocore (>=1.42.63)", "openai (>=3.26.0)"]
-cerebras = ["openai (>=3.26.0)"]
+bedrock-mantle = ["botocore (>=1.42.63)", "openai (>=3.31.0)"]
+cerebras = ["openai (>=3.31.0)"]
 cli = ["argcomplete (>=3.5.0)", "prompt-toolkit (>=3)", "pyperclip (>=1.9.0)", "pyyaml (>=6.0.2)", "rich (>=13)"]
 cohere = ["cohere (>=5.20.6) ; platform_system != \"Emscripten\""]
-crusoe = ["openai (>=3.26.0)"]
+crusoe = ["openai (>=3.31.0)"]
 dbos = ["dbos (>=2.10.0)"]
 duckduckgo = ["ddgs (>=9.0.0)"]
-evals = ["pydantic-evals (==2.57.0)"]
+elevenlabs-agents-realtime = ["websockets (>=14.0)"]
+elevenlabs-realtime = ["openai (>=3.31.0)", "tiktoken (>=0.12.0)", "websockets (>=14.0)"]
+evals = ["pydantic-evals (==2.66.0)"]
 exa = ["exa-py (>=2.0.0)"]
 google = ["google-genai (>=2.30.0)"]
 google-realtime = ["google-genai (>=2.30.0)", "websockets (>=14.0)"]
@@ -2740,15 +2743,15 @@ huggingface = ["hf-xet (<1.5.0) ; platform_machine == \"x86_64\" or platform_mac
 logfire = ["logfire[httpx] (>=4.39.0)", "opentelemetry-instrumentation-httpx (>=0.65b0)"]
 mcp = ["fastmcp-slim[client] (>=3.3.0,<5)"]
 mcp-tasks = ["fastmcp-slim[client] (>=4.0.0b1,<5)", "fastmcp-tasks (>=4.0.0b1,<5)"]
-mistral = ["mistralai (>=2.9.2)"]
-openai = ["openai (>=3.26.0)", "tiktoken (>=0.12.0)"]
-openai-realtime = ["openai (>=3.26.0)", "tiktoken (>=0.12.0)", "websockets (>=14.0)"]
-openrouter = ["openai (>=3.26.0)"]
-prefect = ["prefect (>=3.7.5)"]
+mistral = ["mistralai (>=3.1.0)"]
+openai = ["openai (>=3.31.0)", "tiktoken (>=0.12.0)"]
+openai-realtime = ["openai (>=3.31.0)", "tiktoken (>=0.12.0)", "websockets (>=14.0)"]
+openrouter = ["openai (>=3.31.0)"]
+prefect = ["prefect (>=3.9.0)"]
 realtime = ["websockets (>=14.0)"]
 retries = ["httpx (>=0.27)", "tenacity (>=8.2.3)"]
 sentence-transformers = ["sentence-transformers (>=5.2.0) ; python_version < \"3.14\""]
-snowflake = ["openai (>=3.26.0)"]
+snowflake = ["openai (>=3.31.0)"]
 spec = ["pydantic-handlebars (>=0.1.0)", "pyyaml (>=6.0.2)"]
 tavily = ["tavily-python (>=0.5.0)"]
 temporal = ["temporalio (>=1.27.0)"]
@@ -2758,8 +2761,8 @@ voyageai = ["voyageai (>=0.3.7) ; python_version < \"3.14\""]
 web = ["starlette (>=1.3.1)", "uvicorn (>=0.38.0)"]
 web-fetch = ["markdownify (>=1.2)"]
 xai = ["xai-sdk (>=1.16.0)"]
-xai-realtime = ["openai (>=3.26.0)", "tiktoken (>=0.12.0)", "websockets (>=14.0)", "xai-sdk (>=1.16.0)"]
-zai = ["openai (>=3.26.0)"]
+xai-realtime = ["openai (>=3.31.0)", "tiktoken (>=0.12.0)", "websockets (>=14.0)", "xai-sdk (>=1.16.0)"]
+zai = ["openai (>=3.31.0)"]
 
 [[package]]
 name = "pydantic-core"
@@ -2917,14 +2920,14 @@ typing-extensions = ">=4.16.0"
 
 [[package]]
 name = "pydantic-graph"
-version = "2.57.0"
+version = "2.66.0"
 description = "Graph and state machine library"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "pydantic_graph-2.57.0-py3-none-any.whl", hash = "sha256:4c65193a1d8b58e3c6f29a15cbe7b96e1e255a1670a5bcb9a323b8600fc1686a"},
-    {file = "pydantic_graph-2.57.0.tar.gz", hash = "sha256:f848857baab4030c44b30de0c3ba650749d60f2295a0723645fb325f92191cf1"},
+    {file = "pydantic_graph-2.66.0-py3-none-any.whl", hash = "sha256:5b2a0aafc569c00fdb36879b1e80bed06ed5926979e2c1d44533222f208fd2ec"},
+    {file = "pydantic_graph-2.66.0.tar.gz", hash = "sha256:af31fd3ad5f3446556a270b14e1a43b12996f4bb52a0511f58f739dbacadb3f9"},
 ]
 
 [package.dependencies]
@@ -3067,25 +3070,25 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "9.1.1"
+version = "9.2.0"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "pytest-9.1.1-py3-none-any.whl", hash = "sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"},
-    {file = "pytest-9.1.1.tar.gz", hash = "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313"},
+    {file = "pytest-9.2.0-py3-none-any.whl", hash = "sha256:07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588"},
+    {file = "pytest-9.2.0.tar.gz", hash = "sha256:97c4f3b1f3c7414aa36465e09b8220f1d03627993bd51b1282e193753c80557b"},
 ]
 
 [package.dependencies]
 colorama = {version = ">=0.4", markers = "sys_platform == \"win32\""}
-iniconfig = ">=1.0.1"
-packaging = ">=22"
-pluggy = ">=1.5,<2"
-pygments = ">=2.7.2"
+iniconfig = ">=2"
+packaging = ">=24"
+pluggy = ">=1.6,<2"
+pygments = ">=2.15"
 
 [package.extras]
-dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
+dev = ["argcomplete", "asynctest ; python_version < \"3.11\"", "attrs (>=23.1)", "coverage (>=7.5)", "hypothesis (>=6.75)", "mock", "numpy (>=1.26)", "pexpect (>=4.9)", "pytest-xdist (>=3.5)", "pyyaml", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pytest-asyncio"
@@ -4465,4 +4468,4 @@ mcp = ["fastmcp"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "7bfd57d2b1f35ab89fc1cf9c9f9465c1a0abb02d5dcd34af2067b0705aafbd0e"
+content-hash = "2dedde9da8101667f864b1139f95839925a64a073974626f0a2d225cc16662e4"
