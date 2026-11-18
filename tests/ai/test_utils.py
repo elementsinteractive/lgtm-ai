@@ -21,6 +21,8 @@ from pydantic_ai.models.openai import OpenAIChatModel
     [
         ("gpt-4", None, "fake_api_key", OpenAIChatModel, does_not_raise()),
         ("gemini-2.5-flash", None, "fake_api_key", GoogleModel, does_not_raise()),
+        ("gemini-4-argon", None, "fake_api_key", GoogleModel, does_not_raise()),
+        ("gemini-3.8-flash", None, "fake_api_key", GoogleModel, does_not_raise()),
         ("does-not-exist", None, "fake_api_key", None, pytest.raises(MissingModelUrl)),
         ("does-not-exist", "http://localhost:1234", "fake_api_key", OpenAIChatModel, does_not_raise()),
         # We don't allow custom models with a URL but no API key (this used to be allowed before, but now OpenAI requires it)
@@ -62,6 +64,11 @@ def test_get_ai_model(model: str, model_url: str | None, ai_api_key: str, expect
         ("gemini-*-pro-preview-06-05", None, pytest.raises(InvalidModelWildCard)),
         # Wildcards that match preview, experimental and stable models must select the stable one
         ("gemini-2.5-pro*", "gemini-2.5-pro", does_not_raise()),
+        # New model families resolve to their only match
+        ("gemini-4*", "gemini-4-argon", does_not_raise()),
+        ("gemini-3.1-pro*", "gemini-3.1-pro-preview", does_not_raise()),
+        # Prefixes must not leak into other versions (e.g. `gemini-3-pro*` must not match `gemini-3.1-pro-preview`)
+        ("gemini-3-pro*", "gemini-3-pro-preview", does_not_raise()),
     ],
 )
 def test_get_ai_model_with_wildcard(model: str, expected_model_name: str, expectation: Any) -> None:

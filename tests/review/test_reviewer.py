@@ -16,9 +16,11 @@ from lgtm_ai.review.context import ContextRetriever
 from lgtm_ai.review.exceptions import (
     ClientUsageLimitsExceededError,
     InvalidAIResponseError,
+    PaymentRequiredError,
     ServerError,
     ServerUsageLimitsExceededError,
     UnknownAIError,
+    handle_ai_exceptions,
 )
 from pydantic import ValidationError
 from pydantic_ai import (
@@ -461,6 +463,7 @@ def test_file_is_excluded_from_prompt(context_retriever: ContextRetriever) -> No
         (AgentRunError("Error"), UnknownAIError),
         (ModelHTTPError(500, "Error"), ServerError),
         (ModelHTTPError(429, "Error"), ServerUsageLimitsExceededError),
+        (ModelHTTPError(402, "Error"), PaymentRequiredError),
         (ModelHTTPError(312, "Error"), UnknownAIError),
         (_get_ai_validation_error(is_validation_error=True), InvalidAIResponseError),
         (_get_ai_validation_error(is_validation_error=False), UnknownAIError),
@@ -488,6 +491,13 @@ def test_errors_are_handled_on_reviewer_agent(raised_error: Exception, expected_
         code_reviewer.review(
             target=PRUrl(full_url="foo", base_url="foo", repo_path="foo", pr_number=1, source=PRSource.gitlab)
         )
+
+
+def test_payment_required_error_is_raised_with_billing_message() -> None:
+    with pytest.raises(PaymentRequiredError, match="billing") as exc_info, handle_ai_exceptions():
+        raise ModelHTTPError(402, "gemini-3.8-flash", body={"error": {"status": "RESOURCE_EXHAUSTED"}})
+
+    assert isinstance(exc_info.value.__cause__, ModelHTTPError)
 
 
 def _assert_agent_message(
