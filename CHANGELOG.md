@@ -1,3 +1,16 @@
+## v1.7.0 (2026-11-18)
+
+### Feat
+
+- support new Gemini models and add billing error handling (#266)
+
+### Technical
+
+- bump the patch-updates group across 1 directory with 7 updates (#259)
+- bump authlib from 1.7.2 to 1.9.1 (#258)
+- bump certifi from 2026.7.22 to 2026.10.18 (#257)
+- bump the minor-updates group across 1 directory with 5 updates (#255)
+
 ## v1.6.2 (2026-10-11)
 
 ### Fix
