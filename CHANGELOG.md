@@ -1,10 +1,3 @@
-## Unreleased
-
-### Feat
-
-- support new Gemini models (`gemini-4-argon`, `gemini-3.8-flash`, `gemini-3.6-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`) and change the default model to `gemini-3.8-flash`
-- show a clear error message when the AI provider rejects a request because of billing (HTTP 402, e.g. depleted Google credits)
-
 ## v1.6.2 (2026-10-11)
 
 ### Fix
