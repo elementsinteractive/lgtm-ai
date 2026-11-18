@@ -88,10 +88,26 @@ class ModelNotFoundError(BaseAIError[ModelHTTPError]):
         return error.status_code == HTTPStatus.NOT_FOUND
 
 
+class PaymentRequiredError(BaseAIError[ModelHTTPError]):
+    def __init__(
+        self,
+        message: str = (
+            "The AI provider rejected the request because of billing: the account's credits are depleted "
+            "or no billing is configured. Check the billing of the project linked to your AI API key."
+        ),
+    ) -> None:
+        super().__init__(message)
+
+    @classmethod
+    def match(cls, error: ModelHTTPError) -> bool:
+        return error.status_code == HTTPStatus.PAYMENT_REQUIRED
+
+
 MAPPED_HTTP_ERRORS: Final[tuple[type[BaseAIError[ModelHTTPError]], ...]] = (
     ServerUsageLimitsExceededError,
     ServerError,
     ModelNotFoundError,
+    PaymentRequiredError,
 )
 """HTTP model errors that we know how they look like and can be mapped to a specific error, useful for the user."""
 
